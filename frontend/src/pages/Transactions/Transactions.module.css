@@ -1,0 +1,1865 @@
+/* =========================================================
+   TRANSACTIONS PAGE
+========================================================= */
+
+.page {
+    width: 100%;
+    min-height: 100%;
+    padding: 28px 32px 40px;
+    box-sizing: border-box;
+    background: #f7f8fa;
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 22px;
+}
+
+.header h1 {
+    margin: 0;
+    color: #111827;
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+}
+
+.header p {
+    margin: 6px 0 0;
+    color: #6b7280;
+    font-size: 13px;
+}
+
+
+/* =========================================================
+   TRANSACTION TYPE BAR
+========================================================= */
+
+.typeBar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 6px;
+    margin-bottom: 22px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    box-sizing: border-box;
+}
+
+.typeButton,
+.activeType {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+
+    min-width: 130px;
+    padding: 10px 14px;
+
+    border: 1px solid transparent;
+    border-radius: 7px;
+
+    background: transparent;
+
+    color: #6b7280;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        background 0.18s ease,
+        color 0.18s ease,
+        border-color 0.18s ease;
+}
+
+.typeButton:hover {
+    background: #f5f6f8;
+    color: #374151;
+}
+
+.activeType {
+    background: #111827;
+    color: #ffffff;
+    border-color: #111827;
+}
+
+.typeButton kbd,
+.activeType kbd {
+    padding: 3px 6px;
+
+    border-radius: 4px;
+
+    font-family: inherit;
+    font-size: 10px;
+    font-weight: 500;
+
+    white-space: nowrap;
+}
+
+.typeButton kbd {
+    background: #f1f3f5;
+    color: #6b7280;
+}
+
+.activeType kbd {
+    background: rgba(255, 255, 255, 0.14);
+    color: #ffffff;
+}
+
+
+/* =========================================================
+   MAIN WORKSPACE
+========================================================= */
+
+.workspace {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(380px, 0.85fr);
+    align-items: start;
+    gap: 24px;
+    width: 100%;
+}
+
+.workspaceSingle {
+    display: block;
+    width: 100%;
+}
+
+
+/* =========================================================
+   FORM
+========================================================= */
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+}
+
+
+/* =========================================================
+   CARD
+========================================================= */
+
+.card {
+    width: 100%;
+    padding: 20px;
+
+    background: #ffffff;
+
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+
+    box-sizing: border-box;
+}
+
+
+/* =========================================================
+   SECTION TITLE
+========================================================= */
+
+.sectionTitle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    margin-bottom: 18px;
+
+    color: #1f2937;
+
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.sectionTitle svg {
+    color: #6b7280;
+}
+
+
+/* =========================================================
+   FIELD GRID
+========================================================= */
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+
+/*
+   Related fields:
+   Date + Supplier
+   Amount + VAT
+*/
+
+.fieldRow {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+
+    width: 100%;
+}
+
+
+/* =========================================================
+   FIELD
+========================================================= */
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+
+    min-width: 0;
+}
+
+.field label,
+.referenceField label,
+.vatField label {
+    color: #374151;
+
+    font-size: 12px;
+    font-weight: 600;
+}
+
+
+/* =========================================================
+   INPUTS
+========================================================= */
+
+.field input,
+.referenceField input {
+    width: 100%;
+    height: 42px;
+
+    padding: 0 12px;
+
+    box-sizing: border-box;
+
+    border: 1px solid #d9dde5;
+    border-radius: 7px;
+
+    outline: none;
+
+    background: #ffffff;
+    color: #1f2937;
+
+    font-family: inherit;
+    font-size: 13px;
+
+    transition:
+        border-color 0.18s ease,
+        box-shadow 0.18s ease;
+}
+
+.field input:focus,
+.referenceField input:focus {
+    border-color: #9ca3af;
+
+    box-shadow:
+        0 0 0 3px rgba(156, 163, 175, 0.12);
+}
+
+.field input::placeholder,
+.referenceField input::placeholder {
+    color: #9ca3af;
+}
+
+
+/* =========================================================
+   DATE INPUT WITH ICON
+========================================================= */
+
+.inputIcon {
+    position: relative;
+
+    display: flex;
+    align-items: center;
+
+    width: 100%;
+}
+
+.inputIcon svg {
+    position: absolute;
+    left: 12px;
+
+    color: #9ca3af;
+
+    pointer-events: none;
+}
+
+.inputIcon input {
+    padding-left: 38px;
+}
+
+
+/* =========================================================
+   REFERENCE NUMBER
+========================================================= */
+
+.referenceField {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+
+    margin-top: 16px;
+}
+
+.referenceField input {
+    height: 42px;
+}
+
+
+/* =========================================================
+   AMOUNT FIELD
+========================================================= */
+
+.amountField {
+    display: flex;
+    align-items: center;
+
+    width: 100%;
+    height: 42px;
+
+    overflow: hidden;
+
+    border: 1px solid #d9dde5;
+    border-radius: 7px;
+
+    background: #ffffff;
+
+    box-sizing: border-box;
+
+    transition:
+        border-color 0.18s ease,
+        box-shadow 0.18s ease;
+}
+
+.amountField:focus-within {
+    border-color: #9ca3af;
+
+    box-shadow:
+        0 0 0 3px rgba(156, 163, 175, 0.12);
+}
+
+.amountField span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    height: 100%;
+
+    padding: 0 12px;
+
+    border-right: 1px solid #e5e7eb;
+
+    background: #f9fafb;
+
+    color: #6b7280;
+
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.amountField input {
+    flex: 1;
+
+    width: 100%;
+    height: 100%;
+
+    min-width: 0;
+
+    padding: 0 12px;
+
+    border: none;
+    outline: none;
+
+    background: transparent;
+
+    color: #1f2937;
+
+    font-family: inherit;
+    font-size: 13px;
+}
+
+.amountField input:focus {
+    border: none;
+    outline: none;
+    box-shadow: none;
+}
+
+
+/* =========================================================
+   VAT FIELD
+========================================================= */
+
+.vatField {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+
+    min-width: 0;
+}
+
+.vatInputWrapper {
+    display: flex;
+    align-items: center;
+
+    width: 100%;
+    height: 42px;
+
+    overflow: hidden;
+
+    border: 1px solid #d9dde5;
+    border-radius: 7px;
+
+    background: #ffffff;
+
+    box-sizing: border-box;
+
+    transition:
+        border-color 0.18s ease,
+        box-shadow 0.18s ease;
+}
+
+.vatInputWrapper:focus-within {
+    border-color: #9ca3af;
+
+    box-shadow:
+        0 0 0 3px rgba(156, 163, 175, 0.12);
+}
+
+.vatInputWrapper input {
+    flex: 1;
+
+    width: 100%;
+    height: 100%;
+
+    min-width: 0;
+
+    padding: 0 12px;
+
+    border: none;
+    outline: none;
+
+    background: transparent;
+
+    color: #1f2937;
+
+    font-family: inherit;
+    font-size: 13px;
+}
+
+.vatInputWrapper input:focus {
+    border: none;
+    outline: none;
+    box-shadow: none;
+}
+
+.vatInputWrapper span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    height: 100%;
+
+    min-width: 40px;
+
+    padding: 0 12px;
+
+    border-left: 1px solid #e5e7eb;
+
+    background: #f9fafb;
+
+    color: #6b7280;
+
+    font-size: 13px;
+    font-weight: 600;
+}
+
+
+/* =========================================================
+   CALCULATION SUMMARY
+========================================================= */
+
+.calculationSummary {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+
+    margin-top: 18px;
+    padding-top: 16px;
+
+    border-top: 1px solid #edf0f2;
+}
+
+.calculationSummary>div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    color: #6b7280;
+
+    font-size: 12px;
+}
+
+.calculationSummary strong {
+    color: #374151;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.calculationSummary .totalRow {
+    margin-top: 5px;
+    padding-top: 12px;
+
+    border-top: 1px solid #e5e7eb;
+
+    color: #111827;
+
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.calculationSummary .totalRow strong {
+    color: #111827;
+    font-size: 16px;
+}
+
+
+/* =========================================================
+   TEXTAREA
+========================================================= */
+
+.card textarea {
+    display: block;
+
+    width: 100%;
+    min-height: 100px;
+
+    padding: 12px;
+
+    box-sizing: border-box;
+
+    resize: vertical;
+
+    border: 1px solid #d9dde5;
+    border-radius: 7px;
+
+    outline: none;
+
+    background: #ffffff;
+    color: #1f2937;
+
+    font-family: inherit;
+    font-size: 13px;
+    line-height: 1.5;
+
+    transition:
+        border-color 0.18s ease,
+        box-shadow 0.18s ease;
+}
+
+.card textarea:focus {
+    border-color: #9ca3af;
+
+    box-shadow:
+        0 0 0 3px rgba(156, 163, 175, 0.12);
+}
+
+.card textarea::placeholder {
+    color: #9ca3af;
+}
+
+
+/* =========================================================
+   ERROR
+========================================================= */
+
+.error {
+    width: 100%;
+
+    padding: 12px 14px;
+
+    box-sizing: border-box;
+
+    border: 1px solid #fecaca;
+    border-radius: 7px;
+
+    background: #fef2f2;
+
+    color: #b91c1c;
+
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+
+/* =========================================================
+   SUCCESS
+========================================================= */
+
+.success {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    width: 100%;
+
+    padding: 12px 14px;
+
+    box-sizing: border-box;
+
+    border: 1px solid #bbf7d0;
+    border-radius: 7px;
+
+    background: #f0fdf4;
+
+    color: #15803d;
+
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.success svg {
+    flex-shrink: 0;
+}
+
+
+/* =========================================================
+   ACTIONS
+========================================================= */
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+
+    width: 100%;
+}
+
+.saveButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    min-height: 42px;
+
+    padding: 0 18px;
+
+    border: 1px solid #111827;
+    border-radius: 7px;
+
+    background: #111827;
+
+    color: #ffffff;
+
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        background 0.18s ease,
+        border-color 0.18s ease,
+        transform 0.18s ease;
+}
+
+.saveButton:hover:not(:disabled) {
+    background: #1f2937;
+    border-color: #1f2937;
+}
+
+.saveButton:active:not(:disabled) {
+    transform: translateY(1px);
+}
+
+.saveButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+
+/* =========================================================
+   PREVIEW PANEL
+========================================================= */
+
+.previewPanel {
+    position: sticky;
+    top: 24px;
+
+    min-width: 0;
+
+    padding: 18px;
+
+    background: #ffffff;
+
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+
+    box-sizing: border-box;
+}
+
+
+/* =========================================================
+   PREVIEW HEADER
+========================================================= */
+
+.previewHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 14px;
+
+    margin-bottom: 16px;
+}
+
+.previewHeader h2 {
+    margin: 3px 0 0;
+
+    color: #111827;
+
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.previewEyebrow {
+    color: #9ca3af;
+
+    font-size: 9px;
+    font-weight: 700;
+
+    letter-spacing: 0.12em;
+}
+
+.previewHideButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    padding: 7px 9px;
+
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+
+    background: #ffffff;
+
+    color: #6b7280;
+
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        background 0.18s ease,
+        color 0.18s ease,
+        border-color 0.18s ease;
+}
+
+.previewHideButton:hover {
+    background: #f9fafb;
+    color: #374151;
+    border-color: #d1d5db;
+}
+
+
+/* =========================================================
+   BILL PAPER
+========================================================= */
+
+.billPreview {
+    position: relative;
+
+    width: 100%;
+
+    padding: 26px 24px;
+
+    box-sizing: border-box;
+
+    background: #ffffff;
+
+    border: 1px solid #e5e7eb;
+
+    /*
+     * Subtle paper-like shadow
+     */
+
+    box-shadow:
+        0 8px 24px rgba(15, 23, 42, 0.06);
+
+    color: #1f2937;
+}
+
+
+/* =========================================================
+   COMPANY HEADER
+========================================================= */
+
+.billCompany {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    padding-bottom: 18px;
+
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.companyLogo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 34px;
+    height: 34px;
+
+    flex-shrink: 0;
+
+    border-radius: 6px;
+
+    background: #111827;
+
+    color: #ffffff;
+
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.billCompany strong {
+    display: block;
+
+    color: #111827;
+
+    font-size: 14px;
+    font-weight: 800;
+
+    letter-spacing: 0.03em;
+}
+
+.billCompany span {
+    display: block;
+
+    margin-top: 2px;
+
+    color: #9ca3af;
+
+    font-size: 8px;
+    font-weight: 700;
+
+    letter-spacing: 0.12em;
+}
+
+
+/* =========================================================
+   BILL TITLE
+========================================================= */
+
+.billTitle {
+    margin-top: 22px;
+
+    color: #111827;
+
+    font-size: 18px;
+    font-weight: 800;
+
+    letter-spacing: -0.2px;
+}
+
+
+/* =========================================================
+   BILL META
+========================================================= */
+
+.billMeta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    gap: 14px;
+
+    margin-top: 18px;
+    padding-bottom: 16px;
+
+    border-bottom: 1px solid #edf0f2;
+}
+
+.billMeta>div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    min-width: 0;
+}
+
+.billMeta span {
+    color: #9ca3af;
+
+    font-size: 9px;
+    font-weight: 700;
+
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.billMeta strong {
+    overflow: hidden;
+
+    color: #374151;
+
+    font-size: 11px;
+    font-weight: 600;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   BILL PARTY
+========================================================= */
+
+.billParty {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+
+    margin-top: 16px;
+    padding: 12px;
+
+    border-radius: 6px;
+
+    background: #f8fafc;
+}
+
+.billParty span {
+    color: #9ca3af;
+
+    font-size: 8px;
+    font-weight: 700;
+
+    letter-spacing: 0.08em;
+}
+
+.billParty strong {
+    overflow: hidden;
+
+    color: #374151;
+
+    font-size: 12px;
+    font-weight: 700;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   BILL ITEMS
+========================================================= */
+
+.billItems {
+    margin-top: 20px;
+}
+
+.billItemsHeader,
+.billItem {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+
+    gap: 12px;
+
+    align-items: center;
+}
+
+.billItemsHeader {
+    padding-bottom: 8px;
+
+    border-bottom: 1px solid #e5e7eb;
+
+    color: #9ca3af;
+
+    font-size: 8px;
+    font-weight: 700;
+
+    letter-spacing: 0.07em;
+}
+
+.billItemsHeader span:last-child,
+.billItem strong {
+    text-align: right;
+}
+
+.billItem {
+    padding: 13px 0;
+
+    border-bottom: 1px solid #f0f1f3;
+
+    color: #374151;
+
+    font-size: 11px;
+}
+
+.billItem span {
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.billItem strong {
+    color: #374151;
+
+    font-size: 11px;
+    font-weight: 600;
+}
+
+
+/* =========================================================
+   BILL TOTALS
+========================================================= */
+
+.billTotals {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+
+    margin-top: 16px;
+}
+
+.billTotals>div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 12px;
+
+    color: #6b7280;
+
+    font-size: 10px;
+}
+
+.billTotals strong {
+    color: #374151;
+
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.billGrandTotal {
+    margin-top: 4px;
+    padding-top: 12px;
+
+    border-top: 1px solid #dfe3e8;
+}
+
+.billGrandTotal span {
+    color: #111827;
+
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.billGrandTotal strong {
+    color: #111827;
+
+    font-size: 15px;
+    font-weight: 800;
+}
+
+
+/* =========================================================
+   PENDING BADGE
+========================================================= */
+
+.pendingBadge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    margin-top: 20px;
+
+    padding: 6px 9px;
+
+    border: 1px solid #fde68a;
+    border-radius: 5px;
+
+    background: #fffbeb;
+
+    color: #a16207;
+
+    font-size: 8px;
+    font-weight: 800;
+
+    letter-spacing: 0.08em;
+}
+
+
+/* =========================================================
+   BILL NARRATION
+========================================================= */
+
+.billNarration {
+    margin-top: 18px;
+    padding-top: 14px;
+
+    border-top: 1px solid #edf0f2;
+}
+
+.billNarration span {
+    display: block;
+
+    margin-bottom: 5px;
+
+    color: #9ca3af;
+
+    font-size: 8px;
+    font-weight: 700;
+
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+}
+
+.billNarration p {
+    margin: 0;
+
+    color: #6b7280;
+
+    font-size: 10px;
+    line-height: 1.5;
+
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+
+/* =========================================================
+   BILL FOOTER
+========================================================= */
+
+.billFooter {
+    margin-top: 22px;
+    padding-top: 12px;
+
+    border-top: 1px dashed #dfe3e8;
+
+    color: #9ca3af;
+
+    font-size: 8px;
+    line-height: 1.5;
+
+    text-align: center;
+}
+
+
+/* =========================================================
+   SHOW PREVIEW BUTTON
+========================================================= */
+
+.showPreviewButton {
+    position: fixed;
+
+    right: 24px;
+    bottom: 24px;
+
+    z-index: 20;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    min-height: 40px;
+
+    padding: 0 14px;
+
+    border: 1px solid #111827;
+    border-radius: 7px;
+
+    background: #111827;
+
+    color: #ffffff;
+
+    box-shadow:
+        0 6px 18px rgba(15, 23, 42, 0.16);
+
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        background 0.18s ease,
+        transform 0.18s ease;
+}
+
+.showPreviewButton:hover {
+    background: #1f2937;
+}
+
+.showPreviewButton:active {
+    transform: translateY(1px);
+}
+
+
+/* =========================================================
+   INPUT NUMBER CLEANUP
+========================================================= */
+
+.amountField input::-webkit-outer-spin-button,
+.amountField input::-webkit-inner-spin-button,
+.vatInputWrapper input::-webkit-outer-spin-button,
+.vatInputWrapper input::-webkit-inner-spin-button {
+    margin: 0;
+    -webkit-appearance: none;
+}
+
+.amountField input[type="number"],
+.vatInputWrapper input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 1200px) {
+
+    .workspace {
+        grid-template-columns:
+            minmax(0, 1fr) minmax(330px, 0.75fr);
+
+        gap: 18px;
+    }
+
+    .page {
+        padding-left: 24px;
+        padding-right: 24px;
+    }
+
+    .billPreview {
+        padding: 22px 18px;
+    }
+
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 950px) {
+
+    .workspace {
+        grid-template-columns: 1fr;
+    }
+
+    .previewPanel {
+        position: relative;
+        top: auto;
+    }
+
+    .previewPanel {
+        order: 2;
+    }
+
+    .form {
+        order: 1;
+    }
+
+}
+
+
+/* =========================================================
+   SMALL TABLET / MOBILE
+========================================================= */
+
+@media (max-width: 700px) {
+
+    .page {
+        padding: 20px 16px 32px;
+    }
+
+
+    .header h1 {
+        font-size: 22px;
+    }
+
+
+    .typeBar {
+        overflow-x: auto;
+
+        scrollbar-width: none;
+    }
+
+    .typeBar::-webkit-scrollbar {
+        display: none;
+    }
+
+
+    .typeButton,
+    .activeType {
+        flex-shrink: 0;
+
+        min-width: 115px;
+    }
+
+
+    .grid,
+    .fieldRow {
+        grid-template-columns: 1fr;
+    }
+
+
+    .card {
+        padding: 16px;
+    }
+
+
+    .previewPanel {
+        padding: 14px;
+    }
+
+
+    .billMeta {
+        grid-template-columns: 1fr;
+    }
+
+
+    .actions {
+        justify-content: stretch;
+    }
+
+
+    .saveButton {
+        width: 100%;
+    }
+
+}
+
+
+/* =========================================================
+   VERY SMALL SCREENS
+========================================================= */
+
+@media (max-width: 450px) {
+
+    .page {
+        padding: 16px 12px 28px;
+    }
+
+
+    .header {
+        margin-bottom: 16px;
+    }
+
+
+    .header p {
+        font-size: 12px;
+    }
+
+
+    .typeBar {
+        margin-bottom: 16px;
+    }
+
+
+    .typeButton,
+    .activeType {
+        min-width: 105px;
+
+        padding: 9px 11px;
+
+        font-size: 12px;
+    }
+
+
+    .typeButton kbd,
+    .activeType kbd {
+        display: none;
+    }
+
+
+    .billPreview {
+        padding: 20px 16px;
+    }
+
+
+    .billTitle {
+        font-size: 16px;
+    }
+
+
+    .showPreviewButton {
+        right: 16px;
+        bottom: 16px;
+    }
+
+}
+
+/* =========================================================
+   PAYMENT
+   ========================================================= */
+
+.paymentSelection {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    width: 100%;
+}
+
+.paymentSelection .field {
+    margin: 0;
+}
+
+.paymentSelection select {
+    width: 100%;
+}
+
+
+/* Selected bill preview */
+
+.selectedPaymentBill {
+    width: 100%;
+    border: 1px solid var(--border-color, #e5e7eb);
+    border-radius: 10px;
+    background: #fafafa;
+    overflow: hidden;
+}
+
+.selectedPaymentBillHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--border-color, #e5e7eb);
+    background: #f5f5f5;
+}
+
+.selectedPaymentBillHeader span {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #777;
+}
+
+.selectedPaymentBillHeader strong {
+    font-size: 13px;
+    font-weight: 700;
+    color: #222;
+}
+
+
+/* Amount information */
+
+.selectedPaymentBillAmounts {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+}
+
+.selectedPaymentBillAmounts>div {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 13px 14px;
+}
+
+.selectedPaymentBillAmounts>div+div {
+    border-left: 1px solid var(--border-color, #e5e7eb);
+}
+
+.selectedPaymentBillAmounts span {
+    font-size: 11px;
+    color: #777;
+}
+
+.selectedPaymentBillAmounts strong {
+    font-size: 14px;
+    font-weight: 700;
+    color: #222;
+}
+
+
+/* Empty states */
+
+.paymentEmpty {
+    padding: 14px;
+    border: 1px dashed #d8d8d8;
+    border-radius: 10px;
+    background: #fafafa;
+    color: #888;
+    font-size: 12px;
+    text-align: center;
+}
+
+
+/* Bill dropdown */
+
+.paymentSelection select:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* =========================================================
+   SAVED VOUCHER FULL SCREEN
+========================================================= */
+
+.savedVoucherOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+
+    width: 100vw;
+    height: 100vh;
+
+    overflow-y: auto;
+
+    background: rgba(15, 23, 42, 0.72);
+
+    padding: 40px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+
+/* =========================================================
+   SAVED VOUCHER ACTIONS
+========================================================= */
+
+.savedVoucherActions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+
+.printButton,
+.closeVoucherButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    height: 40px;
+
+    padding: 0 16px;
+
+    border-radius: 8px;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    border: 1px solid transparent;
+
+    transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        transform 0.15s ease;
+}
+
+
+.printButton {
+    background: #111827;
+    color: #ffffff;
+}
+
+
+.printButton:hover {
+    background: #1f2937;
+}
+
+
+.closeVoucherButton {
+    background: #ffffff;
+    color: #374151;
+    border-color: #d1d5db;
+}
+
+
+.closeVoucherButton:hover {
+    background: #f9fafb;
+}
+
+
+.printButton:active,
+.closeVoucherButton:active {
+    transform: translateY(1px);
+}
+
+
+/* =========================================================
+   SAVED VOUCHER PAPER
+========================================================= */
+
+.savedVoucherOverlay .billPreview {
+    width: min(820px, 100%);
+
+    margin: 30px auto 50px;
+
+    background: #ffffff;
+
+    box-shadow:
+        0 25px 70px rgba(0, 0, 0, 0.22);
+}
+
+/* =========================================================
+   PRINT
+========================================================= */
+
+@media print {
+
+    body * {
+        visibility: hidden !important;
+    }
+
+
+    .savedVoucherOverlay,
+    .savedVoucherOverlay * {
+        visibility: visible !important;
+    }
+
+
+    .savedVoucherOverlay {
+        position: absolute;
+
+        inset: 0;
+
+        width: 100%;
+        height: auto;
+
+        padding: 0;
+
+        overflow: visible;
+
+        background: #ffffff;
+    }
+
+
+    .savedVoucherOverlay .previewHeader {
+        display: none !important;
+    }
+
+
+    .savedVoucherOverlay .billPreview {
+        width: 100%;
+
+        margin: 0;
+
+        box-shadow: none;
+
+        border: none;
+    }
+
+
+    .savedVoucherActions {
+        display: none !important;
+    }
+}
+
+/* =========================================================
+   SAVED PRINTABLE VOUCHER
+========================================================= */
+
+.savedVoucherOverlay {
+    position: fixed;
+    inset: 0;
+
+    z-index: 99999;
+
+    width: 100vw;
+    height: 100vh;
+
+    overflow-y: auto;
+
+    background: rgba(15, 23, 42, 0.72);
+
+    padding: 24px;
+
+    box-sizing: border-box;
+}
+
+
+.savedVoucherToolbar {
+    width: min(210mm, 100%);
+
+    margin: 0 auto 18px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 20px;
+
+    color: #ffffff;
+}
+
+
+.savedVoucherToolbar>div:first-child {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 4px;
+}
+
+
+.savedVoucherToolbar span {
+    font-size: 10px;
+
+    font-weight: 700;
+
+    letter-spacing: 0.08em;
+
+    opacity: 0.7;
+}
+
+
+.savedVoucherToolbar strong {
+    font-size: 18px;
+
+    font-weight: 700;
+}
+
+
+.savedVoucherActions {
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+}
+
+
+.printVoucherButton,
+.closeVoucherButton {
+    height: 40px;
+
+    padding: 0 15px;
+
+    border-radius: 8px;
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 8px;
+
+    border: 1px solid transparent;
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+
+.printVoucherButton {
+    background: #ffffff;
+
+    color: #111827;
+}
+
+
+.closeVoucherButton {
+    background: transparent;
+
+    color: #ffffff;
+
+    border-color: rgba(255,
+            255,
+            255,
+            0.4);
+}
+
+
+.printableVoucherPaper {
+    width: 210mm;
+
+    max-width: 100%;
+
+    margin: 0 auto;
+
+    background: #ffffff;
+
+    box-shadow:
+        0 25px 70px rgba(0, 0, 0, 0.25);
+}
+
+@media print {
+
+    @page {
+        size: A4;
+
+        margin: 0;
+    }
+
+
+    body * {
+        visibility: hidden !important;
+    }
+
+
+    .savedVoucherOverlay,
+    .savedVoucherOverlay * {
+        visibility: visible !important;
+    }
+
+
+    .savedVoucherOverlay {
+        position: absolute;
+
+        inset: 0;
+
+        width: 100%;
+
+        height: auto;
+
+        padding: 0;
+
+        overflow: visible;
+
+        background: #ffffff;
+    }
+
+
+    .savedVoucherToolbar {
+        display: none !important;
+    }
+
+
+    .printableVoucherPaper {
+        width: 210mm;
+
+        max-width: none;
+
+        margin: 0;
+
+        box-shadow: none;
+    }
+
+}
