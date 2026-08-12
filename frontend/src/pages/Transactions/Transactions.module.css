@@ -1863,3 +1863,240 @@
     }
 
 }
+/* =========================================================
+   EXPENSE ITEMS
+========================================================= */
+
+.expenseItemsSection {
+    margin-top: 20px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #ffffff;
+}
+
+.expenseItemsHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 18px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #fafafa;
+}
+
+.expenseItemsHeader h3 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.expenseItemsHeader p {
+    margin: 4px 0 0;
+    color: #6b7280;
+    font-size: 12px;
+}
+
+.addItemButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    border: 0;
+    border-radius: 8px;
+    padding: 9px 12px;
+    background: #111827;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.addItemButton:hover {
+    opacity: 0.92;
+}
+
+.expenseItemsEmpty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    min-height: 110px;
+    padding: 20px;
+    text-align: center;
+    color: #6b7280;
+}
+
+.expenseItemsEmpty strong {
+    color: #374151;
+    font-size: 13px;
+}
+
+.expenseItemsEmpty span {
+    font-size: 12px;
+}
+
+.expenseItemsTable {
+    width: 100%;
+}
+
+.expenseItemsTableHeader,
+.expenseItemRow {
+    display: grid;
+    grid-template-columns: minmax(180px, 1fr) 80px 150px 130px 42px;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+}
+
+.expenseItemsTableHeader {
+    background: #f8fafc;
+    border-bottom: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.expenseItemRow {
+    border-bottom: 1px solid #eef0f3;
+}
+
+.expenseItemRow:last-child {
+    border-bottom: 0;
+}
+
+.expenseItemRow input {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    border: 1px solid #dfe3e8;
+    border-radius: 7px;
+    padding: 9px 10px;
+    background: #fff;
+    color: #111827;
+    font-size: 12px;
+    outline: none;
+}
+
+.expenseItemRow input:focus {
+    border-color: #9ca3af;
+}
+
+.itemRateField {
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    border: 1px solid #dfe3e8;
+    border-radius: 7px;
+    background: #fff;
+}
+
+.itemRateField span {
+    padding-left: 9px;
+    color: #6b7280;
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.itemRateField input {
+    border: 0;
+    border-radius: 0;
+    padding-left: 5px;
+}
+
+.itemRateField input:focus {
+    border: 0;
+}
+
+.expenseItemAmount {
+    text-align: right;
+    color: #111827;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.removeItemButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    color: #9ca3af;
+    cursor: pointer;
+}
+
+.removeItemButton:hover {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.billItem small {
+    margin-left: 5px;
+    color: #6b7280;
+    font-size: 10px;
+}
+
+@media (max-width: 850px) {
+    .expenseItemsTableHeader {
+        display: none;
+    }
+
+    .expenseItemRow {
+        grid-template-columns: 1fr 80px;
+    }
+
+    .expenseItemRow > :nth-child(3),
+    .expenseItemRow > :nth-child(4) {
+        grid-column: span 1;
+    }
+}
+
+/* =========================================================
+   ITEMIZED EXPENSE OVERRIDES
+========================================================= */
+
+.itemSubtotalBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 14px;
+    padding: 12px 14px;
+    border-top: 1px solid #e5e7eb;
+    background: #fafafa;
+    color: #6b7280;
+    font-size: 12px;
+}
+
+.itemSubtotalBar strong {
+    color: #111827;
+    font-size: 13px;
+}
+
+.itemSelectorField {
+    min-width: 0;
+}
+
+.expenseItemsSection {
+    margin-top: 0;
+}
+
+/* Three fields remain usable before the amount column becomes tight. */
+.expenseItemsTableHeader,
+.expenseItemRow {
+    grid-template-columns: minmax(190px, 1fr) 70px 140px 130px 42px;
+}
+
+.billMeta {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.billMeta strong {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+}

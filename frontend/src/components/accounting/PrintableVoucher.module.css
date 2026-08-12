@@ -578,3 +578,75 @@
     }
 
 }
+/* =========================================================
+   ITEMIZED EXPENSE TABLE FIXES
+========================================================= */
+
+.particularsTable {
+    width: 100%;
+    border-collapse: collapse;
+    border-spacing: 0;
+    table-layout: fixed;
+}
+
+.particularsTable th,
+.particularsTable td {
+    border: 1px solid #555;
+}
+
+.particularsTable th:first-child,
+.particularsTable td:first-child {
+    width: 76%;
+}
+
+.particularsTable th:last-child,
+.particularsTable td:last-child {
+    width: 24%;
+}
+
+.particularsTable th {
+    background: #f5f5f5;
+}
+
+.particularsTable td {
+    min-height: 8mm;
+    padding: 2.5mm 3mm;
+    vertical-align: middle;
+}
+
+.amountCell {
+    text-align: right;
+    white-space: nowrap;
+    font-weight: 600;
+}
+
+.itemMeta {
+    margin-left: 5px;
+    color: #555;
+    font-size: 9.5px;
+    font-weight: 400;
+}
+
+.summaryRow td {
+    background: #fafafa;
+    font-weight: 600;
+}
+
+.grandTotalRow td {
+    background: #f1f1f1;
+    border-top: 1.5px solid #111;
+    border-bottom: 1.5px solid #111;
+    font-weight: 700;
+}
+
+@media print {
+    .particularsTable {
+        width: 100% !important;
+        border-collapse: collapse !important;
+    }
+
+    .particularsTable th,
+    .particularsTable td {
+        border: 1px solid #555 !important;
+    }
+}

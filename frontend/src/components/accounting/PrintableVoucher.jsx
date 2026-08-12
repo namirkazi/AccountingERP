@@ -164,6 +164,8 @@ export default function PrintableVoucher({
     date,
     party,
     referenceNumber,
+    voucherNumber,
+    items = [],
     amount,
     discountAmount = 0,
     vatRate = 0,
@@ -188,6 +190,10 @@ export default function PrintableVoucher({
      * ---------------------------------------------------------
      */
 
+    const supplierReference =
+        referenceNumber ||
+        "—";
+
     const reference =
         isPayment
             ? (
@@ -197,7 +203,7 @@ export default function PrintableVoucher({
                 "—"
             )
             : (
-                referenceNumber ||
+                voucherNumber ||
                 "—"
             );
 
@@ -304,6 +310,10 @@ export default function PrintableVoucher({
                 narration ||
                 "Expense"
             );
+
+    const expenseItems = Array.isArray(items)
+        ? items.filter(item => String(item?.description || "").trim())
+        : [];
 
 
     return (
@@ -426,12 +436,16 @@ export default function PrintableVoucher({
                         {supplierName}
                     </strong>
 
-                    {reference && (
+                    {isExpense && supplierReference !== "—" && (
+                        <span>
+                            Supplier Bill / Reference : {supplierReference}
+                        </span>
+                    )}
 
+                    {isPayment && reference && (
                         <span>
                             ({reference})
                         </span>
-
                     )}
 
                 </div>
@@ -463,94 +477,100 @@ export default function PrintableVoucher({
 
 
                 <tbody>
+                    {isExpense ? (
+                        expenseItems.length > 0 ? (
+                            expenseItems.map((item, index) => {
+                                const quantity = Number(item.quantity) || 0;
+                                const rate = Number(item.rate) || 0;
+                                const lineTotal = quantity * rate;
 
-                    <tr>
-
-                        <td>
-
-                            <div className={styles.description}>
-
-                                {description}
-
-                            </div>
-
-
-                            {isPayment &&
-                                selectedPaymentExpense && (
-
-                                <div className={styles.billReference}>
-
-                                    Bill Reference :
-                                    {" "}
-                                    {reference}
-
+                                return (
+                                    <tr key={item.id || index}>
+                                        <td>
+                                            <div className={styles.description}>
+                                                {item.description}
+                                                {quantity > 0 && (
+                                                    <span className={styles.itemMeta}>
+                                                        {`  × ${quantity} @ AED ${formatAmount(rate)}`}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </td>
+                                        <td className={styles.amountCell}>
+                                            AED {formatAmount(lineTotal)}
+                                        </td>
+                                    </tr>
+                                );
+                            })
+                        ) : (
+                            <tr>
+                                <td>No items</td>
+                                <td className={styles.amountCell}>AED 0.00</td>
+                            </tr>
+                        )
+                    ) : (
+                        <tr>
+                            <td>
+                                <div className={styles.description}>
+                                    {description}
                                 </div>
 
-                            )}
-
-                        </td>
-
-
-                        <td className={styles.amountCell}>
-
-                            AED{" "}
-                            {formatAmount(
-                                isPayment
-                                    ? paymentTotal
-                                    : expenseAmount
-                            )}
-
-                        </td>
-
-                    </tr>
-
-
-                    {isExpense &&
-                        discount > 0 && (
-
-                        <tr>
-
-                            <td>
-                                Less : Discount
+                                {isPayment && selectedPaymentExpense && (
+                                    <div className={styles.billReference}>
+                                        Bill Reference : {reference}
+                                    </div>
+                                )}
                             </td>
 
                             <td className={styles.amountCell}>
-
-                                -
-                                {" "}
-                                AED{" "}
-                                {formatAmount(
-                                    discount
-                                )}
-
+                                AED {formatAmount(paymentTotal)}
                             </td>
-
                         </tr>
-
                     )}
-
 
                     {isExpense && (
-
-                        <tr>
-
-                            <td>
-                                VAT ({vatRate}%)
-                            </td>
-
+                        <tr className={styles.summaryRow}>
+                            <td>Subtotal</td>
                             <td className={styles.amountCell}>
-
-                                AED{" "}
-                                {formatAmount(
-                                    vat
+                                AED {formatAmount(
+                                    expenseItems.reduce(
+                                        (sum, item) =>
+                                            sum +
+                                            (Number(item.quantity) || 0) *
+                                            (Number(item.rate) || 0),
+                                        0
+                                    )
                                 )}
-
                             </td>
-
                         </tr>
-
                     )}
 
+                    {isExpense && discount > 0 && (
+                        <tr className={styles.summaryRow}>
+                            <td>Less : Discount</td>
+                            <td className={styles.amountCell}>
+                                - AED {formatAmount(discount)}
+                            </td>
+                        </tr>
+                    )}
+
+                    {isExpense && (
+                        <tr className={styles.summaryRow}>
+                            <td>VAT ({vatRate}%)</td>
+                            <td className={styles.amountCell}>
+                                AED {formatAmount(vat)}
+                            </td>
+                        </tr>
+                    )}
+
+                    {isExpense && (
+                        <tr className={styles.grandTotalRow}>
+                            <td>Total</td>
+                            <td className={styles.amountCell}>
+                                AED {formatAmount(expenseTotal)}
+                            </td>
+                        </tr>
+                    )}
                 </tbody>
 
             </table>
@@ -636,20 +656,14 @@ export default function PrintableVoucher({
                 TOTAL
             ================================================= */}
 
-            <div className={styles.totalRow}>
-
-                <span>
-                    Total
-                </span>
-
-                <strong>
-                    AED{" "}
-                    {formatAmount(
-                        finalAmount
-                    )}
-                </strong>
-
-            </div>
+            {isPayment && (
+                <div className={styles.totalRow}>
+                    <span>Total</span>
+                    <strong>
+                        AED {formatAmount(finalAmount)}
+                    </strong>
+                </div>
+            )}
 
 
             {/* =================================================
