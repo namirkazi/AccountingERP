@@ -10,9 +10,15 @@ export function createTransaction(data) {
     );
 }
 
-export function getNextSalesBillNumber() {
+export function getNextSalesBillNumber(date) {
+
+    const query =
+        date
+            ? `?date=${encodeURIComponent(date)}`
+            : "";
+
     return apiRequest(
-        "accounting/next_sales_bill_number.php",
+        `accounting/next_sales_bill_number.php${query}`,
         {
             method: "GET"
         }

@@ -868,80 +868,57 @@ export default function PrintableVoucher({
             <section className={styles.itemsSection}>
 
                 <table
-                    className={`${styles.itemsTable} ${isSale
-                        ? styles.salesItemsTable
-                        : ""
-                        }`}
+                    className={
+                        isSale
+                            ? `${styles.itemsTable} ${styles.salesItemsTable}`
+                            : styles.itemsTable
+                    }
                 >
 
                     <thead>
+                        <tr>
 
-                        {isSale ? (
+                            <th
+                                className={styles.serialColumn}
+                            >
+                                #
+                            </th>
 
-                            <tr>
+                            <th>
+                                {isSale
+                                    ? "SERVICE"
+                                    : "PARTICULARS"}
+                            </th>
 
-                                <th
-                                    className={styles.serialColumn}
-                                >
-                                    #
-                                </th>
+                            {!isSale && (
+                                <>
+                                    <th
+                                        className={
+                                            styles.quantityColumn
+                                        }
+                                    >
+                                        QTY
+                                    </th>
 
-                                <th>
-                                    SERVICE
-                                </th>
+                                    <th
+                                        className={
+                                            styles.rateColumn
+                                        }
+                                    >
+                                        RATE
+                                    </th>
+                                </>
+                            )}
 
-                                <th
-                                    className={
-                                        styles.amountColumn
-                                    }
-                                >
-                                    AMOUNT
-                                </th>
+                            <th
+                                className={
+                                    styles.amountColumn
+                                }
+                            >
+                                AMOUNT
+                            </th>
 
-                            </tr>
-
-                        ) : (
-
-                            <tr>
-
-                                <th
-                                    className={styles.serialColumn}
-                                >
-                                    #
-                                </th>
-
-                                <th>
-                                    PARTICULARS
-                                </th>
-
-                                <th
-                                    className={
-                                        styles.quantityColumn
-                                    }
-                                >
-                                    QTY
-                                </th>
-
-                                <th
-                                    className={
-                                        styles.rateColumn
-                                    }
-                                >
-                                    RATE
-                                </th>
-
-                                <th
-                                    className={
-                                        styles.amountColumn
-                                    }
-                                >
-                                    AMOUNT
-                                </th>
-
-                            </tr>
-
-                        )}
-
+                        </tr>
                     </thead>
 
 
@@ -959,8 +936,10 @@ export default function PrintableVoucher({
                                         getItemRate(item);
 
                                     const lineAmount =
-                                        getItemAmount(item);
-
+                                        getItemAmount(item) ||
+                                        (isSale && expenseItems.length === 1
+                                            ? finalAmount
+                                            : 0);
 
                                     return (
 
@@ -980,7 +959,6 @@ export default function PrintableVoucher({
                                                 {index + 1}
                                             </td>
 
-
                                             <td>
 
                                                 <div
@@ -994,7 +972,6 @@ export default function PrintableVoucher({
                                                         )
                                                     }
                                                 </div>
-
 
                                                 {isPayment &&
                                                     externalReference !==
@@ -1015,7 +992,6 @@ export default function PrintableVoucher({
 
                                             </td>
 
-
                                             {isSale ? (
 
                                                 <td
@@ -1023,12 +999,10 @@ export default function PrintableVoucher({
                                                         styles.numberCell
                                                     }
                                                 >
-
                                                     AED{" "}
                                                     {formatAmount(
                                                         lineAmount
                                                     )}
-
                                                 </td>
 
                                             ) : (
@@ -1043,7 +1017,6 @@ export default function PrintableVoucher({
                                                         {quantity}
                                                     </td>
 
-
                                                     <td
                                                         className={
                                                             styles.numberCell
@@ -1054,7 +1027,6 @@ export default function PrintableVoucher({
                                                             rate
                                                         )}
                                                     </td>
-
 
                                                     <td
                                                         className={

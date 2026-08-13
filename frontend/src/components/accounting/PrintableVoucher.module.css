@@ -870,12 +870,17 @@
 
         padding: 14mm 15mm 12mm;
 
+        box-sizing: border-box;
+
         box-shadow: none;
 
         page-break-after: always;
     }
-
-
+    .itemsTable {
+    width: 100% !important;
+    max-width: 100% !important;
+    table-layout: fixed !important;
+}
     .voucher:last-child {
         page-break-after: auto;
     }
@@ -1142,7 +1147,7 @@
 }
 
 .itemDescription {
-    font-size: 9px;
+    font-size: 15px;
     line-height: 1.4;
 }
 
@@ -1219,6 +1224,7 @@
     font-size: 8px;
     line-height: 1.3;
 }
+
 /* =========================================================
    SALES TABLE
    ========================================================= */

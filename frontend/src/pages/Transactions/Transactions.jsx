@@ -131,7 +131,12 @@ export default function Transactions() {
                 setError("");
 
                 const response =
-                    await getNextSalesBillNumber();
+                    await getNextSalesBillNumber(date);
+
+                console.log(
+                    "Sales bill number response:",
+                    response
+                );
 
                 if (cancelled) {
                     return;
@@ -141,6 +146,12 @@ export default function Transactions() {
                     response?.data?.bill_number ||
                     response?.bill_number ||
                     "";
+
+                if (!billNumber) {
+                    throw new Error(
+                        "The server did not return a Sales bill number."
+                    );
+                }
 
                 setVoucherNumber(
                     billNumber
@@ -157,6 +168,8 @@ export default function Transactions() {
                     error
                 );
 
+                setVoucherNumber("");
+
                 setError(
                     error.message ||
                     "Unable to generate Sales bill number."
@@ -172,7 +185,7 @@ export default function Transactions() {
             cancelled = true;
         };
 
-    }, [type]);
+    }, [type, date]);
     /*
      * =====================================================
      * KEYBOARD SHORTCUTS
@@ -517,7 +530,9 @@ export default function Transactions() {
                     reference_number:
                         type === "expense"
                             ? referenceNumber.trim()
-                            : null,
+                            : type === "sale"
+                                ? voucherNumber
+                                : null,
 
                     amount:
                         type === "expense"
@@ -575,7 +590,17 @@ export default function Transactions() {
                 });
 
             }
+            if (type === "sale") {
 
+                const savedBillNumber =
+                    response?.data?.bill_number ||
+                    response?.bill_number ||
+                    voucherNumber;
+
+                setVoucherNumber(
+                    savedBillNumber
+                );
+            }
             if (type === "expense") {
 
                 setVoucherNumber(
