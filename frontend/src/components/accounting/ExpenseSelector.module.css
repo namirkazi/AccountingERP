@@ -70,22 +70,22 @@
 
 .dropdown {
     position: absolute;
-    top: calc(100% + 6px);
+    top: calc(100% + 4px);
     left: 0;
     right: 0;
 
-    z-index: 500;
+    z-index: 9999;
 
-    max-height: 260px;
-    overflow-y: auto;
+    background: #ffffff;
 
-    border: 1px solid #e5e7eb;
-    border-radius: 10px;
-
-    background: #fff;
+    border: 1px solid #d9dde5;
+    border-radius: 8px;
 
     box-shadow:
-        0 10px 30px rgba(15, 23, 42, 0.12);
+        0 10px 30px rgba(0, 0, 0, 0.12);
+
+    max-height: 280px;
+    overflow-y: auto;
 }
 
 .result {

@@ -4,7 +4,6 @@ import styles from "../../Transactions.module.css";
 
 export default function SavedVoucher({
     type,
-    currentType,
     date,
     party,
     referenceNumber,
@@ -16,11 +15,11 @@ export default function SavedVoucher({
     vatAmount,
     totalAmount,
     paymentAmount,
-    accountId,
+    paymentAccount,
     selectedPaymentExpense,
     narration,
-    printVoucher,
-    closeSavedVoucher
+    onPrint,
+    onClose
 }) {
 
     return (
@@ -88,49 +87,21 @@ export default function SavedVoucher({
             <div className={styles.printableVoucherPaper}>
 
                 <PrintableVoucher
-
                     type={type}
-
                     date={date}
-
                     party={party}
-
-                    referenceNumber={
-                        referenceNumber
-                    }
-
+                    referenceNumber={referenceNumber}
                     voucherNumber={voucherNumber}
-
                     items={items}
-
                     amount={amount}
-
-                    discountAmount={
-                        discountAmount
-                    }
-
+                    discountAmount={discountAmount}
                     vatRate={vatRate}
-
                     vatAmount={vatAmount}
-
                     totalAmount={totalAmount}
-
-                    paymentAmount={
-                        paymentAmount
-                    }
-
-                    paymentAccount={
-                        accountId
-                    }
-
-                    selectedPaymentExpense={
-                        selectedPaymentExpense
-                    }
-
-                    narration={
-                        narration
-                    }
-
+                    paymentAmount={paymentAmount}
+                    paymentAccount={paymentAccount}
+                    selectedPaymentExpense={selectedPaymentExpense}
+                    narration={narration}
                 />
 
             </div>

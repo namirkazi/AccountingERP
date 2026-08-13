@@ -6,10 +6,10 @@ export default function PaymentPreview({
     date,
     party,
     partyName,
-    referenceNumber,
     paymentAmount,
-    selectedPaymentExpense,
+    selectedPaymentBill,
     narration,
+    voucherNumber,
     showPreview,
     setShowPreview,
     showSavedVoucher,
@@ -139,7 +139,9 @@ export default function PaymentPreview({
 
                         <strong>
                             {date
-                                ? new Date(date + "T00:00:00").toLocaleDateString(
+                                ? new Date(
+                                    date + "T00:00:00"
+                                ).toLocaleDateString(
                                     "en-AE",
                                     {
                                         day: "2-digit",
@@ -157,14 +159,27 @@ export default function PaymentPreview({
                     <div>
 
                         <span>
+                            Payment No.
+                        </span>
+
+                        <strong>
+                            {voucherNumber || "PAY-NEW"}
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
                             Bill Reference
                         </span>
 
                         <strong>
-                            {selectedPaymentExpense?.reference_number ||
+                            {selectedPaymentBill?.reference_number ||
                                 (
-                                    selectedPaymentExpense?.id
-                                        ? `Voucher #${selectedPaymentExpense.id}`
+                                    selectedPaymentBill?.id
+                                        ? `Voucher #${selectedPaymentBill.id}`
                                         : "—"
                                 )
                             }
@@ -210,7 +225,7 @@ export default function PaymentPreview({
                     <div className={styles.billItem}>
 
                         <span>
-                            {selectedPaymentExpense?.narration || "Supplier Payment"}
+                            {selectedPaymentBill?.narration || "Supplier Payment"}
                         </span>
 
                         <strong>
@@ -236,7 +251,7 @@ export default function PaymentPreview({
                     <div>
 
                         <PaymentSummary
-                            selectedPaymentExpense={selectedPaymentExpense}
+                            selectedPaymentBill={selectedPaymentBill}
                             paymentAmount={paymentAmount}
                         />
 

@@ -2,33 +2,38 @@ import styles from "../../Transactions.module.css";
 
 export default function PaymentBillSelector({
     party,
-    paymentExpenses,
-    selectedPaymentExpense,
-    setSelectedPaymentExpense,
+    paymentBills,
+    selectedPaymentBill,
+    setSelectedPaymentBill,
     setPaymentAmount,
-    setReferenceNumber
 }) {
 
     function handleChange(event) {
 
         const selectedId = event.target.value;
 
-        const expense = paymentExpenses.find(
+        const bill = paymentBills.find(
             item =>
                 String(item.id) === String(selectedId)
         );
 
-        if (!expense) {
+        if (!bill) {
 
-            setSelectedPaymentExpense(null);
+            setSelectedPaymentBill(null);
             setPaymentAmount("");
+
             return;
         }
 
-        setSelectedPaymentExpense(expense);
-        setPaymentAmount(expense.outstanding_amount);
-        setReferenceNumber(expense.reference_number || "");
+        setSelectedPaymentBill(bill);
+
+        // Default to the full outstanding amount.
+        // User can reduce it for a partial payment.
+        setPaymentAmount(
+            Number(bill.outstanding_amount || 0).toFixed(2)
+        );
     }
+
 
     return (
 
@@ -41,74 +46,88 @@ export default function PaymentBillSelector({
                 </label>
 
                 <select
-                    value={selectedPaymentExpense?.id || ""}
+                    value={selectedPaymentBill?.id || ""}
                     onChange={handleChange}
-                    disabled={!party || paymentExpenses.length === 0}
+                    disabled={
+                        !party ||
+                        paymentBills.length === 0
+                    }
                 >
 
                     <option value="">
+
                         {!party
                             ? "Select supplier first"
-                            : paymentExpenses.length === 0
+                            : paymentBills.length === 0
                                 ? "No outstanding bills"
                                 : "Select bill"
                         }
+
                     </option>
 
-                    {paymentExpenses.map(
-                        expense => (
 
-                            <option
-                                key={expense.id}
-                                value={expense.id}
-                            >
+                    {paymentBills.map(bill => (
 
-                                {expense.reference_number ||
-                                    `Voucher #${expense.id}`
+                        <option
+                            key={bill.id}
+                            value={bill.id}
+                        >
+
+                            {bill.reference_number ||
+                                `Voucher #${bill.id}`
+                            }
+
+                            {" — AED "}
+
+                            {Number(
+                                bill.outstanding_amount || 0
+                            ).toLocaleString(
+                                "en-AE",
+                                {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
                                 }
+                            )}
 
-                                {" — AED "}
+                            {" outstanding"}
 
-                                {Number(expense.outstanding_amount || 0).toLocaleString(
-                                    "en-AE",
-                                    {
-                                        minimumFractionDigits: 2,
-                                        maximumFractionDigits: 2
-                                    }
-                                )}
+                        </option>
 
-                                {" outstanding"}
-
-                            </option>
-
-                        )
-                    )}
+                    ))}
 
                 </select>
 
             </div>
 
 
-            {selectedPaymentExpense && (
+            {selectedPaymentBill && (
 
                 <div className={styles.selectedPaymentBill}>
 
-                    <div className={styles.selectedPaymentBillHeader}>
+                    <div
+                        className={
+                            styles.selectedPaymentBillHeader
+                        }
+                    >
 
                         <span>
                             BILL BEING PAID
                         </span>
 
                         <strong>
-                            {selectedPaymentExpense.reference_number ||
-                                `Voucher #${selectedPaymentExpense.id}`
+                            {selectedPaymentBill.reference_number ||
+                                `Voucher #${selectedPaymentBill.id}`
                             }
                         </strong>
 
                     </div>
 
 
-                    <div className={styles.selectedPaymentBillAmounts}>
+                    <div
+                        className={
+                            styles.selectedPaymentBillAmounts
+                        }
+                    >
 
                         <div>
 
@@ -119,9 +138,7 @@ export default function PaymentBillSelector({
                             <strong>
                                 AED{" "}
                                 {Number(
-                                    selectedPaymentExpense.total_amount ||
-                                    selectedPaymentExpense.amount ||
-                                    0
+                                    selectedPaymentBill.amount || 0
                                 ).toLocaleString(
                                     "en-AE",
                                     {
@@ -142,7 +159,9 @@ export default function PaymentBillSelector({
 
                             <strong>
                                 AED{" "}
-                                {Number(selectedPaymentExpense.paid_amount || 0).toLocaleString(
+                                {Number(
+                                    selectedPaymentBill.paid_amount || 0
+                                ).toLocaleString(
                                     "en-AE",
                                     {
                                         minimumFractionDigits: 2,
@@ -162,7 +181,9 @@ export default function PaymentBillSelector({
 
                             <strong>
                                 AED{" "}
-                                {Number(selectedPaymentExpense.outstanding_amount || 0).toLocaleString(
+                                {Number(
+                                    selectedPaymentBill.outstanding_amount || 0
+                                ).toLocaleString(
                                     "en-AE",
                                     {
                                         minimumFractionDigits: 2,

@@ -2,8 +2,15 @@ import { useMemo, useState } from "react";
 
 const createEmptyItem = () => ({
     id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+
+    supplierItemId: "",
+
     description: "",
+
+    unit: "",
+
     quantity: "1",
+
     rate: ""
 });
 

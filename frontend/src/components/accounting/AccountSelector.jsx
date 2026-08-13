@@ -14,7 +14,8 @@ export default function AccountSelector({
     filter,
     creatable = false,
     createLabel = "Create New",
-    placeholder = "Select account"
+    placeholder = "Select account",
+    returnObject = false
 }) {
 
     const [accounts, setAccounts] =
@@ -134,7 +135,9 @@ export default function AccountSelector({
              */
 
             onChange(
-                String(account.id)
+                returnObject
+                    ? account
+                    : String(account.id)
             );
 
 
@@ -162,12 +165,29 @@ export default function AccountSelector({
 
                 <select
                     className={styles.select}
-                    value={value || ""}
-                    onChange={(event) =>
-                        onChange(
-                            event.target.value
-                        )
+                    value={
+                        returnObject
+                            ? value?.id || ""
+                            : value || ""
                     }
+                    onChange={(event) => {
+
+                        const selectedId =
+                            event.target.value;
+
+                        const selectedAccount =
+                            accounts.find(
+                                account =>
+                                    String(account.id) ===
+                                    String(selectedId)
+                            );
+
+                        onChange(
+                            returnObject
+                                ? selectedAccount || null
+                                : selectedId
+                        );
+                    }}
                     disabled={loading}
                 >
 

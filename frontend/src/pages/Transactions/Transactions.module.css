@@ -783,32 +783,34 @@
 ========================================================= */
 
 .billPreview {
-    position: relative;
-
     width: 100%;
+    min-width: 0;
 
-    padding: 26px 24px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
 
+    padding: 12px;
     box-sizing: border-box;
 
-    background: #ffffff;
-
-    border: 1px solid #e5e7eb;
-
-    /*
-     * Subtle paper-like shadow
-     */
-
-    box-shadow:
-        0 8px 24px rgba(15, 23, 42, 0.06);
-
-    color: #1f2937;
+    overflow: hidden;
 }
 
+.voucherPreviewScale {
+    width: 100%;
+    min-width: 0;
+
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+
+    overflow: hidden;
+}
 
 /* =========================================================
    COMPANY HEADER
 ========================================================= */
+
 
 .billCompany {
     display: flex;
@@ -1863,6 +1865,7 @@
     }
 
 }
+
 /* =========================================================
    EXPENSE ITEMS
 ========================================================= */
@@ -2050,8 +2053,8 @@
         grid-template-columns: 1fr 80px;
     }
 
-    .expenseItemRow > :nth-child(3),
-    .expenseItemRow > :nth-child(4) {
+    .expenseItemRow> :nth-child(3),
+    .expenseItemRow> :nth-child(4) {
         grid-column: span 1;
     }
 }
@@ -2099,4 +2102,664 @@
     white-space: normal;
     overflow: visible;
     text-overflow: clip;
+}
+
+.expenseItemsHeaderActions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.secondaryAddItemButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+
+    border: 1px solid #d9dde5;
+    background: #ffffff;
+    color: #374151;
+
+    border-radius: 8px;
+
+    padding: 8px 12px;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        background 0.15s ease,
+        border-color 0.15s ease;
+}
+
+.secondaryAddItemButton:hover {
+    background: #f7f8fa;
+    border-color: #cbd0d8;
+}
+
+.secondaryAddItemButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.modalCloseButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 32px;
+    height: 32px;
+
+    border: none;
+    border-radius: 7px;
+
+    background: transparent;
+    color: #6b7280;
+
+    cursor: pointer;
+}
+
+.modalCloseButton:hover {
+    background: #f3f4f6;
+}
+
+.expenseItemsSection {
+    position: relative;
+    overflow: visible !important;
+}
+
+.expenseItemsTable {
+    position: relative;
+    overflow: visible !important;
+}
+
+.expenseItemRow {
+    position: relative;
+    overflow: visible !important;
+}
+
+.itemSelectorField {
+    position: relative;
+    overflow: visible !important;
+}
+
+.itemSelectorField>* {
+    position: relative;
+    z-index: 100;
+}
+
+/* =========================================================
+   MODERN PRINT DOCUMENT
+========================================================= */
+
+.documentHeader {
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1fr) minmax(230px, 0.75fr);
+
+    gap: 40px;
+
+    padding-bottom: 22px;
+
+    border-bottom: 2px solid #111827;
+}
+
+
+/* =========================================================
+   COMPANY
+========================================================= */
+
+.documentCompany {
+    display: flex;
+    align-items: flex-start;
+
+    gap: 14px;
+}
+
+
+.documentLogo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 58px;
+    height: 58px;
+
+    flex-shrink: 0;
+
+    overflow: hidden;
+
+    border-radius: 8px;
+
+    background: #111827;
+}
+
+
+.documentLogo img {
+    width: 100%;
+    height: 100%;
+
+    object-fit: contain;
+}
+
+
+.documentLogo span {
+    color: #ffffff;
+
+    font-size: 24px;
+    font-weight: 800;
+}
+
+
+.documentCompanyInfo {
+    display: flex;
+    flex-direction: column;
+
+    gap: 3px;
+}
+
+
+.documentCompanyInfo strong {
+    margin-bottom: 4px;
+
+    color: #111827;
+
+    font-size: 17px;
+    font-weight: 800;
+
+    line-height: 1.2;
+}
+
+
+.documentCompanyInfo span {
+    color: #6b7280;
+
+    font-size: 9px;
+
+    line-height: 1.35;
+}
+
+
+/* =========================================================
+   SUPPLIER
+========================================================= */
+
+.documentSupplier {
+    display: flex;
+    flex-direction: column;
+
+    align-items: flex-end;
+
+    gap: 3px;
+
+    text-align: right;
+}
+
+
+.documentLabel {
+    margin-bottom: 4px;
+
+    color: #9ca3af;
+
+    font-size: 8px;
+    font-weight: 800;
+
+    letter-spacing: 0.12em;
+}
+
+
+.documentSupplier strong {
+    color: #111827;
+
+    font-size: 12px;
+    font-weight: 800;
+}
+
+
+.documentSupplier span:not(.documentLabel) {
+    color: #6b7280;
+
+    font-size: 9px;
+
+    line-height: 1.35;
+}
+
+
+/* =========================================================
+   DOCUMENT TITLE
+========================================================= */
+
+.documentTitleRow {
+    display: flex;
+
+    align-items: flex-end;
+    justify-content: space-between;
+
+    margin-top: 24px;
+}
+
+
+.documentTitleRow>div>span {
+    color: #9ca3af;
+
+    font-size: 8px;
+    font-weight: 800;
+
+    letter-spacing: 0.14em;
+}
+
+
+.documentTitleRow h1 {
+    margin: 5px 0 0;
+
+    color: #111827;
+
+    font-size: 21px;
+    font-weight: 900;
+
+    letter-spacing: -0.4px;
+}
+
+
+/* =========================================================
+   DOCUMENT META
+========================================================= */
+
+.documentMeta {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+    gap: 1px;
+
+    margin-top: 20px;
+
+    border: 1px solid #dfe3e8;
+
+    background: #dfe3e8;
+}
+
+
+.documentMeta>div {
+    display: flex;
+    flex-direction: column;
+
+    gap: 5px;
+
+    min-height: 58px;
+
+    padding: 11px 13px;
+
+    background: #ffffff;
+}
+
+
+.documentMeta span {
+    color: #9ca3af;
+
+    font-size: 8px;
+    font-weight: 800;
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.08em;
+}
+
+
+.documentMeta strong {
+    color: #111827;
+
+    font-size: 11px;
+    font-weight: 700;
+}
+
+
+/* =========================================================
+   ITEMS
+========================================================= */
+
+.documentItems {
+    margin-top: 24px;
+
+    border: 1px solid #dfe3e8;
+
+    overflow: hidden;
+}
+
+
+.documentItemsHeader,
+.documentItem {
+    display: grid;
+
+    grid-template-columns:
+        35px minmax(0, 1fr) 60px 90px 100px;
+
+    align-items: center;
+}
+
+
+.documentItemsHeader {
+    min-height: 35px;
+
+    padding: 0 10px;
+
+    background: #111827;
+
+    color: #ffffff;
+
+    font-size: 8px;
+    font-weight: 800;
+
+    letter-spacing: 0.07em;
+}
+
+
+.documentItemsHeader span:nth-child(3),
+.documentItemsHeader span:nth-child(4),
+.documentItemsHeader span:nth-child(5) {
+    text-align: right;
+}
+
+
+.documentItem {
+    min-height: 47px;
+
+    padding: 8px 10px;
+
+    border-top: 1px solid #e5e7eb;
+
+    color: #374151;
+
+    font-size: 10px;
+}
+
+
+.documentItem>span:first-child {
+    color: #9ca3af;
+
+    font-size: 9px;
+}
+
+
+.documentItem>span:nth-child(3),
+.documentItem>span:nth-child(4),
+.documentItem>span:nth-child(5),
+.documentItem>strong {
+    text-align: right;
+}
+
+
+.documentItem>strong {
+    color: #111827;
+
+    font-size: 10px;
+}
+
+
+.documentItemDescription {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 2px;
+
+    min-width: 0;
+}
+
+
+.documentItemDescription strong {
+    overflow: hidden;
+
+    color: #374151;
+
+    font-size: 10px;
+    font-weight: 600;
+
+    text-overflow: ellipsis;
+}
+
+
+.documentItemDescription small {
+    color: #9ca3af;
+
+    font-size: 8px;
+}
+
+
+/* =========================================================
+   TOTALS
+========================================================= */
+
+.documentTotals {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 7px;
+
+    width: 290px;
+
+    margin-left: auto;
+
+    margin-top: 18px;
+}
+
+
+.documentTotals>div {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 20px;
+
+    color: #6b7280;
+
+    font-size: 9px;
+}
+
+
+.documentTotals>div strong {
+    color: #374151;
+
+    font-size: 9px;
+    font-weight: 700;
+
+    text-align: right;
+}
+
+
+.documentGrandTotal {
+    margin-top: 5px;
+
+    padding-top: 10px;
+
+    border-top: 2px solid #111827;
+}
+
+
+.documentGrandTotal span {
+    color: #111827;
+
+    font-size: 11px;
+    font-weight: 900;
+}
+
+
+.documentGrandTotal strong {
+    color: #111827 !important;
+
+    font-size: 15px !important;
+    font-weight: 900 !important;
+}
+
+
+/* =========================================================
+   AMOUNT IN WORDS
+========================================================= */
+
+.documentAmountWords {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 5px;
+
+    margin-top: 25px;
+
+    padding: 11px 13px;
+
+    border: 1px solid #e5e7eb;
+
+    border-radius: 5px;
+
+    background: #fafafa;
+}
+
+
+.documentAmountWords span {
+    color: #9ca3af;
+
+    font-size: 8px;
+    font-weight: 800;
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.08em;
+}
+
+
+.documentAmountWords strong {
+    color: #374151;
+
+    font-size: 10px;
+    font-weight: 600;
+}
+
+
+/* =========================================================
+   NOTES
+========================================================= */
+
+.documentNotes {
+    margin-top: 18px;
+
+    padding-top: 12px;
+
+    border-top: 1px solid #e5e7eb;
+}
+
+
+.documentNotes span {
+    display: block;
+
+    margin-bottom: 5px;
+
+    color: #9ca3af;
+
+    font-size: 8px;
+    font-weight: 800;
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.08em;
+}
+
+
+.documentNotes p {
+    margin: 0;
+
+    color: #6b7280;
+
+    font-size: 9px;
+
+    line-height: 1.5;
+
+    white-space: pre-wrap;
+}
+
+
+/* =========================================================
+   SIGNATURES
+========================================================= */
+
+.documentSignatures {
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 70px;
+
+    margin-top: 58px;
+}
+
+
+.documentSignatures>div {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 35px;
+}
+
+
+.documentSignatures span {
+    padding-top: 7px;
+
+    border-top: 1px solid #9ca3af;
+
+    color: #6b7280;
+
+    font-size: 9px;
+    font-weight: 600;
+
+    text-align: center;
+}
+
+
+/* =========================================================
+   DOCUMENT FOOTER
+========================================================= */
+
+.documentFooter {
+    display: flex;
+
+    justify-content: space-between;
+
+    margin-top: 28px;
+
+    padding-top: 10px;
+
+    border-top: 1px solid #e5e7eb;
+
+    color: #9ca3af;
+
+    font-size: 8px;
+}
+
+/* =========================================================
+   LIVE A4 VOUCHER PREVIEW
+   The voucher remains a true A4 document. The wrapper scales
+   the complete component without changing its internal layout.
+========================================================= */
+
+.voucherPreviewScale {
+    flex: 0 0 auto;
+    position: relative;
+    width: 210mm;
+    height: 297mm;
+    overflow: hidden;
+    zoom: var(--preview-scale, 0.58);
+}
+
+@media screen {
+    .billPreview {
+        padding: 12px;
+        overflow: hidden;
+    }
 }

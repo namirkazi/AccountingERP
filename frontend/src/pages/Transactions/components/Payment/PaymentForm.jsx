@@ -1,29 +1,53 @@
-import { CalendarDays, FileText } from "lucide-react";
-import PartySelector from "../../../../components/accounting/PartySelector";
-import AccountSelector from "../../../../components/accounting/AccountSelector";
-import PaymentBillSelector from "./PaymentBillSelector";
-import TransactionActions from "../Shared/TransactionActions";
-import styles from "../../Transactions.module.css";
+import {
+    CalendarDays,
+    FileText
+} from "lucide-react";
+
+import PartySelector
+    from "../../../../components/accounting/PartySelector";
+
+import AccountSelector
+    from "../../../../components/accounting/AccountSelector";
+
+import PaymentBillSelector
+    from "./PaymentBillSelector";
+
+import TransactionActions
+    from "../Shared/TransactionActions";
+
+import styles
+    from "../../Transactions.module.css";
+
 
 export default function PaymentForm({
+
     date,
     setDate,
+
     party,
     setParty,
-    paymentExpenses,
-    selectedPaymentExpense,
-    setSelectedPaymentExpense,
-    setReferenceNumber,
+
+    paymentBills,
+    selectedPaymentBill,
+    setSelectedPaymentBill,
+
     paymentAmount,
     setPaymentAmount,
+
     accountId,
     setAccountId,
+    paymentAccount,
+    setPaymentAccount,
+
     narration,
     setNarration,
+
     error,
     message,
     saving,
+
     onSubmit
+
 }) {
 
     return (
@@ -50,9 +74,9 @@ export default function PaymentForm({
                 </div>
 
 
-                {/* DATE + PARTY */}
-
                 <div className={styles.fieldRow}>
+
+                    {/* DATE */}
 
                     <div className={styles.field}>
 
@@ -67,9 +91,10 @@ export default function PaymentForm({
                             <input
                                 type="date"
                                 value={date}
-                                onChange={
-                                    event =>
-                                        setDate(event.target.value)
+                                onChange={event =>
+                                    setDate(
+                                        event.target.value
+                                    )
                                 }
                             />
 
@@ -77,6 +102,8 @@ export default function PaymentForm({
 
                     </div>
 
+
+                    {/* SUPPLIER */}
 
                     <div className={styles.field}>
 
@@ -95,22 +122,27 @@ export default function PaymentForm({
                 </div>
 
 
-                {/* BILL SELECTION */}
+                {/* BILL */}
 
                 <PaymentBillSelector
                     party={party}
-                    paymentExpenses={paymentExpenses}
-                    selectedPaymentExpense={selectedPaymentExpense}
-                    setSelectedPaymentExpense={setSelectedPaymentExpense}
-                    setPaymentAmount={setPaymentAmount}
-                    setReferenceNumber={setReferenceNumber}
+                    paymentBills={paymentBills}
+                    selectedPaymentBill={
+                        selectedPaymentBill
+                    }
+                    setSelectedPaymentBill={
+                        setSelectedPaymentBill
+                    }
+                    setPaymentAmount={
+                        setPaymentAmount
+                    }
                 />
 
             </div>
 
 
             {/* =================================
-                AMOUNT
+                PAYMENT AMOUNT
             ================================= */}
 
             <div className={styles.card}>
@@ -118,6 +150,7 @@ export default function PaymentForm({
                 <div className={styles.sectionTitle}>
                     Amount Details
                 </div>
+
 
                 <div className={styles.fieldRow}>
 
@@ -127,7 +160,11 @@ export default function PaymentForm({
                             Payment Amount
                         </label>
 
-                        <div className={styles.amountField}>
+                        <div
+                            className={
+                                styles.amountField
+                            }
+                        >
 
                             <span>
                                 AED
@@ -139,9 +176,10 @@ export default function PaymentForm({
                                 step="0.01"
                                 placeholder="0.00"
                                 value={paymentAmount}
-                                onChange={
-                                    event =>
-                                        setPaymentAmount(event.target.value)
+                                onChange={event =>
+                                    setPaymentAmount(
+                                        event.target.value
+                                    )
                                 }
                             />
 
@@ -165,12 +203,22 @@ export default function PaymentForm({
                 </div>
 
                 <AccountSelector
-                    value={accountId}
-                    onChange={setAccountId}
-                    filter={
-                        account =>
-                            account.account_subtype === "cash" ||
-                            account.account_subtype === "bank"
+                    value={paymentAccount}
+                    onChange={(selectedAccount) => {
+
+                        setPaymentAccount(
+                            selectedAccount || null
+                        );
+
+                        setAccountId(
+                            selectedAccount?.id || ""
+                        );
+
+                    }}
+                    returnObject={true}
+                    filter={account =>
+                        account.account_subtype === "cash" ||
+                        account.account_subtype === "bank"
                     }
                 />
 
@@ -190,9 +238,10 @@ export default function PaymentForm({
                 <textarea
                     rows={4}
                     value={narration}
-                    onChange={
-                        event =>
-                            setNarration(event.target.value)
+                    onChange={event =>
+                        setNarration(
+                            event.target.value
+                        )
                     }
                     placeholder="Optional description..."
                 />

@@ -1,14 +1,57 @@
 import React from "react";
 import styles from "./PrintableVoucher.module.css";
 
+/*
+|--------------------------------------------------------------------------
+| Helpers
+|--------------------------------------------------------------------------
+*/
 
 function formatAmount(value) {
-    return Number(value || 0).toLocaleString("en-AE", {
+    const amount = Number(value || 0);
+
+    return amount.toLocaleString("en-AE", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
     });
 }
 
+function formatDate(date) {
+    if (!date) {
+        return "—";
+    }
+
+    const parsed = new Date(date);
+
+    if (Number.isNaN(parsed.getTime())) {
+        return date;
+    }
+
+    return parsed.toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+    });
+}
+
+function clean(value) {
+    if (
+        value === null ||
+        value === undefined ||
+        String(value).trim() === ""
+    ) {
+        return "";
+    }
+
+    return String(value).trim();
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| Number to Words
+|--------------------------------------------------------------------------
+*/
 
 function numberToWordsBelowThousand(number) {
     const ones = [
@@ -50,7 +93,10 @@ function numberToWordsBelowThousand(number) {
     let result = "";
 
     if (number >= 100) {
-        result += ones[Math.floor(number / 100)] + " Hundred";
+        result +=
+            ones[Math.floor(number / 100)] +
+            " Hundred";
+
         number %= 100;
 
         if (number > 0) {
@@ -60,6 +106,7 @@ function numberToWordsBelowThousand(number) {
 
     if (number >= 20) {
         result += tens[Math.floor(number / 10)];
+
         number %= 10;
 
         if (number > 0) {
@@ -72,63 +119,72 @@ function numberToWordsBelowThousand(number) {
     return result;
 }
 
-
 function numberToWords(value) {
     const amount = Number(value || 0);
 
+    if (amount === 0) {
+        return "Zero Dirhams Only";
+    }
+
     const dirhams = Math.floor(amount);
 
-    const fils = Math.round(
+    let fils = Math.round(
         (amount - dirhams) * 100
     );
 
+    /*
+     * Protect against rounding 99.999 -> 100 fils.
+     */
+    let wholeDirhams = dirhams;
+
+    if (fils === 100) {
+        wholeDirhams += 1;
+        fils = 0;
+    }
+
+    let remaining = wholeDirhams;
+
     let words = "";
 
-    if (dirhams === 0) {
-        words = "Zero";
-    } else {
-        let remaining = dirhams;
+    if (remaining >= 1000000) {
+        const millions =
+            Math.floor(remaining / 1000000);
 
-        if (remaining >= 1000000) {
-            const millions =
-                Math.floor(remaining / 1000000);
+        words +=
+            numberToWordsBelowThousand(millions) +
+            " Million";
 
-            words +=
-                numberToWordsBelowThousand(millions) +
-                " Million";
-
-            remaining %= 1000000;
-
-            if (remaining > 0) {
-                words += " ";
-            }
-        }
-
-        if (remaining >= 1000) {
-            const thousands =
-                Math.floor(remaining / 1000);
-
-            words +=
-                numberToWordsBelowThousand(thousands) +
-                " Thousand";
-
-            remaining %= 1000;
-
-            if (remaining > 0) {
-                words += " ";
-            }
-        }
+        remaining %= 1000000;
 
         if (remaining > 0) {
-            words +=
-                numberToWordsBelowThousand(
-                    remaining
-                );
+            words += " ";
         }
     }
 
+    if (remaining >= 1000) {
+        const thousands =
+            Math.floor(remaining / 1000);
+
+        words +=
+            numberToWordsBelowThousand(thousands) +
+            " Thousand";
+
+        remaining %= 1000;
+
+        if (remaining > 0) {
+            words += " ";
+        }
+    }
+
+    if (remaining > 0) {
+        words +=
+            numberToWordsBelowThousand(
+                remaining
+            );
+    }
+
     words +=
-        dirhams === 1
+        wholeDirhams === 1
             ? " Dirham"
             : " Dirhams";
 
@@ -140,24 +196,140 @@ function numberToWords(value) {
 }
 
 
-function formatDate(date) {
-    if (!date) {
-        return "";
+/*
+|--------------------------------------------------------------------------
+| Party helpers
+|--------------------------------------------------------------------------
+*/
+
+function getPartyName(party, selectedPaymentBill) {
+    return (
+        clean(party?.party_name) ||
+        clean(party?.name) ||
+        clean(party?.company_name) ||
+        clean(party?.customer_name) ||
+        clean(party?.supplier_name) ||
+        clean(selectedPaymentBill?.party_name) ||
+        "—"
+    );
+}
+
+function getPartyAddress(party, selectedPaymentBill) {
+    return (
+        clean(party?.address) ||
+        clean(party?.full_address) ||
+        clean(party?.party_address) ||
+        clean(selectedPaymentBill?.address) ||
+        ""
+    );
+}
+
+function getPartyPhone(party, selectedPaymentBill) {
+    return (
+        clean(party?.phone) ||
+        clean(party?.phone_number) ||
+        clean(party?.mobile) ||
+        clean(party?.mobile_number) ||
+        clean(selectedPaymentBill?.phone) ||
+        ""
+    );
+}
+
+function getPartyEmail(party, selectedPaymentBill) {
+    return (
+        clean(party?.email) ||
+        clean(party?.email_address) ||
+        clean(selectedPaymentBill?.email) ||
+        ""
+    );
+}
+
+function getPartyTrn(party, selectedPaymentBill) {
+    return (
+        clean(party?.trn) ||
+        clean(party?.tax_registration_number) ||
+        clean(party?.vat_number) ||
+        clean(party?.tax_number) ||
+        clean(selectedPaymentBill?.trn) ||
+        ""
+    );
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| Item helpers
+|--------------------------------------------------------------------------
+*/
+
+function normalizeItems(items) {
+    if (!Array.isArray(items)) {
+        return [];
     }
 
-    const parsed = new Date(date);
+    return items.filter((item) => {
+        const description =
+            clean(
+                item?.description ||
+                item?.item_name ||
+                item?.name
+            );
 
-    if (Number.isNaN(parsed.getTime())) {
-        return date;
-    }
-
-    return parsed.toLocaleDateString("en-GB", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
+        return Boolean(description);
     });
 }
 
+function getItemDescription(item) {
+    return (
+        clean(item?.description) ||
+        clean(item?.item_name) ||
+        clean(item?.name) ||
+        "Item"
+    );
+}
+
+function getItemQuantity(item) {
+    const quantity =
+        Number(
+            item?.quantity ??
+            item?.qty ??
+            1
+        );
+
+    return quantity > 0 ? quantity : 1;
+}
+
+function getItemRate(item) {
+    return Number(
+        item?.rate ??
+        item?.unit_price ??
+        item?.price ??
+        item?.default_rate ??
+        0
+    );
+}
+
+function getItemAmount(item) {
+    if (
+        item?.amount !== undefined &&
+        item?.amount !== null &&
+        item?.amount !== ""
+    ) {
+        return Number(item.amount) || 0;
+    }
+
+    return (
+        getItemQuantity(item) *
+        getItemRate(item)
+    );
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| Printable Voucher
+|--------------------------------------------------------------------------
+*/
 
 export default function PrintableVoucher({
     type,
@@ -166,62 +338,206 @@ export default function PrintableVoucher({
     referenceNumber,
     voucherNumber,
     items = [],
+
     amount,
+
     discountAmount = 0,
+
     vatRate = 0,
+
     vatAmount = 0,
+
     totalAmount,
+
     paymentAmount,
+
     paymentAccount,
+    
     selectedPaymentExpense,
+    selectedPaymentBill,
+
     narration,
+
+    /*
+     * Optional company information.
+     *
+     * The current Transactions/SavedVoucher flow does not
+     * pass this yet, so sensible defaults are used.
+     *
+     * Later we can pass the actual company record here.
+     */
+    company = {},
 }) {
 
-    const isPayment =
-        type === "payment";
+    /*
+    |--------------------------------------------------------------------------
+    | Transaction type
+    |--------------------------------------------------------------------------
+    */
 
     const isExpense =
         type === "expense";
 
+    const isPayment =
+        type === "payment";
 
-    /*
-     * ---------------------------------------------------------
-     * BASIC DATA
-     * ---------------------------------------------------------
-     */
+    const isReceipt =
+        type === "receipt";
 
-    const supplierReference =
-        referenceNumber ||
-        "—";
-
-    const reference =
-        isPayment
-            ? (
-                selectedPaymentExpense
-                    ?.reference_number ||
-                referenceNumber ||
-                "—"
-            )
-            : (
-                voucherNumber ||
-                "—"
-            );
-
-
-    const supplierName =
-        party?.party_name ||
-        selectedPaymentExpense?.party_name ||
-        "—";
+    const isSale =
+        type === "sale";
 
 
     /*
-     * ---------------------------------------------------------
-     * AMOUNTS
-     * ---------------------------------------------------------
-     */
+    |--------------------------------------------------------------------------
+    | Document title
+    |--------------------------------------------------------------------------
+    */
 
-    const expenseAmount =
-        Number(amount || 0);
+    let documentTitle = "TRANSACTION VOUCHER";
+
+    if (isExpense) {
+        documentTitle = "EXPENSE VOUCHER";
+    }
+
+    if (isPayment) {
+        documentTitle = "PAYMENT VOUCHER";
+    }
+
+    if (isReceipt) {
+        documentTitle = "RECEIPT";
+    }
+
+    if (isSale) {
+        documentTitle = "SALES INVOICE";
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Company
+    |--------------------------------------------------------------------------
+    */
+
+    const companyName =
+        clean(company?.name) ||
+        clean(company?.company_name) ||
+        "MOHINII GENERAL TRADING L.L.C";
+
+    const companyAddress =
+        clean(company?.address) ||
+        clean(company?.full_address) ||
+        "Dubai, United Arab Emirates";
+
+    const companyPhone =
+        clean(company?.phone) ||
+        clean(company?.phone_number) ||
+        "";
+
+    const companyEmail =
+        clean(company?.email) ||
+        clean(company?.email_address) ||
+        "";
+
+    const companyTrn =
+        clean(company?.trn) ||
+        clean(company?.tax_registration_number) ||
+        clean(company?.vat_number) ||
+        "";
+
+    const companyLogo =
+        clean(company?.logo) ||
+        clean(company?.logo_url) ||
+        "";
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Party
+    |--------------------------------------------------------------------------
+    */
+
+    const partyName =
+        getPartyName(
+            party,
+            selectedPaymentBill
+        );
+
+    const partyAddress =
+        getPartyAddress(
+            party,
+            selectedPaymentBill
+        );
+
+    const partyPhone =
+        getPartyPhone(
+            party,
+            selectedPaymentBill
+        );
+
+    const partyEmail =
+        getPartyEmail(
+            party,
+            selectedPaymentBill
+        );
+
+    const partyTrn =
+        getPartyTrn(
+            party,
+            selectedPaymentBill
+        );
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Reference / Bill Number
+    |--------------------------------------------------------------------------
+    |
+    | Bill No. = OUR document number
+    |
+    | Reference No. = supplier/customer reference
+    |
+    */
+
+    const ourBillNumber =
+        clean(voucherNumber) ||
+        clean(
+            selectedPaymentBill?.voucher_number
+        ) ||
+        clean(
+            selectedPaymentBill?.voucher_no
+        ) ||
+        "—";
+
+    const externalReference =
+        clean(
+            isPayment
+                ? selectedPaymentBill?.reference_number
+                : referenceNumber
+        ) ||
+        "—";
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Amounts
+    |--------------------------------------------------------------------------
+    */
+
+    const expenseItems =
+        normalizeItems(items);
+
+    const calculatedItemSubtotal =
+        expenseItems.reduce(
+            (sum, item) =>
+                sum + getItemAmount(item),
+            0
+        );
+
+    const subtotal =
+        calculatedItemSubtotal > 0
+            ? calculatedItemSubtotal
+            : Number(amount || 0);
 
     const discount =
         Number(discountAmount || 0);
@@ -229,49 +545,58 @@ export default function PrintableVoucher({
     const vat =
         Number(vatAmount || 0);
 
-    const expenseTotal =
-        Number(totalAmount || 0);
+    const transactionAmount =
+        Number(amount || 0);
 
     const paymentTotal =
         Number(paymentAmount || 0);
 
-    const finalAmount =
-        isPayment
-            ? paymentTotal
-            : expenseTotal;
+    const expenseTotal =
+        Number(totalAmount || 0);
+
+    let finalAmount = 0;
+
+    if (isPayment) {
+        finalAmount = paymentTotal;
+    } else if (isExpense) {
+        finalAmount =
+            expenseTotal ||
+            Math.max(
+                0,
+                subtotal - discount + vat
+            );
+    } else {
+        finalAmount =
+            Number(totalAmount || 0) ||
+            transactionAmount;
+    }
 
 
     /*
-     * ---------------------------------------------------------
-     * PAYMENT INFORMATION
-     * ---------------------------------------------------------
-     */
+    |--------------------------------------------------------------------------
+    | Payment details
+    |--------------------------------------------------------------------------
+    */
 
     const originalBill =
         Number(
-            selectedPaymentExpense
-                ?.total_amount ||
-            selectedPaymentExpense
-                ?.amount ||
+            selectedPaymentBill?.amount ??
+            selectedPaymentBill?.total_amount ??
+            selectedPaymentBill?.bill_amount ??
             0
         );
-
 
     const alreadyPaid =
         Number(
-            selectedPaymentExpense
-                ?.paid_amount ||
+            selectedPaymentBill?.paid_amount ||
             0
         );
-
 
     const currentOutstanding =
         Number(
-            selectedPaymentExpense
-                ?.outstanding_amount ||
+            selectedPaymentBill?.outstanding_amount ||
             0
         );
-
 
     const outstandingAfterPayment =
         Math.max(
@@ -280,114 +605,209 @@ export default function PrintableVoucher({
             paymentTotal
         );
 
-
-    /*
-     * ---------------------------------------------------------
-     * PAYMENT METHOD
-     * ---------------------------------------------------------
-     */
-
     const paymentMethod =
-        paymentAccount?.account_name ||
-        paymentAccount?.name ||
-        paymentAccount ||
+        clean(paymentAccount?.account_name) ||
+        clean(paymentAccount?.name) ||
+        clean(paymentAccount) ||
         "—";
 
 
     /*
-     * ---------------------------------------------------------
-     * DESCRIPTION
-     * ---------------------------------------------------------
-     */
+    |--------------------------------------------------------------------------
+    | Description
+    |--------------------------------------------------------------------------
+    */
+
+    let defaultDescription = "Transaction";
+
+    if (isExpense) {
+        defaultDescription = "Purchase / Expense";
+    }
+
+    if (isPayment) {
+        defaultDescription =
+            externalReference !== "—"
+                ? `Payment to ${partyName} against Bill ${externalReference}`
+                : `Payment to ${partyName}`;
+    }
+
+    if (isReceipt) {
+        defaultDescription =
+            "Receipt from Customer";
+    }
+
+    if (isSale) {
+        defaultDescription =
+            "Sale";
+    }
 
     const description =
-        isPayment
-            ? (
-                narration ||
-                `Payment against Bill ${reference}`
-            )
-            : (
-                narration ||
-                "Expense"
-            );
+        clean(narration) ||
+        defaultDescription;
 
-    const expenseItems = Array.isArray(items)
-        ? items.filter(item => String(item?.description || "").trim())
-        : [];
 
+    /*
+    |--------------------------------------------------------------------------
+    | Render
+    |--------------------------------------------------------------------------
+    */
 
     return (
-
         <div className={styles.voucher}>
 
-            {/* =================================================
-                COMPANY HEADER
-            ================================================= */}
+            {/* =====================================================
+                HEADER
+            ===================================================== */}
 
-            <div className={styles.companyHeader}>
+            <header className={styles.documentHeader}>
 
-                <div className={styles.companyName}>
-                    MOHINII GENERAL TRADING L.L.C
+                <div className={styles.companyIdentity}>
+
+                    {companyLogo ? (
+                        <img
+                            src={companyLogo}
+                            alt={companyName}
+                            className={styles.companyLogo}
+                        />
+                    ) : (
+                        <div
+                            className={
+                                styles.companyLogoPlaceholder
+                            }
+                        >
+                            M
+                        </div>
+                    )}
+
+                    <div
+                        className={
+                            styles.companyInformation
+                        }
+                    >
+
+                        <h1>
+                            {companyName}
+                        </h1>
+
+                        <div>
+                            {companyAddress}
+                        </div>
+
+                        {companyPhone && (
+                            <div>
+                                Tel: {companyPhone}
+                            </div>
+                        )}
+
+                        {companyEmail && (
+                            <div>
+                                {companyEmail}
+                            </div>
+                        )}
+
+                        {companyTrn && (
+                            <div>
+                                TRN: {companyTrn}
+                            </div>
+                        )}
+
+                    </div>
+
                 </div>
 
-                <div className={styles.companyLocation}>
-                    DUBAI
-                </div>
 
-                <div className={styles.companyEmirate}>
-                    Emirate : Dubai
-                </div>
+                {/* =================================================
+                    PARTY / SUPPLIER
+                ================================================= */}
 
-            </div>
+                <div className={styles.partyInformation}>
 
-
-            {/* =================================================
-                VOUCHER TITLE
-            ================================================= */}
-
-            <div className={styles.voucherTitle}>
-
-                {isPayment
-                    ? "Payment Voucher"
-                    : isExpense
-                        ? "Expense Voucher"
-                        : "Transaction Voucher"
-                }
-
-            </div>
-
-
-            {/* =================================================
-                NUMBER / DATE
-            ================================================= */}
-
-            <div className={styles.topDetails}>
-
-                <div className={styles.numberBlock}>
-
-                    <span>
-                        No.
-                    </span>
-
-                    <span>
-                        :
-                    </span>
+                    <div
+                        className={
+                            styles.partyInformationLabel
+                        }
+                    >
+                        {isSale || isReceipt
+                            ? "CUSTOMER"
+                            : "SUPPLIER"
+                        }
+                    </div>
 
                     <strong>
-                        {reference}
+                        {partyName}
                     </strong>
+
+                    {partyAddress && (
+                        <span>
+                            {partyAddress}
+                        </span>
+                    )}
+
+                    {partyPhone && (
+                        <span>
+                            Tel: {partyPhone}
+                        </span>
+                    )}
+
+                    {partyEmail && (
+                        <span>
+                            {partyEmail}
+                        </span>
+                    )}
+
+                    {partyTrn && (
+                        <span>
+                            TRN: {partyTrn}
+                        </span>
+                    )}
 
                 </div>
 
+            </header>
 
-                <div className={styles.dateBlock}>
 
-                    <span>
-                        Dated
+            {/* =====================================================
+                TITLE
+            ===================================================== */}
+
+            <section className={styles.titleSection}>
+
+                <div>
+                    <span className={styles.documentEyebrow}>
+                        ACCOUNTING DOCUMENT
                     </span>
 
+                    <h2>
+                        {documentTitle}
+                    </h2>
+                </div>
+
+                <div
+                    className={
+                        styles.documentStatus
+                    }
+                >
+                    ORIGINAL
+                </div>
+
+            </section>
+
+
+            {/* =====================================================
+                DOCUMENT DETAILS
+            ===================================================== */}
+
+            <section
+                className={`${styles.documentDetails} ${isPayment
+                    ? styles.paymentDocumentDetails
+                    : ""
+                    }`}
+            >
+
+                <div>
+
                     <span>
-                        :
+                        DATE
                     </span>
 
                     <strong>
@@ -396,193 +816,417 @@ export default function PrintableVoucher({
 
                 </div>
 
-            </div>
 
-
-            {/* =================================================
-                PAYMENT THROUGH
-            ================================================= */}
-
-            {isPayment && (
-
-                <div className={styles.throughRow}>
-
-                    <strong>
-                        Through :
-                    </strong>
+                <div>
 
                     <span>
-                        {paymentMethod}
+                        BILL NO.
                     </span>
 
+                    <strong>
+                        {ourBillNumber}
+                    </strong>
+
                 </div>
+
+
+                <div>
+
+                    <span>
+                        REFERENCE NO.
+                    </span>
+
+                    <strong>
+                        {externalReference}
+                    </strong>
+
+                </div>
+
+                {isPayment && (
+                    <div>
+
+                        <span>
+                            PAYMENT METHOD
+                        </span>
+
+                        <strong>
+                            {paymentMethod}
+                        </strong>
+
+                    </div>
+                )}
+
+            </section>
+
+
+            {/* =====================================================
+                ITEMS / PARTICULARS
+            ===================================================== */}
+
+            <section className={styles.itemsSection}>
+
+                <table className={styles.itemsTable}>
+
+                    <thead>
+
+                        <tr>
+
+                            <th
+                                className={
+                                    styles.serialColumn
+                                }
+                            >
+                                #
+                            </th>
+
+                            <th>
+                                PARTICULARS
+                            </th>
+
+                            <th
+                                className={
+                                    styles.quantityColumn
+                                }
+                            >
+                                QTY
+                            </th>
+
+                            <th
+                                className={
+                                    styles.rateColumn
+                                }
+                            >
+                                RATE
+                            </th>
+
+                            <th
+                                className={
+                                    styles.amountColumn
+                                }
+                            >
+                                AMOUNT
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        {expenseItems.length > 0 ? (
+
+                            expenseItems.map(
+                                (item, index) => {
+
+                                    const quantity =
+                                        getItemQuantity(
+                                            item
+                                        );
+
+                                    const rate =
+                                        getItemRate(
+                                            item
+                                        );
+
+                                    const lineAmount =
+                                        getItemAmount(
+                                            item
+                                        );
+
+                                    return (
+                                        <tr
+                                            key={
+                                                item.id ||
+                                                index
+                                            }
+                                        >
+
+                                            <td
+                                                className={
+                                                    styles.serialCell
+                                                }
+                                            >
+                                                {index + 1}
+                                            </td>
+
+                                            <td>
+
+                                                <div
+                                                    className={
+                                                        styles.itemDescription
+                                                    }
+                                                >
+                                                    {
+                                                        getItemDescription(
+                                                            item
+                                                        )
+                                                    }
+                                                </div>
+
+                                            </td>
+
+                                            <td
+                                                className={
+                                                    styles.numberCell
+                                                }
+                                            >
+                                                {
+                                                    quantity
+                                                }
+                                            </td>
+
+                                            <td
+                                                className={
+                                                    styles.numberCell
+                                                }
+                                            >
+                                                AED{" "}
+                                                {formatAmount(
+                                                    rate
+                                                )}
+                                            </td>
+
+                                            <td
+                                                className={
+                                                    styles.numberCell
+                                                }
+                                            >
+                                                AED{" "}
+                                                {formatAmount(
+                                                    lineAmount
+                                                )}
+                                            </td>
+
+                                        </tr>
+                                    );
+                                }
+                            )
+
+                        ) : (
+
+                            <tr>
+
+                                <td
+                                    className={
+                                        styles.serialCell
+                                    }
+                                >
+                                    1
+                                </td>
+
+                                <td>
+
+                                    <div className={styles.itemDescription}>
+                                        {description}
+                                    </div>
+
+                                    {isPayment &&
+                                        externalReference !==
+                                        "—" && (
+                                            <div
+                                                className={
+                                                    styles.itemSubtext
+                                                }
+                                            >
+                                                Bill Reference:{" "}
+                                                {
+                                                    externalReference
+                                                }
+                                            </div>
+                                        )}
+
+                                </td>
+
+                                <td
+                                    className={
+                                        styles.numberCell
+                                    }
+                                >
+                                    —
+                                </td>
+
+                                <td
+                                    className={
+                                        styles.numberCell
+                                    }
+                                >
+                                    —
+                                </td>
+
+                                <td
+                                    className={
+                                        styles.numberCell
+                                    }
+                                >
+                                    AED{" "}
+                                    {formatAmount(
+                                        finalAmount
+                                    )}
+                                </td>
+
+                            </tr>
+
+                        )}
+
+                    </tbody>
+
+                </table>
+
+            </section>
+
+
+            {/* =====================================================
+                EXPENSE TOTALS
+            ===================================================== */}
+
+            {isExpense && (
+
+                <section
+                    className={
+                        styles.totalsSection
+                    }
+                >
+
+                    <div className={styles.totalRow}>
+
+                        <span>
+                            Subtotal
+                        </span>
+
+                        <strong>
+                            AED{" "}
+                            {formatAmount(
+                                subtotal
+                            )}
+                        </strong>
+
+                    </div>
+
+
+                    <div className={styles.totalRow}>
+
+                        <span>
+                            Discount
+                        </span>
+
+                        <strong>
+                            - AED{" "}
+                            {formatAmount(
+                                discount
+                            )}
+                        </strong>
+
+                    </div>
+
+
+                    <div className={styles.totalRow}>
+
+                        <span>
+                            Taxable Amount
+                        </span>
+
+                        <strong>
+                            AED{" "}
+                            {formatAmount(
+                                Math.max(
+                                    0,
+                                    subtotal -
+                                    discount
+                                )
+                            )}
+                        </strong>
+
+                    </div>
+
+
+                    <div className={styles.totalRow}>
+
+                        <span>
+                            VAT ({Number(vatRate || 0)}%)
+                        </span>
+
+                        <strong>
+                            AED{" "}
+                            {formatAmount(
+                                vat
+                            )}
+                        </strong>
+
+                    </div>
+
+
+                    <div
+                        className={
+                            styles.grandTotalRow
+                        }
+                    >
+
+                        <span>
+                            TOTAL
+                        </span>
+
+                        <strong>
+                            AED{" "}
+                            {formatAmount(
+                                finalAmount
+                            )}
+                        </strong>
+
+                    </div>
+
+                </section>
 
             )}
 
 
-            {/* =================================================
-                SUPPLIER
-            ================================================= */}
+            {/* =====================================================
+                SALE / RECEIPT TOTAL
+            ===================================================== */}
 
-            <div className={styles.accountSection}>
+            {(isSale || isReceipt) && (
 
-                <div className={styles.accountLabel}>
-                    Account :
-                </div>
+                <section
+                    className={
+                        styles.singleTotalSection
+                    }
+                >
 
-                <div className={styles.accountDetails}>
+                    <div
+                        className={
+                            styles.grandTotalRow
+                        }
+                    >
 
-                    <strong>
-                        {supplierName}
-                    </strong>
-
-                    {isExpense && supplierReference !== "—" && (
                         <span>
-                            Supplier Bill / Reference : {supplierReference}
+                            TOTAL
                         </span>
-                    )}
 
-                    {isPayment && reference && (
-                        <span>
-                            ({reference})
-                        </span>
-                    )}
+                        <strong>
+                            AED{" "}
+                            {formatAmount(
+                                finalAmount
+                            )}
+                        </strong>
 
-                </div>
+                    </div>
 
-            </div>
+                </section>
 
-
-            {/* =================================================
-                PARTICULARS TABLE
-            ================================================= */}
-
-            <table className={styles.particularsTable}>
-
-                <thead>
-
-                    <tr>
-
-                        <th>
-                            Particulars
-                        </th>
-
-                        <th>
-                            Amount
-                        </th>
-
-                    </tr>
-
-                </thead>
+            )}
 
 
-                <tbody>
-                    {isExpense ? (
-                        expenseItems.length > 0 ? (
-                            expenseItems.map((item, index) => {
-                                const quantity = Number(item.quantity) || 0;
-                                const rate = Number(item.rate) || 0;
-                                const lineTotal = quantity * rate;
-
-                                return (
-                                    <tr key={item.id || index}>
-                                        <td>
-                                            <div className={styles.description}>
-                                                {item.description}
-                                                {quantity > 0 && (
-                                                    <span className={styles.itemMeta}>
-                                                        {`  × ${quantity} @ AED ${formatAmount(rate)}`}
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </td>
-                                        <td className={styles.amountCell}>
-                                            AED {formatAmount(lineTotal)}
-                                        </td>
-                                    </tr>
-                                );
-                            })
-                        ) : (
-                            <tr>
-                                <td>No items</td>
-                                <td className={styles.amountCell}>AED 0.00</td>
-                            </tr>
-                        )
-                    ) : (
-                        <tr>
-                            <td>
-                                <div className={styles.description}>
-                                    {description}
-                                </div>
-
-                                {isPayment && selectedPaymentExpense && (
-                                    <div className={styles.billReference}>
-                                        Bill Reference : {reference}
-                                    </div>
-                                )}
-                            </td>
-
-                            <td className={styles.amountCell}>
-                                AED {formatAmount(paymentTotal)}
-                            </td>
-                        </tr>
-                    )}
-
-                    {isExpense && (
-                        <tr className={styles.summaryRow}>
-                            <td>Subtotal</td>
-                            <td className={styles.amountCell}>
-                                AED {formatAmount(
-                                    expenseItems.reduce(
-                                        (sum, item) =>
-                                            sum +
-                                            (Number(item.quantity) || 0) *
-                                            (Number(item.rate) || 0),
-                                        0
-                                    )
-                                )}
-                            </td>
-                        </tr>
-                    )}
-
-                    {isExpense && discount > 0 && (
-                        <tr className={styles.summaryRow}>
-                            <td>Less : Discount</td>
-                            <td className={styles.amountCell}>
-                                - AED {formatAmount(discount)}
-                            </td>
-                        </tr>
-                    )}
-
-                    {isExpense && (
-                        <tr className={styles.summaryRow}>
-                            <td>VAT ({vatRate}%)</td>
-                            <td className={styles.amountCell}>
-                                AED {formatAmount(vat)}
-                            </td>
-                        </tr>
-                    )}
-
-                    {isExpense && (
-                        <tr className={styles.grandTotalRow}>
-                            <td>Total</td>
-                            <td className={styles.amountCell}>
-                                AED {formatAmount(expenseTotal)}
-                            </td>
-                        </tr>
-                    )}
-                </tbody>
-
-            </table>
-
-
-            {/* =================================================
-                PAYMENT BALANCE
-            ================================================= */}
+            {/* =====================================================
+                PAYMENT SUMMARY
+            ===================================================== */}
 
             {isPayment && (
 
-                <div className={styles.paymentSummary}>
+                <section
+                    className={
+                        styles.paymentSummary
+                    }
+                >
 
                     <div>
 
@@ -632,10 +1276,14 @@ export default function PrintableVoucher({
                     </div>
 
 
-                    <div>
+                    <div
+                        className={
+                            styles.paymentBalance
+                        }
+                    >
 
                         <span>
-                            Balance
+                            Balance Due
                         </span>
 
                         <strong>
@@ -647,74 +1295,180 @@ export default function PrintableVoucher({
 
                     </div>
 
-                </div>
+
+                    <div
+                        className={
+                            styles.paymentTotal
+                        }
+                    >
+
+                        <span>
+                            TOTAL PAID
+                        </span>
+
+                        <strong>
+                            AED{" "}
+                            {formatAmount(
+                                paymentTotal
+                            )}
+                        </strong>
+
+                    </div>
+
+                </section>
 
             )}
 
 
-            {/* =================================================
-                TOTAL
-            ================================================= */}
-
-            {isPayment && (
-                <div className={styles.totalRow}>
-                    <span>Total</span>
-                    <strong>
-                        AED {formatAmount(finalAmount)}
-                    </strong>
-                </div>
-            )}
-
-
-            {/* =================================================
+            {/* =====================================================
                 AMOUNT IN WORDS
-            ================================================= */}
+            ===================================================== */}
 
-            <div className={styles.amountWords}>
-
-                <strong>
-                    Amount (in words) :
-                </strong>
+            <section
+                className={
+                    styles.amountWordsSection
+                }
+            >
 
                 <span>
+                    AMOUNT IN WORDS
+                </span>
+
+                <strong>
                     {numberToWords(
                         finalAmount
                     )}
+                </strong>
+
+            </section>
+
+
+            {/* =====================================================
+                NOTES
+            ===================================================== */}
+
+            {narration && (
+
+                <section
+                    className={
+                        styles.notesSection
+                    }
+                >
+
+                    <span>
+                        NOTES
+                    </span>
+
+                    <p>
+                        {narration}
+                    </p>
+
+                </section>
+
+            )}
+
+
+            {/* =====================================================
+                SIGNATURES
+            ===================================================== */}
+
+            <section
+                className={
+                    styles.signatureSection
+                }
+            >
+
+                <div
+                    className={
+                        styles.signatureBox
+                    }
+                >
+
+                    <div
+                        className={
+                            styles.signatureLine
+                        }
+                    />
+
+                    <strong>
+                        Prepared By
+                    </strong>
+
+                    <span>
+                        Name / Signature
+                    </span>
+
+                </div>
+
+
+                <div
+                    className={
+                        styles.signatureBox
+                    }
+                >
+
+                    <div
+                        className={
+                            styles.signatureLine
+                        }
+                    />
+
+                    <strong>
+                        Checked By
+                    </strong>
+
+                    <span>
+                        Name / Signature
+                    </span>
+
+                </div>
+
+
+                <div
+                    className={
+                        styles.signatureBox
+                    }
+                >
+
+                    <div
+                        className={
+                            styles.signatureLine
+                        }
+                    />
+
+                    <strong>
+                        Authorised Signatory
+                    </strong>
+
+                    <span>
+                        Name / Signature
+                    </span>
+
+                </div>
+
+            </section>
+
+
+            {/* =====================================================
+                FOOTER
+            ===================================================== */}
+
+            <footer
+                className={
+                    styles.documentFooter
+                }
+            >
+
+                <span>
+                    {companyName}
                 </span>
 
-            </div>
+                <span>
+                    This is a computer-generated document.
+                </span>
 
-
-            {/* =================================================
-                SIGNATURES
-            ================================================= */}
-
-            <div className={styles.signatureArea}>
-
-                <div className={styles.receiverSignature}>
-
-                    <span>
-                        Receiver's Signature:
-                    </span>
-
-                    <div />
-
-                </div>
-
-
-                <div className={styles.authorisedSignature}>
-
-                    <span>
-                        Authorised Signatory
-                    </span>
-
-                    <div />
-
-                </div>
-
-            </div>
+            </footer>
 
         </div>
-
     );
 }

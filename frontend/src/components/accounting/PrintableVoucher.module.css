@@ -1,652 +1,1221 @@
+/* =========================================================
+   PRINTABLE VOUCHER
+   Modern A4 accounting document
+   ========================================================= */
+
 .voucher {
     width: 210mm;
     min-height: 297mm;
-
     box-sizing: border-box;
 
-    padding:
-        10mm 10mm 12mm 10mm;
+    padding: 14mm 15mm 12mm;
+
+    margin: 0 auto;
 
     background: #ffffff;
 
-    color: #111111;
+    color: #18202a;
 
     font-family:
+        Inter,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
         Arial,
-        Helvetica,
         sans-serif;
 
-    font-size: 12px;
+    font-size: 20px;
+    line-height: 1.45;
+
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+}
+
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.documentHeader {
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1fr) 72mm;
+
+    gap: 10mm;
+
+    padding-bottom: 7mm;
+
+    border-bottom: 1px solid #dfe4ea;
+
+    align-items: start;
+}
+
+
+/* ---------------------------------------------------------
+   Company
+   --------------------------------------------------------- */
+
+.companyIdentity {
+    display: flex;
+
+    align-items: flex-start;
+
+    gap: 4mm;
+
+    min-width: 0;
+}
+
+
+.companyLogo {
+    width: 18mm;
+    height: 18mm;
+
+    object-fit: contain;
+
+    flex-shrink: 0;
+}
+
+
+.companyLogoPlaceholder {
+    width: 18mm;
+    height: 18mm;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    flex-shrink: 0;
+
+    border-radius: 4mm;
+
+    background: #182230;
+
+    color: #ffffff;
+
+    font-size: 18px;
+    font-weight: 800;
+}
+
+
+.companyInformation {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 0.8mm;
+
+    min-width: 0;
+
+    color: #59636f;
+
+    font-size: 15px;
+}
+
+
+.companyInformation h1 {
+    margin: 0 0 1mm;
+
+    color: #17202a;
+
+    font-size: 15px;
+    line-height: 1.1;
+
+    font-weight: 800;
+
+    letter-spacing: -0.2px;
+}
+
+
+/* ---------------------------------------------------------
+   Supplier / Customer
+   --------------------------------------------------------- */
+
+.partyInformation {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 1mm;
+
+    padding: 4mm;
+
+    border: 1px solid #dfe4ea;
+
+    border-radius: 2mm;
+
+    background: #f8fafc;
+
+    min-height: 23mm;
 
     box-sizing: border-box;
 }
 
 
-/* =========================================================
-   COMPANY HEADER
-========================================================= */
+.partyInformationLabel {
+    margin-bottom: 0.5mm;
 
-.companyHeader {
-    text-align: center;
-
-    margin-top: 1mm;
-
-    line-height: 1.25;
-}
-
-.companyName {
-    font-size: 17px;
-
-    font-weight: 700;
-
-    letter-spacing: 0.01em;
-}
-
-.companyLocation {
-    font-size: 14px;
-
-    margin-top: 1px;
-}
-
-.companyEmirate {
-    font-size: 13px;
-
-    margin-top: 1px;
-}
-
-
-/* =========================================================
-   VOUCHER TITLE
-========================================================= */
-
-.voucherTitle {
-    text-align: center;
+    color: #7b8794;
 
     font-size: 15px;
 
-    font-weight: 700;
+    font-weight: 800;
 
-    margin-top: 7mm;
+    letter-spacing: 1px;
+}
+
+
+.partyInformation strong {
+    color: #17202a;
+
+    font-size: 20px;
+
+    font-weight: 750;
+}
+
+
+.partyInformation span {
+    color: #606b78;
+
+    font-size: 15px;
+
+    line-height: 1.35;
 }
 
 
 /* =========================================================
-   NUMBER / DATE
-========================================================= */
+   DOCUMENT TITLE
+   ========================================================= */
 
-.topDetails {
+.titleSection {
     display: flex;
+
+    align-items: flex-end;
+    justify-content: space-between;
+
+    gap: 8mm;
+
+    padding: 7mm 0 5mm;
+}
+
+
+.documentEyebrow {
+    display: block;
+
+    margin-bottom: 1.5mm;
+
+    color: #7b8794;
+
+    font-size: 15px;
+
+    font-weight: 800;
+
+    letter-spacing: 1.3px;
+}
+
+
+.titleSection h2 {
+    margin: 0;
+
+    color: #111820;
+
+    font-size: 20px;
+
+    line-height: 1.05;
+
+    font-weight: 850;
+
+    letter-spacing: -0.5px;
+}
+
+
+.documentStatus {
+    padding: 1.8mm 4mm;
+
+    border: 1px solid #cfd6de;
+
+    border-radius: 999px;
+
+    color: #5e6976;
+
+    font-size: 7px;
+
+    font-weight: 800;
+
+    letter-spacing: 1px;
+
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   DOCUMENT DETAILS
+   ========================================================= */
+
+.documentDetails {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+    border: 1px solid #d9dfe6;
+
+    border-radius: 2mm;
+
+    overflow: hidden;
+
+    margin-bottom: 7mm;
+}
+
+
+.documentDetails>div {
+    min-height: 15mm;
+
+    padding: 3mm 4mm;
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: center;
+
+    gap: 1mm;
+
+    border-right: 1px solid #d9dfe6;
+
+    box-sizing: border-box;
+}
+
+
+.paymentDocumentDetails {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.documentDetails>div:last-child {
+    border-right: none;
+}
+
+
+.documentDetails span {
+    color: #7a8693;
+
+    font-size: 13px;
+
+    font-weight: 800;
+
+    letter-spacing: 0.8px;
+}
+
+
+.documentDetails strong {
+    color: #1d2630;
+
+    font-size: 15px;
+
+    font-weight: 750;
+}
+
+
+/* =========================================================
+   ITEMS SECTION
+   ========================================================= */
+
+.itemsSection {
+    margin-bottom: 0;
+
+    border: 1px solid #d9dfe6;
+
+    border-radius: 2mm;
+
+    overflow: hidden;
+}
+
+
+.itemsTable {
+    width: 100%;
+
+    border-collapse: collapse;
+
+    table-layout: fixed;
+}
+
+
+/* ---------------------------------------------------------
+   Column sizing
+   --------------------------------------------------------- */
+
+.serialColumn {
+    width: 9%;
+}
+
+
+.quantityColumn {
+    width: 12%;
+}
+
+
+.rateColumn {
+    width: 17%;
+}
+
+
+.amountColumn {
+    width: 21%;
+}
+
+
+/* ---------------------------------------------------------
+   Table header
+   --------------------------------------------------------- */
+
+.itemsTable thead th {
+    padding: 3.2mm 3mm;
+
+    background: #182230;
+
+    color: #ffffff;
+
+    border: none;
+
+    font-size: 10px;
+
+    font-weight: 800;
+
+    letter-spacing: 0.7px;
+
+    text-align: left;
+
+    text-transform: uppercase;
+}
+
+
+.itemsTable thead th:nth-child(1),
+.itemsTable thead th:nth-child(3),
+.itemsTable thead th:nth-child(4),
+.itemsTable thead th:nth-child(5) {
+    text-align: right;
+}
+
+
+/* ---------------------------------------------------------
+   Table body
+   --------------------------------------------------------- */
+
+.itemsTable tbody td {
+    padding: 4mm 3mm;
+
+    border-top: 1px solid #e2e6eb;
+
+    color: #26313d;
+
+    font-size: 15px;
+
+    vertical-align: middle;
+
+    box-sizing: border-box;
+}
+
+
+.itemsTable tbody tr:nth-child(even) {
+    background: #fafbfc;
+}
+
+
+.serialCell {
+    color: #7a8591 !important;
+
+    font-weight: 700;
+
+    text-align: right;
+}
+
+
+.numberCell {
+    text-align: right;
+
+    white-space: nowrap;
+
+    font-variant-numeric:
+        tabular-nums;
+}
+
+
+.itemDescription {
+    color: #1c2630;
+
+    font-weight: 650;
+
+    overflow-wrap: anywhere;
+}
+
+
+.itemSubtext {
+    margin-top: 1mm;
+
+    color: #7b8793;
+
+    font-size: 10px;
+}
+
+
+/* =========================================================
+   TOTALS
+   ========================================================= */
+
+.totalsSection {
+    width: 100%;
+
+    margin-left: auto;
+
+    border-left: 1px solid #d9dfe6;
+    border-right: 1px solid #d9dfe6;
+    border-bottom: 1px solid #d9dfe6;
+
+    box-sizing: border-box;
+}
+
+
+.totalRow {
+    min-height: 9mm;
+
+    padding: 2.2mm 4mm;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: flex-end;
+
+    gap: 25mm;
+
+    border-top: 1px solid #e1e5e9;
+
+    box-sizing: border-box;
+}
+
+
+.totalRow span {
+    color: #65717d;
+
+    font-size: 10px;
+
+    font-weight: 650;
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.4px;
+}
+
+
+.totalRow strong {
+    min-width: 30mm;
+
+    color: #28333e;
+
+    font-size: 15px;
+
+    font-weight: 750;
+
+    text-align: right;
+
+    font-variant-numeric:
+        tabular-nums;
+}
+
+
+/* =========================================================
+   GRAND TOTAL
+   ========================================================= */
+
+.grandTotalRow {
+    min-height: 14mm;
+
+    padding: 3.5mm 4mm;
+
+    display: flex;
+
+    align-items: center;
 
     justify-content: space-between;
 
-    align-items: flex-start;
+    gap: 8mm;
 
-    margin-top: 9mm;
+    background: #182230;
 
+    color: #ffffff;
+
+    box-sizing: border-box;
+}
+
+
+.grandTotalRow span {
+    color: #ffffff;
+
+    font-size: 9px;
+
+    font-weight: 850;
+
+    letter-spacing: 0.7px;
+}
+
+
+.grandTotalRow strong {
+    color: #ffffff;
+
+    font-size: 13px;
+
+    font-weight: 850;
+
+    font-variant-numeric:
+        tabular-nums;
+}
+
+
+/* =========================================================
+   SINGLE TOTAL
+   ========================================================= */
+
+.singleTotalSection {
+    margin-top: 0;
+
+    border-left: 1px solid #d9dfe6;
+    border-right: 1px solid #d9dfe6;
+    border-bottom: 1px solid #d9dfe6;
+
+    overflow: hidden;
+}
+
+
+/* =========================================================
+   PAYMENT SUMMARY
+   ========================================================= */
+
+.paymentSummary {
+    margin-top: 5mm;
+
+    border: 1px solid #d9dfe6;
+
+    border-radius: 2mm;
+
+    overflow: hidden;
+}
+
+
+.paymentSummary>div {
+    min-height: 9mm;
+
+    padding: 2.5mm 4mm;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 8mm;
+
+    border-bottom: 1px solid #e1e5e9;
+}
+
+
+.paymentSummary>div:last-child {
+    border-bottom: none;
+}
+
+
+.paymentSummary span {
+    color: #68737f;
+
+    font-size: 10px;
+
+    font-weight: 650;
+}
+
+
+.paymentSummary strong {
+    color: #26313c;
+
+    font-size: 10px;
+
+    font-weight: 750;
+
+    font-variant-numeric:
+        tabular-nums;
+}
+
+
+.paymentBalance {
+    background: #f8fafc;
+}
+
+
+.paymentBalance strong {
+    font-size: 10px;
+}
+
+
+.paymentTotal {
+    background: #182230;
+}
+
+
+.paymentTotal span,
+.paymentTotal strong {
+    color: #ffffff;
+}
+
+
+.paymentTotal strong {
     font-size: 12px;
 }
 
-.numberBlock,
-.dateBlock {
+
+/* =========================================================
+   AMOUNT IN WORDS
+   ========================================================= */
+
+.amountWordsSection {
+    margin-top: 6mm;
+
+    padding: 4mm 5mm;
+
     display: flex;
 
-    align-items: baseline;
+    flex-direction: column;
 
-    gap: 6px;
+    gap: 1.5mm;
+
+    border: 1px solid #d9dfe6;
+
+    border-radius: 2mm;
+
+    background: #f8fafc;
+
+    box-sizing: border-box;
 }
 
-.numberBlock strong,
-.dateBlock strong {
+
+.amountWordsSection span {
+    color: #7a8692;
+
+    font-size: 10px;
+
+    font-weight: 800;
+
+    letter-spacing: 0.9px;
+}
+
+
+.amountWordsSection strong {
+    color: #27323d;
+
+    font-size: 12px;
+
     font-weight: 700;
 }
 
 
 /* =========================================================
-   THROUGH
-========================================================= */
+   NOTES
+   ========================================================= */
 
-.throughRow {
-    display: flex;
+.notesSection {
+    margin-top: 5mm;
 
-    align-items: baseline;
+    padding: 4mm 5mm;
 
-    gap: 6px;
+    border: 1px solid #d9dfe6;
 
-    margin-top: 7mm;
+    border-radius: 2mm;
+}
 
-    font-size: 12px;
+
+.notesSection span {
+    display: block;
+
+    margin-bottom: 1.5mm;
+
+    color: #7a8692;
+
+    font-size: 10px;
+
+    font-weight: 800;
+
+    letter-spacing: 0.9px;
+}
+
+
+.notesSection p {
+    margin: 0;
+
+    color: #394550;
+
+    font-size: 8px;
+
+    line-height: 1.5;
 }
 
 
 /* =========================================================
-   ACCOUNT
-========================================================= */
+   SIGNATURES
+   ========================================================= */
 
-.accountSection {
-    margin-top: 3mm;
+.signatureSection {
+    display: grid;
 
-    min-height: 17mm;
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+    gap: 5mm;
+
+    margin-top: 14mm;
 }
 
-.accountLabel {
-    font-weight: 700;
 
-    margin-bottom: 2mm;
-}
+.signatureBox {
+    min-height: 22mm;
 
-.accountDetails {
-    padding-left: 11mm;
+    padding-top: 10mm;
+
+    position: relative;
 
     display: flex;
 
     flex-direction: column;
 
     gap: 1mm;
-}
 
-.accountDetails strong {
-    font-weight: 600;
-}
-
-.accountDetails span {
-    font-size: 11px;
-}
-
-
-/* =========================================================
-   A4 DOCUMENT
-========================================================= */
-
-.voucher {
-    width: 210mm;
-    max-width: 210mm;
-
-    min-height: 297mm;
+    border-top: 1px solid #9ca6b0;
 
     box-sizing: border-box;
-
-    margin: 0;
-    padding: 12mm;
-
-    background: #ffffff;
-
-    color: #111111;
-
-    font-family:
-        Arial,
-        Helvetica,
-        sans-serif;
-
-    overflow: hidden;
 }
 
 
-/* =========================================================
-   PARTICULARS TABLE
-========================================================= */
-
-.particularsTable {
-    display: table;
-
-    width: 100%;
-
-    max-width: 100%;
-
-    min-width: 0;
-
-    margin: 4mm 0 0;
-
-    padding: 0;
-
-    border-collapse: collapse;
-
-    border-spacing: 0;
-
-    table-layout: fixed;
-
-    box-sizing: border-box;
-
-    overflow: hidden;
+.signatureLine {
+    display: none;
 }
 
 
-.particularsTable th,
-.particularsTable td {
-    box-sizing: border-box;
-
-    margin: 0;
-
-    border: 1px solid #777777;
-
-    overflow: hidden;
-}
-
-
-.particularsTable th:first-child,
-.particularsTable td:first-child {
-    width: 76%;
-}
-
-
-.particularsTable th:last-child,
-.particularsTable td:last-child {
-    width: 24%;
-}
-
-
-.particularsTable th {
-    height: 8mm;
-
-    padding: 2mm 3mm;
+.signatureBox strong {
+    color: #26313c;
 
     font-size: 10px;
 
-    font-weight: 700;
-
-    text-align: left;
-
-    white-space: nowrap;
-}
-
-
-.particularsTable th:last-child {
-    text-align: right;
-}
-
-
-.particularsTable td {
-    padding: 3mm;
-
-    vertical-align: top;
-
-    font-size: 11px;
-
-    line-height: 1.4;
-
-    overflow-wrap: anywhere;
-
-    word-break: normal;
-}
-
-
-.particularsTable td:last-child {
-    text-align: right;
-
-    white-space: nowrap;
-
-    overflow: hidden;
-
-    font-weight: 600;
-}
-
-.printableVoucherPaper {
-    width: 210mm;
-
-    max-width: 210mm;
-
-    box-sizing: border-box;
-
-    margin: 0 auto;
-
-    overflow: hidden;
-
-    background: #ffffff;
-}
-
-.savedVoucherOverlay {
-    position: fixed;
-
-    inset: 0;
-
-    z-index: 99999;
-
-    width: 100vw;
-    height: 100vh;
-
-    overflow-y: auto;
-
-    background: rgba(15, 23, 42, 0.72);
-
-    box-sizing: border-box;
-}
-
-/* =========================================================
-   DESCRIPTION
-========================================================= */
-
-.description {
-    font-size: 11.5px;
-
-    line-height: 1.4;
-}
-
-.billReference {
-    margin-top: 2mm;
-
-    font-size: 10.5px;
-}
-
-
-/* =========================================================
-   PAYMENT SUMMARY
-========================================================= */
-
-.paymentSummary {
-    margin-top: 4mm;
-
-    border-top: 1px solid #777777;
-
-    border-bottom: 1px solid #777777;
-}
-
-.paymentSummary>div {
-    display: flex;
-
-    justify-content: space-between;
-
-    padding:
-        2mm 3mm;
-
-    font-size: 10.5px;
-}
-
-.paymentSummary>div+div {
-    border-top: 1px solid #dddddd;
-}
-
-.paymentSummary span {
-    font-weight: 600;
-}
-
-.paymentSummary strong {
-    font-weight: 700;
-}
-
-
-/* =========================================================
-   TOTAL
-========================================================= */
-
-.totalRow {
-    display: flex;
-
-    justify-content: flex-end;
-
-    align-items: center;
-
-    gap: 12px;
-
-    margin-top: 3mm;
-
-    padding:
-        3mm 3mm;
-
-    border-top: 1.5px solid #111111;
-
-    border-bottom: 1.5px solid #111111;
-}
-
-.totalRow span {
-    font-weight: 700;
+    font-weight: 750;
 
     text-transform: uppercase;
 }
 
-.totalRow strong {
-    min-width: 35mm;
 
-    text-align: right;
+.signatureBox span {
+    color: #7b8792;
 
-    font-size: 13px;
-
-    font-weight: 700;
+    font-size: 7px;
 }
 
 
 /* =========================================================
-   AMOUNT IN WORDS
-========================================================= */
+   FOOTER
+   ========================================================= */
 
-.amountWords {
+.documentFooter {
+    margin-top: 10mm;
+
+    padding-top: 4mm;
+
     display: flex;
 
-    align-items: baseline;
-
-    gap: 5mm;
-
-    margin-top: 17mm;
-
-    padding-left: 8mm;
-
-    font-size: 11px;
-}
-
-.amountWords strong {
-    white-space: nowrap;
-
-    font-weight: 700;
-}
-
-.amountWords span {
-    font-weight: 500;
-}
-
-
-/* =========================================================
-   SIGNATURES
-========================================================= */
-
-.signatureArea {
-    display: flex;
+    align-items: center;
 
     justify-content: space-between;
 
-    align-items: flex-end;
+    gap: 8mm;
 
-    margin-top: 22mm;
+    border-top: 1px solid #e1e5e9;
 
-    padding:
-        0 8mm;
-}
+    color: #89939e;
 
-.receiverSignature,
-.authorisedSignature {
-    width: 55mm;
-
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 18mm;
-}
-
-.receiverSignature span,
-.authorisedSignature span {
-    font-size: 10.5px;
-
-    font-weight: 600;
-}
-
-.authorisedSignature {
-    text-align: right;
+    font-size: 6.8px;
 }
 
 
 /* =========================================================
    PRINT
-========================================================= */
+   ========================================================= */
+
+@page {
+    size: A4 portrait;
+
+    margin: 0;
+}
+
 
 @media print {
 
-    @page {
-        size: A4 portrait;
-        margin: 0;
-    }
-
-
     html,
     body {
-        width: 210mm !important;
-        height: 297mm !important;
-
         margin: 0 !important;
         padding: 0 !important;
-
-        background: #ffffff !important;
-
-        overflow: hidden !important;
-    }
-
-
-    body * {
-        visibility: hidden;
-    }
-
-
-    .savedVoucherOverlay,
-    .savedVoucherOverlay * {
-        visibility: visible;
-    }
-
-
-    .savedVoucherOverlay {
-        position: absolute !important;
-
-        top: 0 !important;
-        left: 0 !important;
-
-        width: 210mm !important;
-        height: 297mm !important;
-
-        margin: 0 !important;
-        padding: 0 !important;
-
-        overflow: hidden !important;
-
-        background: #ffffff !important;
-    }
-
-
-    .savedVoucherToolbar {
-        display: none !important;
-    }
-
-
-    .printableVoucherPaper {
-        display: block !important;
-
-        width: 210mm !important;
-        max-width: 210mm !important;
-
-        height: 297mm !important;
-
-        margin: 0 !important;
-        padding: 0 !important;
-
-        overflow: hidden !important;
-
-        box-shadow: none !important;
 
         background: #ffffff !important;
     }
 
 
     .voucher {
-        display: block !important;
+        width: 210mm;
+        min-height: 297mm;
 
-        width: 210mm !important;
-        max-width: 210mm !important;
+        margin: 0;
 
-        min-height: 297mm !important;
+        padding: 14mm 15mm 12mm;
 
-        box-sizing: border-box !important;
+        box-shadow: none;
 
-        margin: 0 !important;
-
-        overflow: hidden !important;
+        page-break-after: always;
     }
 
 
-    .particularsTable {
-        width: 100% !important;
-        max-width: 100% !important;
+    .voucher:last-child {
+        page-break-after: auto;
+    }
 
-        table-layout: fixed !important;
 
-        margin-left: 0 !important;
-        margin-right: 0 !important;
+    .documentHeader,
+    .titleSection,
+    .documentDetails,
+    .itemsSection,
+    .totalsSection,
+    .paymentSummary,
+    .amountWordsSection,
+    .notesSection,
+    .signatureSection,
+    .documentFooter {
+        break-inside: avoid;
+    }
+
+
+    .itemsTable thead {
+        display: table-header-group;
+    }
+
+
+    .itemsTable tr {
+        break-inside: avoid;
     }
 
 }
+
+
 /* =========================================================
-   ITEMIZED EXPENSE TABLE FIXES
-========================================================= */
+   SCREEN PREVIEW
+   ========================================================= */
 
-.particularsTable {
-    width: 100%;
-    border-collapse: collapse;
-    border-spacing: 0;
-    table-layout: fixed;
+@media screen {
+
+    .voucher {
+        margin: 20px auto;
+
+        box-shadow:
+            0 8px 35px rgba(20, 30, 40, 0.12);
+
+        border: 1px solid #e4e8ed;
+    }
+
 }
 
-.particularsTable th,
-.particularsTable td {
-    border: 1px solid #555;
+
+/* =========================================================
+   RESPONSIVE PREVIEW
+   ========================================================= */
+
+@media screen and (max-width: 850px) {
+
+    .voucher {
+        width: 100%;
+
+        min-height: auto;
+
+        padding: 25px 20px;
+    }
+
+
+    .documentHeader {
+        grid-template-columns: 1fr;
+    }
+
+
+    .partyInformation {
+        width: 100%;
+    }
+
+
+    .documentDetails {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+
+    .documentDetails>div:nth-child(2) {
+        border-right: none;
+    }
+
+
+    .documentDetails>div:nth-child(3) {
+        border-top: 1px solid #d9dfe6;
+    }
+
+
+    .signatureSection {
+        grid-template-columns: 1fr;
+    }
+
 }
 
-.particularsTable th:first-child,
-.particularsTable td:first-child {
-    width: 76%;
+
+/* =========================================================
+   SMALL SCREEN
+   ========================================================= */
+
+@media screen and (max-width: 550px) {
+
+    .voucher {
+        padding: 18px 12px;
+    }
+
+
+    .titleSection {
+        align-items: flex-start;
+
+        flex-direction: column;
+    }
+
+
+    .documentDetails {
+        grid-template-columns: 1fr;
+    }
+
+
+    .documentDetails>div {
+        border-right: none;
+
+        border-bottom: 1px solid #d9dfe6;
+    }
+
+
+    .documentDetails>div:last-child {
+        border-bottom: none;
+    }
+
+
+    .itemsTable {
+        min-width: 650px;
+    }
+
+
+    .itemsSection {
+        overflow-x: auto;
+    }
+
+
+    .totalsSection {
+        width: 100%;
+    }
+
+
+    .totalRow {
+        gap: 10mm;
+    }
+
+
+    .documentFooter {
+        flex-direction: column;
+
+        align-items: flex-start;
+    }
+
 }
 
-.particularsTable th:last-child,
-.particularsTable td:last-child {
-    width: 24%;
+/* =========================================================
+   VOUCHER TYPOGRAPHY
+   Controlled hierarchy — do not globally scale children
+   ========================================================= */
+
+.voucher {
+    font-size: 10px;
+    line-height: 1.35;
+    color: #17202a;
 }
 
-.particularsTable th {
-    background: #f5f5f5;
+
+/* =========================================================
+   COMPANY HEADER
+   ========================================================= */
+
+.companyName {
+    font-size: 14px;
+    line-height: 1.2;
+    font-weight: 800;
 }
 
-.particularsTable td {
-    min-height: 8mm;
-    padding: 2.5mm 3mm;
-    vertical-align: middle;
+.companyAddress,
+.companyContact,
+.companyTrn {
+    font-size: 9px;
+    line-height: 1.35;
 }
 
-.amountCell {
-    text-align: right;
-    white-space: nowrap;
-    font-weight: 600;
-}
 
-.itemMeta {
-    margin-left: 5px;
-    color: #555;
-    font-size: 9.5px;
-    font-weight: 400;
-}
+/* =========================================================
+   DOCUMENT TITLE
+   ========================================================= */
 
-.summaryRow td {
-    background: #fafafa;
-    font-weight: 600;
-}
-
-.grandTotalRow td {
-    background: #f1f1f1;
-    border-top: 1.5px solid #111;
-    border-bottom: 1.5px solid #111;
+.documentEyebrow {
+    font-size: 9px;
+    line-height: 1.2;
+    letter-spacing: 0.08em;
     font-weight: 700;
 }
 
-@media print {
-    .particularsTable {
-        width: 100% !important;
-        border-collapse: collapse !important;
-    }
+.documentTitle {
+    font-size: 17px;
+    line-height: 1.15;
+    font-weight: 800;
+}
 
-    .particularsTable th,
-    .particularsTable td {
-        border: 1px solid #555 !important;
-    }
+
+/* =========================================================
+   SUPPLIER / CUSTOMER
+   ========================================================= */
+
+.partyLabel {
+    font-size: 8px;
+    line-height: 1.2;
+    letter-spacing: 0.07em;
+    font-weight: 700;
+}
+
+.partyName {
+    font-size: 11px;
+    line-height: 1.25;
+    font-weight: 700;
+}
+
+.partyDetails {
+    font-size: 9px;
+    line-height: 1.4;
+}
+
+
+/* =========================================================
+   DOCUMENT META
+   ========================================================= */
+
+.metaLabel {
+    font-size: 8px;
+    line-height: 1.2;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+}
+
+.metaValue {
+    font-size: 10px;
+    line-height: 1.3;
+    font-weight: 600;
+}
+
+
+/* =========================================================
+   TABLE
+   ========================================================= */
+
+.tableHeader {
+    font-size: 8px;
+    line-height: 1.2;
+    letter-spacing: 0.03em;
+    font-weight: 800;
+}
+
+.tableCell {
+    font-size: 9px;
+    line-height: 1.35;
+}
+
+.itemDescription {
+    font-size: 9px;
+    line-height: 1.4;
+}
+
+
+/* =========================================================
+   TOTALS
+   ========================================================= */
+
+.summaryLabel {
+    font-size: 9px;
+    line-height: 1.3;
+    font-weight: 600;
+}
+
+.summaryValue {
+    font-size: 9px;
+    line-height: 1.3;
+    font-weight: 700;
+}
+
+.totalLabel {
+    font-size: 10px;
+    line-height: 1.2;
+    font-weight: 800;
+}
+
+.totalValue {
+    font-size: 11px;
+    line-height: 1.2;
+    font-weight: 800;
+}
+
+
+/* =========================================================
+   AMOUNT IN WORDS
+   ========================================================= */
+
+.amountWordsLabel {
+    font-size: 8px;
+    line-height: 1.2;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+}
+
+.amountWordsValue {
+    font-size: 9px;
+    line-height: 1.4;
+    font-weight: 600;
+}
+
+
+/* =========================================================
+   SIGNATURES
+   ========================================================= */
+
+.signatureTitle {
+    font-size: 8px;
+    line-height: 1.2;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+}
+
+.signatureName {
+    font-size: 9px;
+    line-height: 1.3;
+}
+
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.footer {
+    font-size: 8px;
+    line-height: 1.3;
 }

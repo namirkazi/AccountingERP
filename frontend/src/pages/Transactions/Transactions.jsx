@@ -9,18 +9,15 @@ import TransactionHeader, { TRANSACTION_TYPES } from "./components/TransactionHe
 import SavedVoucher from "./components/Shared/SavedVoucher";
 
 import SalesForm from "./components/Sales/SalesForm";
-import SalesPreview from "./components/Sales/SalesPreview";
 
 import ReceiptForm from "./components/Reciept/ReceiptForm";
-import ReceiptPreview from "./components/Reciept/ReceiptPreview";
 
 import PaymentForm from "./components/Payment/PaymentForm";
-import PaymentPreview from "./components/Payment/PaymentPreview";
 
 import ExpenseForm from "./components/Expense/ExpenseForm";
-import ExpensePreview from "./components/Expense/ExpensePreview";
 import useExpenseTransaction from "./hooks/useExpenseTransaction";
-
+import PrintableVoucher
+    from "../../components/accounting/PrintableVoucher";
 import styles from "./Transactions.module.css";
 
 export default function Transactions() {
@@ -36,8 +33,6 @@ export default function Transactions() {
         removeItem: removeExpenseItem,
         referenceNumber,
         setReferenceNumber,
-        selectedExpense,
-        setSelectedExpense,
         discount,
         setDiscount,
         discountMode,
@@ -53,9 +48,8 @@ export default function Transactions() {
         validItems: validExpenseItems,
         resetExpense
     } = expense;
-
-    const [paymentExpenses, setPaymentExpenses] = useState([]);
-    const [selectedPaymentExpense, setSelectedPaymentExpense] = useState(null);
+    const [paymentBills, setPaymentBills] = useState([]);
+    const [selectedPaymentBill, setSelectedPaymentBill] = useState(null);
 
     const [paymentAmount, setPaymentAmount] = useState("");
 
@@ -70,6 +64,7 @@ export default function Transactions() {
     const [narration, setNarration] = useState("");
 
     const [accountId, setAccountId] = useState("");
+    const [paymentAccount, setPaymentAccount] = useState(null);
 
     const [saving, setSaving] = useState(false);
 
@@ -123,7 +118,7 @@ export default function Transactions() {
     useEffect(() => {
 
         if (type !== "payment" || !party?.party_name) {
-            setPaymentExpenses([]);
+            setPaymentBills([]);
             return;
         }
 
@@ -141,7 +136,9 @@ export default function Transactions() {
                     return;
                 }
 
-                setPaymentExpenses(response?.data?.expenses || []);
+                setPaymentBills(
+                    response?.data?.expenses || []
+                );
 
             } catch (error) {
 
@@ -151,7 +148,7 @@ export default function Transactions() {
 
                 console.error("Unable to load payment expenses:", error);
 
-                setPaymentExpenses([]);
+                setPaymentBills([]);
                 setError(error.message || "Unable to load outstanding bills.");
 
             }
@@ -180,9 +177,9 @@ export default function Transactions() {
         setAmount("");
         setNarration("");
         setAccountId("");
-        setSelectedExpense(null);
-        setPaymentExpenses([]);
-        setSelectedPaymentExpense(null);
+        setPaymentAccount(null);
+        setPaymentBills([]);
+        setSelectedPaymentBill(null);
         setPaymentAmount("");
         setMessage("");
         setError("");
@@ -198,9 +195,9 @@ export default function Transactions() {
         setVoucherNumber("");
         setNarration("");
         setAccountId("");
-        setSelectedExpense(null);
-        setSelectedPaymentExpense(null);
-        setPaymentExpenses([]);
+        setPaymentAccount(null);
+        setPaymentBills([]);
+        setSelectedPaymentBill(null);
         setMessage("");
         setError("");
     }
@@ -240,13 +237,22 @@ export default function Transactions() {
 
         const supplierName =
             party?.party_name ||
-            selectedPaymentExpense?.party_name ||
+            selectedPaymentBill?.party_name ||
             "Supplier";
 
         const reference =
             type === "payment"
-                ? (selectedPaymentExpense?.reference_number || referenceNumber || "Voucher")
-                : (voucherNumber || referenceNumber || "Voucher");
+                ? (
+                    voucherNumber ||
+                    selectedPaymentBill?.reference_number ||
+                    referenceNumber ||
+                    "Voucher"
+                )
+                : (
+                    voucherNumber ||
+                    referenceNumber ||
+                    "Voucher"
+                );
 
         const cleanSupplier = supplierName.replace(/[<>:"/\\|?*]/g, "").trim();
         const cleanReference = reference.replace(/[<>:"/\\|?*]/g, "").trim();
@@ -284,11 +290,6 @@ export default function Transactions() {
             return;
         }
 
-        if (type === "expense" && !selectedExpense) {
-            setError("Please select an expense.");
-            return;
-        }
-
         if (type === "expense" && expenseItems.length === 0) {
             setError("Please add at least one expense item.");
             return;
@@ -317,7 +318,7 @@ export default function Transactions() {
 
         if (type === "payment") {
 
-            if (!selectedPaymentExpense) {
+            if (!selectedPaymentBill) {
                 setError("Please select a bill to pay.");
                 return;
             }
@@ -327,7 +328,10 @@ export default function Transactions() {
                 return;
             }
 
-            const outstanding = Number(selectedPaymentExpense.outstanding_amount) || 0;
+            const outstanding =
+                Number(
+                    selectedPaymentBill.outstanding_amount
+                ) || 0;
 
             if (currentAmount > outstanding) {
                 setError(`Payment cannot exceed the outstanding amount of AED ${outstanding.toFixed(2)}.`);
@@ -350,11 +354,21 @@ export default function Transactions() {
             if (type === "payment") {
 
                 response = await createPayment({
-                    expense_id: Number(selectedPaymentExpense.id),
-                    amount: Number(paymentAmount),
-                    payment_account_id: Number(accountId),
+
+                    expense_id:
+                        Number(selectedPaymentBill.id),
+
+                    amount:
+                        Number(paymentAmount),
+
+                    payment_account_id:
+                        Number(accountId),
+
                     date,
-                    narration: narration.trim()
+
+                    narration:
+                        narration.trim()
+
                 });
 
             } else {
@@ -374,9 +388,9 @@ export default function Transactions() {
                     discount: type === "expense" ? Number(discountAmount) || 0 : 0,
                     discount_mode: type === "expense" ? discountMode : null,
                     account_id:
-                        type === "expense"
-                            ? Number(selectedExpense?.id) || null
-                            : Number(accountId) || null,
+                        type === "payment" || type === "receipt"
+                            ? Number(accountId) || null
+                            : null,
                     expense_payment_status: type === "expense" ? "pending" : null,
                     narration
                 });
@@ -384,7 +398,28 @@ export default function Transactions() {
             }
 
             if (type === "expense") {
-                setVoucherNumber(getSavedVoucherNumber(response));
+
+                setVoucherNumber(
+                    getSavedVoucherNumber(response)
+                );
+
+            }
+
+            if (type === "payment") {
+
+                const paymentVoucherId =
+                    response?.data?.payment_voucher_id;
+
+                if (paymentVoucherId) {
+
+                    setVoucherNumber(
+                        `PAY-${String(
+                            paymentVoucherId
+                        ).padStart(6, "0")}`
+                    );
+
+                }
+
             }
 
             setMessage(response.message || `${currentType.label} saved successfully.`);
@@ -415,13 +450,6 @@ export default function Transactions() {
         party?.customer_name ||
         party?.supplier_name ||
         "Select supplier";
-
-    const expenseName =
-        selectedExpense?.expense_name ||
-        selectedExpense?.name ||
-        selectedExpense?.account_name ||
-        "Selected expense";
-
     /*
      * =====================================================
      * RETURN
@@ -478,21 +506,36 @@ export default function Transactions() {
                         <PaymentForm
                             date={date}
                             setDate={setDate}
+
                             party={party}
                             setParty={setParty}
-                            paymentExpenses={paymentExpenses}
-                            selectedPaymentExpense={selectedPaymentExpense}
-                            setSelectedPaymentExpense={setSelectedPaymentExpense}
-                            setReferenceNumber={setReferenceNumber}
+
+                            paymentBills={paymentBills}
+
+                            selectedPaymentBill={
+                                selectedPaymentBill
+                            }
+
+                            setSelectedPaymentBill={
+                                setSelectedPaymentBill
+                            }
+
                             paymentAmount={paymentAmount}
                             setPaymentAmount={setPaymentAmount}
+
                             accountId={accountId}
                             setAccountId={setAccountId}
+
+                            paymentAccount={paymentAccount}
+                            setPaymentAccount={setPaymentAccount}
+
                             narration={narration}
                             setNarration={setNarration}
+
                             error={error}
                             message={message}
                             saving={saving}
+
                             onSubmit={handleSubmit}
                         />
                     )}
@@ -505,8 +548,6 @@ export default function Transactions() {
                             setParty={setParty}
                             referenceNumber={referenceNumber}
                             setReferenceNumber={setReferenceNumber}
-                            selectedExpense={selectedExpense}
-                            setSelectedExpense={setSelectedExpense}
                             items={expenseItems}
                             addItem={addExpenseItem}
                             updateItem={updateExpenseItem}
@@ -537,71 +578,81 @@ export default function Transactions() {
                         BILL PREVIEW
                     ===================================== */}
 
-                    {type === "sale" && (
-                        <SalesPreview
-                            date={date}
-                            party={party}
-                            partyName={partyName}
-                            amount={amount}
-                            narration={narration}
-                            showPreview={showPreview}
-                            setShowPreview={setShowPreview}
-                            showSavedVoucher={showSavedVoucher}
-                            printVoucher={printVoucher}
-                        />
-                    )}
+                    {/* =====================================
+    SINGLE VOUCHER PREVIEW
+===================================== */}
 
-                    {type === "receipt" && (
-                        <ReceiptPreview
-                            date={date}
-                            party={party}
-                            partyName={partyName}
-                            amount={amount}
-                            narration={narration}
-                            showPreview={showPreview}
-                            setShowPreview={setShowPreview}
-                            showSavedVoucher={showSavedVoucher}
-                            printVoucher={printVoucher}
-                        />
-                    )}
+                    {showPreview ? (
 
-                    {type === "payment" && (
-                        <PaymentPreview
-                            date={date}
-                            party={party}
-                            partyName={partyName}
-                            referenceNumber={referenceNumber}
-                            paymentAmount={paymentAmount}
-                            selectedPaymentExpense={selectedPaymentExpense}
-                            narration={narration}
-                            showPreview={showPreview}
-                            setShowPreview={setShowPreview}
-                            showSavedVoucher={showSavedVoucher}
-                            printVoucher={printVoucher}
-                        />
-                    )}
+                        <aside className={styles.previewPanel}>
 
-                    {type === "expense" && (
-                        <ExpensePreview
-                            date={date}
-                            party={party}
-                            partyName={partyName}
-                            referenceNumber={referenceNumber}
-                            voucherNumber={voucherNumber}
-                            items={expenseItems}
-                            subtotal={expenseSubtotal}
-                            expenseName={expenseName}
-                            discountAmount={discountAmount}
-                            taxableAmount={taxableAmount}
-                            vatRate={vatRate}
-                            vatAmount={vatAmount}
-                            totalAmount={totalAmount}
-                            narration={narration}
-                            showPreview={showPreview}
-                            setShowPreview={setShowPreview}
-                            showSavedVoucher={showSavedVoucher}
-                            printVoucher={printVoucher}
-                        />
+                            <div className={styles.previewHeader}>
+
+                                <div>
+                                    <span className={styles.previewEyebrow}>
+                                        {showSavedVoucher
+                                            ? "SAVED VOUCHER"
+                                            : "LIVE PREVIEW"
+                                        }
+                                    </span>
+
+                                    <h2>
+                                        {currentType?.label || "Transaction"}
+                                    </h2>
+                                </div>
+
+
+                                {!showSavedVoucher && (
+
+                                    <button
+                                        type="button"
+                                        className={styles.previewHideButton}
+                                        onClick={() =>
+                                            setShowPreview(false)
+                                        }
+                                    >
+                                        Hide
+                                    </button>
+
+                                )}
+
+                            </div>
+
+
+                            <div className={styles.billPreview}>
+                                <div className={styles.voucherPreviewScale}>
+                                    <PrintableVoucher
+                                        type={type}
+                                        date={date}
+                                        party={party}
+                                        referenceNumber={referenceNumber}
+                                        amount={amount}
+                                        discountAmount={discountAmount}
+                                        vatRate={vatRate}
+                                        vatAmount={vatAmount}
+                                        totalAmount={totalAmount}
+                                        paymentAmount={paymentAmount}
+                                        paymentAccount={paymentAccount}
+                                        selectedPaymentBill={selectedPaymentBill}
+                                        narration={narration}
+                                    />
+                                </div>
+                            </div>
+
+                        </aside>
+
+                    ) : (
+
+                        <button
+                            type="button"
+                            className={styles.showPreviewButton}
+                            onClick={() =>
+                                setShowPreview(true)
+                            }
+                        >
+                            Show Preview
+                        </button>
+
                     )}
 
                 </div>
@@ -625,8 +676,8 @@ export default function Transactions() {
                     vatAmount={vatAmount}
                     totalAmount={totalAmount}
                     paymentAmount={paymentAmount}
-                    accountId={accountId}
-                    selectedPaymentExpense={selectedPaymentExpense}
+                    paymentAccount={paymentAccount}
+                    selectedPaymentBill={selectedPaymentBill}
                     narration={narration}
                     printVoucher={printVoucher}
                     closeSavedVoucher={closeSavedVoucher}

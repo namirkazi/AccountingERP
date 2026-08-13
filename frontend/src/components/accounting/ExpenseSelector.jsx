@@ -2,432 +2,700 @@ import { useEffect, useRef, useState } from "react";
 import { Plus, Search, X } from "lucide-react";
 
 import {
-    getExpenseAccounts,
-    createExpenseAccount
-} from "../../services/expenseService";
+    getSupplierItems,
+    createSupplierItem
+} from "../../services/supplierItemService";
 
 import styles from "./ExpenseSelector.module.css";
 
+
 export default function ExpenseSelector({
+    supplierId,
     value,
     onChange,
-    placeholder = "Search expense..."
+    placeholder = "Search or enter item..."
 }) {
+
     const wrapperRef = useRef(null);
 
-    const [expenses, setExpenses] = useState([]);
+    const [items, setItems] = useState([]);
+
     const [search, setSearch] = useState("");
+
     const [open, setOpen] = useState(false);
 
     const [loading, setLoading] = useState(false);
 
-    const [showCreate, setShowCreate] = useState(false);
-    const [newName, setNewName] = useState("");
     const [creating, setCreating] = useState(false);
+
     const [error, setError] = useState("");
 
-    // Load expense accounts
+
+    /*
+     * =====================================================
+     * LOAD SUPPLIER ITEMS
+     * =====================================================
+     */
+
     useEffect(() => {
-        async function loadExpenses() {
-            try {
-                setLoading(true);
 
-                const response =
-                    await getExpenseAccounts();
+        let cancelled = false;
 
-                setExpenses(
-                    response?.data?.accounts || []
-                );
-            } catch (error) {
-                console.error(
-                    "Failed to load expenses:",
-                    error
-                );
-            } finally {
-                setLoading(false);
+
+        async function loadItems() {
+
+            if (!supplierId) {
+
+                setItems([]);
+                setSearch("");
+                setOpen(false);
+
+                return;
+
             }
+
+
+            try {
+
+                setLoading(true);
+                setError("");
+
+
+                const result =
+                    await getSupplierItems(
+                        supplierId
+                    );
+
+
+                if (!cancelled) {
+
+                    setItems(
+                        Array.isArray(result)
+                            ? result
+                            : []
+                    );
+
+                }
+
+            } catch (error) {
+
+                if (!cancelled) {
+
+                    console.error(
+                        "Failed to load supplier items:",
+                        error
+                    );
+
+
+                    setItems([]);
+
+
+                    setError(
+                        error.message ||
+                        "Unable to load supplier items."
+                    );
+
+                }
+
+            } finally {
+
+                if (!cancelled) {
+
+                    setLoading(false);
+
+                }
+
+            }
+
         }
 
-        loadExpenses();
-    }, []);
 
-    // Close dropdown when clicking outside
+        loadItems();
+
+
+        return () => {
+
+            cancelled = true;
+
+        };
+
+    }, [supplierId]);
+
+
+    /*
+     * =====================================================
+     * CLOSE WHEN CLICKING OUTSIDE
+     * =====================================================
+     */
+
     useEffect(() => {
+
         function handleClickOutside(event) {
+
             if (
                 wrapperRef.current &&
-                !wrapperRef.current.contains(event.target)
+                !wrapperRef.current.contains(
+                    event.target
+                )
             ) {
+
                 setOpen(false);
+
             }
+
         }
+
 
         document.addEventListener(
             "mousedown",
             handleClickOutside
         );
 
+
         return () => {
+
             document.removeEventListener(
                 "mousedown",
                 handleClickOutside
             );
+
         };
+
     }, []);
 
-    const selectedExpense =
-        expenses.find(
-            (expense) =>
-                Number(expense.id) === Number(value)
+
+    /*
+     * =====================================================
+     * SELECTED ITEM
+     * =====================================================
+     */
+
+    const selectedItem =
+        items.find(
+            item =>
+                String(item.id) ===
+                String(value)
         );
 
-    const filteredExpenses =
-        expenses.filter((expense) =>
-            expense.account_name
+
+    /*
+     * =====================================================
+     * SEARCH RESULTS
+     * =====================================================
+     */
+
+    const filteredItems =
+        items.filter(item =>
+            String(
+                item.item_name || ""
+            )
                 .toLowerCase()
-                .includes(search.toLowerCase())
+                .includes(
+                    search
+                        .trim()
+                        .toLowerCase()
+                )
         );
+
 
     const exactMatch =
-        expenses.some(
-            (expense) =>
-                expense.account_name.toLowerCase() ===
-                search.trim().toLowerCase()
+        items.some(item =>
+            String(
+                item.item_name || ""
+            )
+                .trim()
+                .toLowerCase() ===
+            search
+                .trim()
+                .toLowerCase()
         );
 
-    function handleSelect(expense) {
-        onChange(expense.id);
+
+    /*
+     * =====================================================
+     * SELECT EXISTING
+     * =====================================================
+     */
+
+    function handleSelect(item) {
+
+        onChange(
+            item.id,
+            item
+        );
+
 
         setSearch("");
+
         setOpen(false);
+
     }
 
-    function openCreate() {
-        setNewName(search.trim());
-        setError("");
-        setShowCreate(true);
-        setOpen(false);
-    }
+
+    /*
+     * =====================================================
+     * CREATE NEW ITEM
+     * =====================================================
+     */
 
     async function handleCreate() {
-        const name = newName.trim();
+
+        const name =
+            search.trim();
+
 
         if (!name) {
-            setError(
-                "Please enter an expense name."
-            );
+
             return;
+
         }
 
-        setCreating(true);
-        setError("");
+
+        if (!supplierId) {
+
+            setError(
+                "Select a supplier first."
+            );
+
+            return;
+
+        }
+
+
+        if (exactMatch) {
+
+            return;
+
+        }
+
 
         try {
-            const response =
-                await createExpenseAccount(name);
 
-            const account =
-                response?.data?.account;
+            setCreating(true);
+            setError("");
 
-            if (!account) {
+
+            const newItem =
+                await createSupplierItem({
+
+                    supplier_id:
+                        supplierId,
+
+                    item_name:
+                        name,
+
+                    unit:
+                        "",
+
+                    default_rate:
+                        0
+
+                });
+
+
+            if (!newItem) {
+
                 throw new Error(
-                    "Expense account was not returned."
+                    "The supplier item was not returned."
                 );
+
             }
 
-            setExpenses((current) => {
+
+            /*
+             * Add it to the current supplier's
+             * local list immediately.
+             */
+
+            setItems(current => {
 
                 const exists =
                     current.some(
-                        (item) =>
-                            Number(item.id) ===
-                            Number(account.id)
+                        item =>
+                            String(item.id) ===
+                            String(newItem.id)
                     );
 
+
                 if (exists) {
+
                     return current;
+
                 }
+
 
                 return [
                     ...current,
-                    account
-                ];
+                    newItem
+                ].sort(
+                    (a, b) =>
+                        String(
+                            a.item_name
+                        ).localeCompare(
+                            String(
+                                b.item_name
+                            )
+                        )
+                );
+
             });
 
-            // Automatically select new expense
-            onChange(account.id);
 
-            setNewName("");
-            setShowCreate(false);
+            /*
+             * Automatically select the new item.
+             */
+
+            onChange(
+                newItem.id,
+                newItem
+            );
+
+
+            setSearch("");
+
+            setOpen(false);
+
 
         } catch (error) {
+
+            console.error(
+                "Failed to create supplier item:",
+                error
+            );
+
+
             setError(
                 error.message ||
-                "Unable to create expense."
+                "Unable to create item."
             );
+
+
         } finally {
+
             setCreating(false);
+
         }
+
     }
 
-    function clearSelection() {
-        onChange(null);
+
+    /*
+     * =====================================================
+     * CLEAR
+     * =====================================================
+     */
+
+    function handleClear() {
+
+        onChange(
+            null,
+            null
+        );
+
         setSearch("");
+
+        setOpen(false);
+
     }
 
-    return (
-        <>
+
+    /*
+     * =====================================================
+     * NO SUPPLIER
+     * =====================================================
+     */
+
+    if (!supplierId) {
+
+        return (
+
             <div
-                className={styles.wrapper}
-                ref={wrapperRef}
+                className={
+                    styles.wrapper
+                }
             >
-                <div className={styles.inputWrapper}>
+
+                <div
+                    className={
+                        styles.inputWrapper
+                    }
+                >
 
                     <Search
                         size={16}
-                        className={styles.searchIcon}
+                        className={
+                            styles.searchIcon
+                        }
                     />
 
                     <input
                         type="text"
-                        value={
-                            open
-                                ? search
-                                : selectedExpense
-                                    ? selectedExpense.account_name
-                                    : search
-                        }
-                        placeholder={placeholder}
-                        onFocus={() => {
-                            setOpen(true);
-
-                            if (selectedExpense) {
-                                setSearch("");
-                            }
-                        }}
-                        onChange={(event) => {
-                            setSearch(
-                                event.target.value
-                            );
-
-                            setOpen(true);
-                        }}
+                        placeholder="Select supplier first"
+                        disabled
                     />
-
-                    {selectedExpense && !open && (
-                        <button
-                            type="button"
-                            className={styles.clearButton}
-                            onClick={clearSelection}
-                        >
-                            <X size={15} />
-                        </button>
-                    )}
 
                 </div>
 
+            </div>
 
-                {open && (
-                    <div className={styles.dropdown}>
+        );
 
-                        {loading && (
-                            <div className={styles.message}>
-                                Loading expenses...
-                            </div>
-                        )}
+    }
 
 
-                        {!loading &&
-                            filteredExpenses.length > 0 && (
-                                <div className={styles.results}>
+    /*
+     * =====================================================
+     * RENDER
+     * =====================================================
+     */
 
-                                    {filteredExpenses.map(
-                                        (expense) => (
-                                            <button
-                                                key={expense.id}
-                                                type="button"
-                                                className={
-                                                    styles.result
-                                                }
-                                                onClick={() =>
-                                                    handleSelect(
-                                                        expense
-                                                    )
-                                                }
-                                            >
-                                                <span>
-                                                    {
-                                                        expense.account_name
-                                                    }
-                                                </span>
-                                            </button>
-                                        )
-                                    )}
+    return (
 
-                                </div>
-                            )}
+        <div
+            ref={wrapperRef}
+            className={
+                styles.wrapper
+            }
+        >
+
+            <div
+                className={
+                    styles.inputWrapper
+                }
+            >
+
+                <Search
+                    size={16}
+                    className={
+                        styles.searchIcon
+                    }
+                />
 
 
-                        {!loading &&
-                            search.trim() !== "" &&
-                            !exactMatch && (
-                                <button
-                                    type="button"
-                                    className={
-                                        styles.createOption
-                                    }
-                                    onClick={openCreate}
-                                >
-                                    <span
-                                        className={
-                                            styles.plusIcon
-                                        }
-                                    >
-                                        <Plus size={16} />
-                                    </span>
+                <input
 
-                                    <span>
-                                        Add "
-                                        {search.trim()}
-                                        "
-                                    </span>
-                                </button>
-                            )}
+                    type="text"
+
+                    value={
+                        open
+                            ? search
+                            : selectedItem
+                                ? selectedItem.item_name
+                                : ""
+                    }
+
+                    placeholder={
+                        placeholder
+                    }
+
+                    autoComplete="off"
+
+                    onFocus={() => {
+
+                        setOpen(true);
+
+                        setSearch("");
+
+                    }}
+
+                    onChange={event => {
+
+                        setSearch(
+                            event.target.value
+                        );
+
+                        setOpen(true);
+
+                    }}
+
+                />
 
 
-                        {!loading &&
-                            search.trim() === "" &&
-                            filteredExpenses.length === 0 && (
-                                <div
-                                    className={
-                                        styles.message
-                                    }
-                                >
-                                    No expenses found.
-                                </div>
-                            )}
+                {selectedItem && (
 
-                    </div>
+                    <button
+                        type="button"
+                        className={
+                            styles.clearButton
+                        }
+                        onClick={
+                            handleClear
+                        }
+                    >
+
+                        <X size={15} />
+
+                    </button>
+
                 )}
 
             </div>
 
 
-            {/* CREATE EXPENSE MODAL */}
+            {open && (
 
-            {showCreate && (
-                <div className={styles.overlay}>
+                <div
+                    className={
+                        styles.dropdown
+                    }
+                >
 
-                    <div className={styles.modal}>
-
-                        <div
-                            className={
-                                styles.modalHeader
-                            }
-                        >
-                            <div>
-                                <h3>
-                                    Add Expense
-                                </h3>
-
-                                <p>
-                                    Create a new expense
-                                    category.
-                                </p>
-                            </div>
-
-                            <button
-                                type="button"
-                                className={
-                                    styles.closeButton
-                                }
-                                onClick={() =>
-                                    setShowCreate(false)
-                                }
-                            >
-                                <X size={18} />
-                            </button>
-                        </div>
-
-
-                        <div
-                            className={styles.modalField}
-                        >
-                            <label>
-                                Expense
-                            </label>
-
-                            <input
-                                autoFocus
-                                type="text"
-                                value={newName}
-                                onChange={(event) =>
-                                    setNewName(
-                                        event.target.value
-                                    )
-                                }
-                                onKeyDown={(event) => {
-                                    if (
-                                        event.key ===
-                                        "Enter"
-                                    ) {
-                                        event.preventDefault();
-
-                                        handleCreate();
-                                    }
-                                }
-                            }
-                            />
-                        </div>
-
-
-                        {error && (
-                            <div
-                                className={
-                                    styles.error
-                                }
-                            >
-                                {error}
-                            </div>
-                        )}
-
+                    {loading && (
 
                         <div
                             className={
-                                styles.modalActions
+                                styles.message
                             }
                         >
-                            <button
-                                type="button"
-                                className={
-                                    styles.cancelButton
-                                }
-                                onClick={() =>
-                                    setShowCreate(false)
-                                }
-                                disabled={creating}
-                            >
-                                Cancel
-                            </button>
+                            Loading items...
+                        </div>
 
-                            <button
-                                type="button"
+                    )}
+
+
+                    {!loading &&
+                        error && (
+
+                        <div
+                            className={
+                                styles.message
+                            }
+                        >
+
+                            {error}
+
+                        </div>
+
+                    )}
+
+
+                    {!loading &&
+                        !error &&
+                        filteredItems.length > 0 && (
+
+                        <div
+                            className={
+                                styles.results
+                            }
+                        >
+
+                            {filteredItems.map(
+                                item => (
+
+                                    <button
+                                        type="button"
+                                        key={
+                                            item.id
+                                        }
+                                        className={
+                                            styles.result
+                                        }
+                                        onClick={() =>
+                                            handleSelect(
+                                                item
+                                            )
+                                        }
+                                    >
+
+                                        <span>
+
+                                            {
+                                                item.item_name
+                                            }
+
+                                        </span>
+
+
+                                        {item.unit && (
+
+                                            <small>
+
+                                                {
+                                                    item.unit
+                                                }
+
+                                            </small>
+
+                                        )}
+
+                                    </button>
+
+                                )
+                            )}
+
+                        </div>
+
+                    )}
+
+
+                    {!loading &&
+                        !error &&
+                        search.trim() &&
+                        !exactMatch && (
+
+                        <button
+                            type="button"
+                            className={
+                                styles.createOption
+                            }
+                            onClick={
+                                handleCreate
+                            }
+                            disabled={
+                                creating
+                            }
+                        >
+
+                            <span
                                 className={
-                                    styles.createButton
+                                    styles.plusIcon
                                 }
-                                onClick={handleCreate}
-                                disabled={creating}
                             >
+
+                                <Plus
+                                    size={16}
+                                />
+
+                            </span>
+
+
+                            <span>
+
                                 {creating
-                                    ? "Creating..."
-                                    : "Create"}
-                            </button>
+                                    ? "Adding..."
+                                    : `Add "${search.trim()}"`
+                                }
+
+                            </span>
+
+                        </button>
+
+                    )}
+
+
+                    {!loading &&
+                        !error &&
+                        !search.trim() &&
+                        filteredItems.length === 0 && (
+
+                        <div
+                            className={
+                                styles.message
+                            }
+                        >
+
+                            No items found.
+
                         </div>
 
-                    </div>
+                    )}
 
                 </div>
+
             )}
-        </>
+
+        </div>
+
     );
+
 }
