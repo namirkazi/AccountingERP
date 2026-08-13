@@ -9,12 +9,12 @@ export function createTransaction(data) {
         }
     );
 }
-export async function getNextSalesBillNumber() {
 
-    const response = await api.get(
-        "/accounting/next_sales_bill_number.php"
+export function getNextSalesBillNumber() {
+    return apiRequest(
+        "accounting/next_sales_bill_number.php",
+        {
+            method: "GET"
+        }
     );
-
-    return response.data;
-
 }
