@@ -1,18 +1,79 @@
-import { Eye, EyeOff, FileText } from "lucide-react";
-import SalesSummary from "./SalesSummary";
+import {
+    Eye,
+    EyeOff,
+    FileText
+} from "lucide-react";
+
 import styles from "../../Transactions.module.css";
 
+
+function formatAmount(value) {
+
+    return Number(value || 0).toLocaleString(
+        "en-AE",
+        {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }
+    );
+
+}
+
+
+function formatDate(date) {
+
+    if (!date) {
+        return "—";
+    }
+
+    return new Date(
+        `${date}T00:00:00`
+    ).toLocaleDateString(
+        "en-AE",
+        {
+            day: "2-digit",
+            month: "short",
+            year: "numeric"
+        }
+    );
+
+}
+
+
 export default function SalesPreview({
+
     date,
+
     party,
     partyName,
-    amount,
+
+    billNumber,
+
+    services = [],
+
+    subtotal = 0,
+
+    discountAmount = 0,
+
+    taxableAmount = 0,
+
+    vatRate = 0,
+
+    vatAmount = 0,
+
+    totalAmount = 0,
+
     narration,
+
     showPreview,
     setShowPreview,
+
     showSavedVoucher,
+
     printVoucher
+
 }) {
+
 
     if (!showPreview) {
 
@@ -21,7 +82,9 @@ export default function SalesPreview({
             <button
                 type="button"
                 className={styles.showPreviewButton}
-                onClick={() => setShowPreview(true)}
+                onClick={() =>
+                    setShowPreview(true)
+                }
             >
 
                 <Eye size={17} />
@@ -31,22 +94,39 @@ export default function SalesPreview({
             </button>
 
         );
+
     }
+
 
     return (
 
-        <aside className={styles.previewPanel}>
+        <aside
+            className={styles.previewPanel}
+        >
 
-            <div className={styles.previewHeader}>
+            {/* =====================================================
+                HEADER
+            ===================================================== */}
+
+            <div
+                className={styles.previewHeader}
+            >
 
                 <div>
 
-                    <span className={styles.previewEyebrow}>
+                    <span
+                        className={
+                            styles.previewEyebrow
+                        }
+                    >
+
                         {showSavedVoucher
                             ? "SAVED VOUCHER"
                             : "LIVE PREVIEW"
                         }
+
                     </span>
+
 
                     <h2>
                         Sales Voucher
@@ -57,15 +137,23 @@ export default function SalesPreview({
 
                 {showSavedVoucher ? (
 
-                    <div className={styles.savedVoucherActions}>
+                    <div
+                        className={
+                            styles.savedVoucherActions
+                        }
+                    >
 
                         <button
                             type="button"
-                            className={styles.printButton}
+                            className={
+                                styles.printButton
+                            }
                             onClick={printVoucher}
                         >
 
-                            <FileText size={17} />
+                            <FileText
+                                size={17}
+                            />
 
                             Print / Save PDF
 
@@ -77,12 +165,18 @@ export default function SalesPreview({
 
                     <button
                         type="button"
-                        className={styles.previewHideButton}
-                        onClick={() => setShowPreview(false)}
+                        className={
+                            styles.previewHideButton
+                        }
+                        onClick={() =>
+                            setShowPreview(false)
+                        }
                         title="Hide preview"
                     >
 
-                        <EyeOff size={17} />
+                        <EyeOff
+                            size={17}
+                        />
 
                         Hide
 
@@ -93,17 +187,33 @@ export default function SalesPreview({
             </div>
 
 
-            {/* PAPER */}
+            {/* =====================================================
+                PAPER
+            ===================================================== */}
 
-            <div className={styles.billPreview}>
+            <div
+                className={styles.billPreview}
+            >
 
-                {/* COMPANY */}
 
-                <div className={styles.billCompany}>
+                {/* =================================================
+                    COMPANY
+                ================================================= */}
 
-                    <div className={styles.companyLogo}>
+                <div
+                    className={
+                        styles.billCompany
+                    }
+                >
+
+                    <div
+                        className={
+                            styles.companyLogo
+                        }
+                    >
                         M
                     </div>
+
 
                     <div>
 
@@ -120,14 +230,20 @@ export default function SalesPreview({
                 </div>
 
 
-                <div className={styles.billTitle}>
+                <div
+                    className={styles.billTitle}
+                >
                     SALES
                 </div>
 
 
-                {/* META */}
+                {/* =================================================
+                    META
+                ================================================= */}
 
-                <div className={styles.billMeta}>
+                <div
+                    className={styles.billMeta}
+                >
 
                     <div>
 
@@ -136,17 +252,20 @@ export default function SalesPreview({
                         </span>
 
                         <strong>
-                            {date
-                                ? new Date(date + "T00:00:00").toLocaleDateString(
-                                    "en-AE",
-                                    {
-                                        day: "2-digit",
-                                        month: "short",
-                                        year: "numeric"
-                                    }
-                                )
-                                : "-"
-                            }
+                            {formatDate(date)}
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            Bill No.
+                        </span>
+
+                        <strong>
+                            {billNumber || "—"}
                         </strong>
 
                     </div>
@@ -154,29 +273,71 @@ export default function SalesPreview({
                 </div>
 
 
-                {/* PARTY */}
+                {/* =================================================
+                    CUSTOMER
+                ================================================= */}
 
-                <div className={styles.billParty}>
+                <div
+                    className={styles.billParty}
+                >
 
                     <span>
                         CUSTOMER
                     </span>
 
                     <strong>
-                        {party ? partyName : "—"}
+                        {party
+                            ? partyName
+                            : "—"
+                        }
                     </strong>
+
+
+                    {party?.address && (
+
+                        <small>
+                            {party.address}
+                        </small>
+
+                    )}
+
+
+                    {party?.phone && (
+
+                        <small>
+                            Tel: {party.phone}
+                        </small>
+
+                    )}
+
+
+                    {party?.email && (
+
+                        <small>
+                            {party.email}
+                        </small>
+
+                    )}
 
                 </div>
 
 
-                {/* ITEMS */}
+                {/* =================================================
+                    SERVICES
+                ================================================= */}
 
-                <div className={styles.billItems}>
+                <div
+                    className={styles.billItems}
+                >
 
-                    <div className={styles.billItemsHeader}>
+                    <div
+                        className={
+                            styles.billItemsHeader
+                        }
+                    >
 
                         <span>
-                            DESCRIPTION
+                            SERVICE
                         </span>
 
                         <span>
@@ -186,31 +347,75 @@ export default function SalesPreview({
                     </div>
 
 
-                    <div className={styles.billItem}>
+                    {services.length > 0 ? (
 
-                        <span>
-                            Sales
-                        </span>
+                        services.map(
+                            (service, index) => (
 
-                        <strong>
-                            AED{" "}
-                            {(Number(amount) || 0).toLocaleString(
-                                "en-AE",
-                                {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                }
-                            )}
-                        </strong>
+                                <div
+                                    className={
+                                        styles.billItem
+                                    }
+                                    key={
+                                        service.id ??
+                                        service.customerServiceId ??
+                                        index
+                                    }
+                                >
 
-                    </div>
+                                    <span>
+
+                                        {service.description ||
+                                            "Service"
+                                        }
+
+                                    </span>
+
+
+                                    <strong>
+
+                                        AED{" "}
+                                        {formatAmount(
+                                            service.amount
+                                        )}
+
+                                    </strong>
+
+                                </div>
+
+                            )
+                        )
+
+                    ) : (
+
+                        <div
+                            className={
+                                styles.billItem
+                            }
+                        >
+
+                            <span>
+                                No services added
+                            </span>
+
+                            <strong>
+                                AED 0.00
+                            </strong>
+
+                        </div>
+
+                    )}
 
                 </div>
 
 
-                {/* TOTALS */}
+                {/* =================================================
+                    TOTALS
+                ================================================= */}
 
-                <div className={styles.billTotals}>
+                <div
+                    className={styles.billTotals}
+                >
 
                     <div>
 
@@ -220,27 +425,105 @@ export default function SalesPreview({
 
                         <strong>
                             AED{" "}
-                            {(Number(amount) || 0).toLocaleString(
-                                "en-AE",
-                                {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                }
+                            {formatAmount(
+                                subtotal
                             )}
                         </strong>
 
                     </div>
 
-                    <SalesSummary amount={amount} />
+
+                    {Number(
+                        discountAmount
+                    ) > 0 && (
+
+                        <div>
+
+                            <span>
+                                Discount
+                            </span>
+
+                            <strong>
+                                - AED{" "}
+                                {formatAmount(
+                                    discountAmount
+                                )}
+                            </strong>
+
+                        </div>
+
+                    )}
+
+
+                    <div>
+
+                        <span>
+                            Taxable Amount
+                        </span>
+
+                        <strong>
+                            AED{" "}
+                            {formatAmount(
+                                taxableAmount
+                            )}
+                        </strong>
+
+                    </div>
+
+
+                    {Number(vatRate) > 0 && (
+
+                        <div>
+
+                            <span>
+                                VAT ({vatRate}%)
+                            </span>
+
+                            <strong>
+                                AED{" "}
+                                {formatAmount(
+                                    vatAmount
+                                )}
+                            </strong>
+
+                        </div>
+
+                    )}
+
+
+                    <div
+                        className={
+                            styles.billGrandTotal
+                        }
+                    >
+
+                        <span>
+                            TOTAL
+                        </span>
+
+                        <strong>
+                            AED{" "}
+                            {formatAmount(
+                                totalAmount
+                            )}
+                        </strong>
+
+                    </div>
 
                 </div>
 
 
-                {/* NARRATION */}
+                {/* =================================================
+                    NARRATION
+                ================================================= */}
 
                 {narration && (
 
-                    <div className={styles.billNarration}>
+                    <div
+                        className={
+                            styles.billNarration
+                        }
+                    >
 
                         <span>
                             Notes
@@ -255,7 +538,9 @@ export default function SalesPreview({
                 )}
 
 
-                <div className={styles.billFooter}>
+                <div
+                    className={styles.billFooter}
+                >
                     This is a preview.
                     The voucher is only
                     created after saving.
@@ -266,4 +551,5 @@ export default function SalesPreview({
         </aside>
 
     );
+
 }

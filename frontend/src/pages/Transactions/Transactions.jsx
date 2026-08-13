@@ -10,7 +10,7 @@ import SavedVoucher from "./components/Shared/SavedVoucher";
 
 import SalesForm from "./components/Sales/SalesForm";
 
-import ReceiptForm from "./components/Reciept/ReceiptForm";
+import ReceiptForm from "./components/Receipt/ReceiptForm";
 
 import PaymentForm from "./components/Payment/PaymentForm";
 
@@ -20,12 +20,51 @@ import PrintableVoucher
     from "../../components/accounting/PrintableVoucher";
 import styles from "./Transactions.module.css";
 
+import useSalesTransaction from "./hooks/useSalesTransaction";
+
+import {
+    getNextSalesBillNumber
+} from "../../services/transactionService";
+
 export default function Transactions() {
 
     const [type, setType] = useState("sale");
 
     const expense = useExpenseTransaction();
+    const sales = useSalesTransaction();
 
+    const {
+        services: salesServices,
+        addService: addSalesService,
+        updateService: updateSalesService,
+        removeService: removeSalesService,
+
+        discount: salesDiscount,
+        setDiscount: setSalesDiscount,
+
+        discountMode: salesDiscountMode,
+        setDiscountMode: setSalesDiscountMode,
+
+        vatRate: salesVatRate,
+        setVatRate: setSalesVatRate,
+
+        subtotal: salesSubtotal,
+
+        discountAmount: salesDiscountAmount,
+
+        taxableAmount: salesTaxableAmount,
+
+        vatAmount: salesVatAmount,
+
+        totalAmount: salesTotalAmount,
+
+        afterTaxTotalBeforeDiscount:
+        salesAfterTaxTotalBeforeDiscount,
+
+        validServices: validSalesServices,
+
+        resetSales
+    } = sales;
     const {
         items: expenseItems,
         addItem: addExpenseItem,
@@ -76,12 +115,69 @@ export default function Transactions() {
 
     const [voucherNumber, setVoucherNumber] = useState("");
 
+    /* Sale BIll NO */
+    useEffect(() => {
+
+        if (type !== "sale") {
+            return;
+        }
+
+        let cancelled = false;
+
+        async function loadNextBillNumber() {
+
+            try {
+
+                setError("");
+
+                const response =
+                    await getNextSalesBillNumber();
+
+                if (cancelled) {
+                    return;
+                }
+
+                const billNumber =
+                    response?.data?.bill_number ||
+                    response?.bill_number ||
+                    "";
+
+                setVoucherNumber(
+                    billNumber
+                );
+
+            } catch (error) {
+
+                if (cancelled) {
+                    return;
+                }
+
+                console.error(
+                    "Unable to generate Sales bill number:",
+                    error
+                );
+
+                setError(
+                    error.message ||
+                    "Unable to generate Sales bill number."
+                );
+
+            }
+
+        }
+
+        loadNextBillNumber();
+
+        return () => {
+            cancelled = true;
+        };
+
+    }, [type]);
     /*
      * =====================================================
      * KEYBOARD SHORTCUTS
      * =====================================================
      */
-
     useEffect(() => {
 
         function handleShortcut(event) {
@@ -172,6 +268,7 @@ export default function Transactions() {
 
         setType(newType);
         resetExpense();
+        resetSales();
         setVoucherNumber("");
         setParty(null);
         setAmount("");
@@ -192,6 +289,7 @@ export default function Transactions() {
         setAmount("");
         setPaymentAmount("");
         resetExpense();
+        resetSales();
         setVoucherNumber("");
         setNarration("");
         setAccountId("");
@@ -299,13 +397,47 @@ export default function Transactions() {
             setError("Please complete every expense item with a description, quantity, and rate.");
             return;
         }
+        if (type === "sale") {
 
+            if (!party) {
+                setError("Please select a customer.");
+                return;
+            }
+
+            if (salesServices.length === 0) {
+                setError("Please add at least one service.");
+                return;
+            }
+
+            if (
+                validSalesServices.length !==
+                salesServices.length
+            ) {
+                setError(
+                    "Please complete every service with a name and amount."
+                );
+                return;
+            }
+
+            if (
+                Number(salesVatRate) < 0 ||
+                Number(salesVatRate) > 100
+            ) {
+                setError(
+                    "Tax percentage must be between 0 and 100."
+                );
+                return;
+            }
+
+        }
         const currentAmount =
             type === "payment"
                 ? Number(paymentAmount)
                 : type === "expense"
                     ? Number(totalAmount)
-                    : Number(amount);
+                    : type === "sale"
+                        ? Number(salesTotalAmount)
+                        : Number(amount);
 
         if (!currentAmount || currentAmount <= 0) {
             setError(
@@ -374,25 +506,72 @@ export default function Transactions() {
             } else {
 
                 response = await createTransaction({
+
                     type,
+
                     date,
-                    party_id: party?.id || null,
-                    reference_number: type === "expense" ? referenceNumber.trim() : null,
+
+                    party_id:
+                        party?.id || null,
+
+                    reference_number:
+                        type === "expense"
+                            ? referenceNumber.trim()
+                            : null,
+
                     amount:
                         type === "expense"
                             ? Number(totalAmount) || 0
-                            : Number(amount) || 0,
-                    vat_input: type === "expense" ? Number(vatAmount) || 0 : 0,
-                    vat_rate: type === "expense" ? Number(vatRate) || 0 : 0,
-                    items: type === "expense" ? expenseItems : undefined,
-                    discount: type === "expense" ? Number(discountAmount) || 0 : 0,
-                    discount_mode: type === "expense" ? discountMode : null,
+                            : type === "sale"
+                                ? Number(salesTotalAmount) || 0
+                                : Number(amount) || 0,
+
+                    vat_input:
+                        type === "expense"
+                            ? Number(vatAmount) || 0
+                            : 0,
+
+                    vat_rate:
+                        type === "expense"
+                            ? Number(vatRate) || 0
+                            : type === "sale"
+                                ? Number(salesVatRate) || 0
+                                : 0,
+
+                    items:
+                        type === "expense"
+                            ? expenseItems
+                            : type === "sale"
+                                ? salesServices
+                                : undefined,
+
+                    discount:
+                        type === "expense"
+                            ? Number(discountAmount) || 0
+                            : type === "sale"
+                                ? Number(salesDiscountAmount) || 0
+                                : 0,
+
+                    discount_mode:
+                        type === "expense"
+                            ? discountMode
+                            : type === "sale"
+                                ? salesDiscountMode
+                                : null,
+
                     account_id:
-                        type === "payment" || type === "receipt"
+                        type === "payment" ||
+                            type === "receipt"
                             ? Number(accountId) || null
                             : null,
-                    expense_payment_status: type === "expense" ? "pending" : null,
+
+                    expense_payment_status:
+                        type === "expense"
+                            ? "pending"
+                            : null,
+
                     narration
+
                 });
 
             }
@@ -468,18 +647,63 @@ export default function Transactions() {
 
                     {type === "sale" && (
                         <SalesForm
+
                             date={date}
                             setDate={setDate}
+
                             party={party}
                             setParty={setParty}
-                            amount={amount}
-                            setAmount={setAmount}
+
+                            billNumber={voucherNumber}
+
+                            services={salesServices}
+
+                            addService={addSalesService}
+
+                            updateService={updateSalesService}
+
+                            removeService={removeSalesService}
+
+                            subtotal={salesSubtotal}
+
+                            discount={salesDiscount}
+                            setDiscount={setSalesDiscount}
+
+                            discountMode={salesDiscountMode}
+                            setDiscountMode={setSalesDiscountMode}
+
+                            vatRate={salesVatRate}
+                            setVatRate={setSalesVatRate}
+
+                            afterTaxTotalBeforeDiscount={
+                                salesAfterTaxTotalBeforeDiscount
+                            }
+
+                            discountAmount={
+                                salesDiscountAmount
+                            }
+
+                            taxableAmount={
+                                salesTaxableAmount
+                            }
+
+                            vatAmount={
+                                salesVatAmount
+                            }
+
+                            totalAmount={
+                                salesTotalAmount
+                            }
+
                             narration={narration}
                             setNarration={setNarration}
+
                             error={error}
                             message={message}
                             saving={saving}
+
                             onSubmit={handleSubmit}
+
                         />
                     )}
 
@@ -625,12 +849,51 @@ export default function Transactions() {
                                         type={type}
                                         date={date}
                                         party={party}
-                                        referenceNumber={referenceNumber}
-                                        amount={amount}
-                                        discountAmount={discountAmount}
-                                        vatRate={vatRate}
-                                        vatAmount={vatAmount}
-                                        totalAmount={totalAmount}
+
+                                        referenceNumber={
+                                            type === "sale"
+                                                ? referenceNumber
+                                                : referenceNumber
+                                        }
+
+                                        voucherNumber={voucherNumber}
+
+                                        items={
+                                            type === "sale"
+                                                ? salesServices
+                                                : expenseItems
+                                        }
+
+                                        amount={
+                                            type === "sale"
+                                                ? salesSubtotal
+                                                : amount
+                                        }
+
+                                        discountAmount={
+                                            type === "sale"
+                                                ? salesDiscountAmount
+                                                : discountAmount
+                                        }
+
+                                        vatRate={
+                                            type === "sale"
+                                                ? salesVatRate
+                                                : vatRate
+                                        }
+
+                                        vatAmount={
+                                            type === "sale"
+                                                ? salesVatAmount
+                                                : vatAmount
+                                        }
+
+                                        totalAmount={
+                                            type === "sale"
+                                                ? salesTotalAmount
+                                                : totalAmount
+                                        }
+
                                         paymentAmount={paymentAmount}
                                         paymentAccount={paymentAccount}
                                         selectedPaymentBill={selectedPaymentBill}
@@ -667,22 +930,54 @@ export default function Transactions() {
                     currentType={currentType}
                     date={date}
                     party={party}
+
                     referenceNumber={referenceNumber}
                     voucherNumber={voucherNumber}
-                    items={expenseItems}
-                    amount={amount}
-                    discountAmount={discountAmount}
-                    vatRate={vatRate}
-                    vatAmount={vatAmount}
-                    totalAmount={totalAmount}
+
+                    items={
+                        type === "sale"
+                            ? salesServices
+                            : expenseItems
+                    }
+
+                    amount={
+                        type === "sale"
+                            ? salesSubtotal
+                            : amount
+                    }
+
+                    discountAmount={
+                        type === "sale"
+                            ? salesDiscountAmount
+                            : discountAmount
+                    }
+
+                    vatRate={
+                        type === "sale"
+                            ? salesVatRate
+                            : vatRate
+                    }
+
+                    vatAmount={
+                        type === "sale"
+                            ? salesVatAmount
+                            : vatAmount
+                    }
+
+                    totalAmount={
+                        type === "sale"
+                            ? salesTotalAmount
+                            : totalAmount
+                    }
+
                     paymentAmount={paymentAmount}
                     paymentAccount={paymentAccount}
                     selectedPaymentBill={selectedPaymentBill}
                     narration={narration}
+
                     printVoucher={printVoucher}
                     closeSavedVoucher={closeSavedVoucher}
                 />
-
             )}
 
         </AppLayout>

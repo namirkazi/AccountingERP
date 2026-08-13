@@ -1,6 +1,11 @@
 import { FileText } from "lucide-react";
-import PrintableVoucher from "../../../../components/accounting/PrintableVoucher";
-import styles from "../../Transactions.module.css";
+
+import PrintableVoucher
+    from "../../../../components/accounting/PrintableVoucher";
+
+import styles
+    from "../../Transactions.module.css";
+
 
 export default function SavedVoucher({
     type,
@@ -8,19 +13,37 @@ export default function SavedVoucher({
     party,
     referenceNumber,
     voucherNumber,
+
     items = [],
+
     amount,
     discountAmount,
     vatRate,
     vatAmount,
     totalAmount,
+
     paymentAmount,
     paymentAccount,
-    selectedPaymentExpense,
+
+    selectedPaymentBill,
+
     narration,
-    onPrint,
-    onClose
+
+    printVoucher,
+    closeSavedVoucher
 }) {
+
+    const title =
+        type === "payment"
+            ? "Payment Voucher"
+            : type === "expense"
+                ? "Expense Voucher"
+                : type === "sale"
+                    ? "Sales Voucher"
+                    : type === "receipt"
+                        ? "Receipt Voucher"
+                        : "Transaction Voucher";
+
 
     return (
 
@@ -35,18 +58,17 @@ export default function SavedVoucher({
                     </span>
 
                     <strong>
-                        {type === "payment"
-                            ? "Payment Voucher"
-                            : type === "expense"
-                                ? "Expense Voucher"
-                                : `${currentType.label} Voucher`
-                        }
+                        {title}
                     </strong>
 
                 </div>
 
 
-                <div className={styles.savedVoucherActions}>
+                <div
+                    className={
+                        styles.savedVoucherActions
+                    }
+                >
 
                     <button
                         type="button"
@@ -70,9 +92,7 @@ export default function SavedVoucher({
                         className={
                             styles.closeVoucherButton
                         }
-                        onClick={
-                            closeSavedVoucher
-                        }
+                        onClick={closeSavedVoucher}
                     >
 
                         Close
@@ -84,24 +104,64 @@ export default function SavedVoucher({
             </div>
 
 
-            <div className={styles.printableVoucherPaper}>
+            <div
+                className={
+                    styles.printableVoucherPaper
+                }
+            >
 
                 <PrintableVoucher
+
                     type={type}
+
                     date={date}
+
                     party={party}
-                    referenceNumber={referenceNumber}
-                    voucherNumber={voucherNumber}
+
+                    referenceNumber={
+                        referenceNumber
+                    }
+
+                    voucherNumber={
+                        voucherNumber
+                    }
+
                     items={items}
+
                     amount={amount}
-                    discountAmount={discountAmount}
-                    vatRate={vatRate}
-                    vatAmount={vatAmount}
-                    totalAmount={totalAmount}
-                    paymentAmount={paymentAmount}
-                    paymentAccount={paymentAccount}
-                    selectedPaymentExpense={selectedPaymentExpense}
-                    narration={narration}
+
+                    discountAmount={
+                        discountAmount
+                    }
+
+                    vatRate={
+                        vatRate
+                    }
+
+                    vatAmount={
+                        vatAmount
+                    }
+
+                    totalAmount={
+                        totalAmount
+                    }
+
+                    paymentAmount={
+                        paymentAmount
+                    }
+
+                    paymentAccount={
+                        paymentAccount
+                    }
+
+                    selectedPaymentBill={
+                        selectedPaymentBill
+                    }
+
+                    narration={
+                        narration
+                    }
+
                 />
 
             </div>

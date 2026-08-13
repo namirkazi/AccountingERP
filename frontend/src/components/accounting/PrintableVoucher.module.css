@@ -1219,3 +1219,31 @@
     font-size: 8px;
     line-height: 1.3;
 }
+/* =========================================================
+   SALES TABLE
+   ========================================================= */
+
+.salesItemsTable {
+    table-layout: fixed;
+}
+
+.salesItemsTable .serialColumn {
+    width: 9%;
+}
+
+.salesItemsTable th:nth-child(2) {
+    width: auto;
+    text-align: left;
+}
+
+.salesItemsTable .amountColumn {
+    width: 25%;
+}
+
+.salesItemsTable thead th:last-child {
+    text-align: right;
+}
+
+.salesItemsTable tbody td:last-child {
+    text-align: right;
+}

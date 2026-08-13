@@ -1,207 +1,233 @@
-import {
-    useMemo,
-    useState
-} from "react";
+import { useMemo, useState } from "react";
 
-import {
-    calculateSalesTotals
-} from "../../../utils/salesCalculations";
-
-
-function createSalesItem() {
-
-    return {
-
-        id:
-            Date.now() +
-            Math.random(),
-
-        description: "",
-
-        quantity: 1,
-
-        rate: ""
-
-    };
-
-}
-
+const createEmptyService = () => ({
+    id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    customerServiceId: "",
+    description: "",
+    amount: ""
+});
 
 export default function useSalesTransaction() {
 
-    const [
-        customer,
-        setCustomer
-    ] = useState(null);
+    const [services, setServices] = useState([]);
 
+    const [discount, setDiscount] = useState("");
 
-    const [
-        invoiceNumber,
-        setInvoiceNumber
-    ] = useState("");
+    const [discountMode, setDiscountMode] =
+        useState("after_tax");
 
+    const [vatRate, setVatRate] =
+        useState("5");
 
-    const [
-        items,
-        setItems
-    ] = useState([
-        createSalesItem()
-    ]);
+    function addService() {
 
+        setServices(current => [
+            ...current,
+            createEmptyService()
+        ]);
 
-    const [
-        vatRate,
-        setVatRate
-    ] = useState("5");
-
-
-    const [
-        discount,
-        setDiscount
-    ] = useState("");
-
-
-    const [
-        discountMode,
-        setDiscountMode
-    ] = useState("after_tax");
-
-
-    const [
-        narration,
-        setNarration
-    ] = useState("");
-
-
-    function updateItem(
-        index,
-        field,
-        value
-    ) {
-
-        setItems(
-            current =>
-                current.map(
-                    (item, itemIndex) =>
-                        itemIndex === index
-                            ? {
-                                ...item,
-                                [field]: value
-                            }
-                            : item
-                )
-        );
     }
 
+    function updateService(id, field, value) {
 
-    function addItem() {
-
-        setItems(
-            current => [
-                ...current,
-                createSalesItem()
-            ]
+        setServices(current =>
+            current.map(service =>
+                service.id === id
+                    ? {
+                        ...service,
+                        [field]: value
+                    }
+                    : service
+            )
         );
+
     }
 
+    function removeService(id) {
 
-    function removeItem(
-        index
-    ) {
+        setServices(current =>
+            current.filter(
+                service =>
+                    service.id !== id
+            )
+        );
 
-        setItems(
-            current => {
+    }
 
-                if (
-                    current.length === 1
-                ) {
-                    return current;
-                }
+    const subtotal = useMemo(() => {
 
-                return current.filter(
-                    (_, itemIndex) =>
-                        itemIndex !== index
+        return services.reduce(
+            (sum, service) => {
+
+                return (
+                    sum +
+                    (
+                        Number(
+                            service.amount
+                        ) || 0
+                    )
                 );
 
-            }
+            },
+            0
         );
-    }
+
+    }, [services]);
 
 
-    const totals = useMemo(
-        () =>
-            calculateSalesTotals({
+    const enteredDiscount =
+        Number(discount) || 0;
 
-                items,
+    const vatPercentage =
+        Number(vatRate) || 0;
 
-                vatRate,
 
-                discount,
+    /*
+     * Discount BEFORE TAX
+     */
 
-                discountMode
+    const beforeTaxDiscount =
+        discountMode === "before_tax"
+            ? Math.min(
+                enteredDiscount,
+                subtotal
+            )
+            : 0;
 
-            }),
+    const beforeTaxTaxable =
+        Math.max(
+            0,
+            subtotal -
+            beforeTaxDiscount
+        );
 
-        [
-            items,
-            vatRate,
-            discount,
-            discountMode
-        ]
-    );
+    const beforeTaxVat =
+        beforeTaxTaxable *
+        vatPercentage /
+        100;
+
+    const beforeTaxTotal =
+        beforeTaxTaxable +
+        beforeTaxVat;
+
+
+    /*
+     * Discount AFTER TAX
+     */
+
+    const afterTaxVat =
+        subtotal *
+        vatPercentage /
+        100;
+
+    const afterTaxTotalBeforeDiscount =
+        subtotal +
+        afterTaxVat;
+
+    const afterTaxDiscount =
+        discountMode === "after_tax"
+            ? Math.min(
+                enteredDiscount,
+                afterTaxTotalBeforeDiscount
+            )
+            : 0;
+
+    const afterTaxTotal =
+        Math.max(
+            0,
+            afterTaxTotalBeforeDiscount -
+            afterTaxDiscount
+        );
+
+
+    const discountAmount =
+        discountMode === "after_tax"
+            ? afterTaxDiscount
+            : beforeTaxDiscount;
+
+
+    const taxableAmount =
+        discountMode === "after_tax"
+            ? subtotal
+            : beforeTaxTaxable;
+
+
+    const vatAmount =
+        discountMode === "after_tax"
+            ? afterTaxVat
+            : beforeTaxVat;
+
+
+    const totalAmount =
+        discountMode === "after_tax"
+            ? afterTaxTotal
+            : beforeTaxTotal;
+
+
+    const validServices =
+        services.filter(service => {
+
+            return (
+                service.description.trim() !== "" &&
+                Number(service.amount) > 0
+            );
+
+        });
 
 
     function resetSales() {
 
-        setCustomer(null);
-
-        setInvoiceNumber("");
-
-        setItems([
-            createSalesItem()
-        ]);
-
-        setVatRate("5");
+        setServices([]);
 
         setDiscount("");
 
-        setDiscountMode(
-            "after_tax"
-        );
+        setDiscountMode("after_tax");
 
-        setNarration("");
+        setVatRate("5");
+
     }
 
 
     return {
 
-        customer,
-        setCustomer,
+        services,
 
-        invoiceNumber,
-        setInvoiceNumber,
+        addService,
 
-        items,
+        updateService,
 
-        updateItem,
-        addItem,
-        removeItem,
-
-        vatRate,
-        setVatRate,
+        removeService,
 
         discount,
+
         setDiscount,
 
         discountMode,
+
         setDiscountMode,
 
-        narration,
-        setNarration,
+        vatRate,
 
-        ...totals,
+        setVatRate,
+
+        subtotal,
+
+        enteredDiscount,
+
+        discountAmount,
+
+        taxableAmount,
+
+        vatAmount,
+
+        totalAmount,
+
+        afterTaxTotalBeforeDiscount,
+
+        validServices,
 
         resetSales
 
     };
+
 }

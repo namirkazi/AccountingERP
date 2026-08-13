@@ -67,6 +67,7 @@ export default function PartySelector({
     const [newEmail, setNewEmail] =
         useState("");
 
+    const [newAddress, setNewAddress] = useState("");
 
     const [creating, setCreating] =
         useState(false);
@@ -244,9 +245,9 @@ export default function PartySelector({
         setNewPhone("");
 
         setNewEmail("");
-
+        setNewAddress("");
         setCreateError("");
-
+        setNewAddress("");
         setShowCreate(true);
 
         setOpen(false);
@@ -284,6 +285,7 @@ export default function PartySelector({
                 name:
                     newName.trim(),
 
+                address: newAddress.trim(),
                 phone:
                     newPhone.trim(),
 
@@ -327,7 +329,7 @@ export default function PartySelector({
             setNewPhone("");
 
             setNewEmail("");
-
+            setNewAddress("");
             setResults([]);
 
             onChange(party);
@@ -556,7 +558,24 @@ export default function PartySelector({
 
                             </div>
 
+                            <div className={styles.modalField}>
 
+                                <label>
+                                    {label} Address
+                                </label>
+
+                                <textarea
+                                    value={newAddress}
+                                    onChange={(event) =>
+                                        setNewAddress(
+                                            event.target.value
+                                        )
+                                    }
+                                    placeholder="Enter address"
+                                    rows={3}
+                                />
+
+                            </div>
                             <div
                                 className={styles.modalField}
                             >

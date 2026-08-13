@@ -2763,3 +2763,164 @@
         overflow: hidden;
     }
 }
+.salesServiceHeader {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 180px 36px;
+    gap: 10px;
+
+    padding: 0 0 8px;
+
+    color: #667085;
+
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.salesServiceHeader span:nth-child(2) {
+    text-align: right;
+}
+
+.salesServiceList {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.salesServiceRow {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 180px 36px;
+    gap: 10px;
+    align-items: center;
+}
+
+.salesAmountField {
+    height: 42px;
+
+    display: flex;
+    align-items: center;
+
+    border: 1px solid #d9dee7;
+    border-radius: 8px;
+
+    background: #fff;
+
+    overflow: hidden;
+}
+
+.salesAmountField span {
+    padding: 0 10px;
+
+    color: #667085;
+
+    font-size: 12px;
+
+    border-right: 1px solid #e5e7eb;
+}
+
+.salesAmountField input {
+    width: 100%;
+
+    border: 0;
+    outline: 0;
+
+    padding: 0 10px;
+
+    text-align: right;
+
+    font-size: 14px;
+
+    background: transparent;
+}
+
+.emptyItems {
+    padding: 20px;
+
+    border: 1px dashed #d9dee7;
+    border-radius: 8px;
+
+    text-align: center;
+
+    color: #667085;
+
+    font-size: 13px;
+}
+
+.addItemButton {
+    margin-top: 12px;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+
+    border: 0;
+    background: transparent;
+
+    color: #17202a;
+
+    font-size: 13px;
+    font-weight: 700;
+
+    cursor: pointer;
+}
+
+.addItemButton:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.transactionSummary {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.transactionSummary > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+
+    font-size: 13px;
+}
+
+.transactionSummary > div span {
+    color: #667085;
+}
+
+.transactionSummary > div strong {
+    color: #17202a;
+}
+
+.transactionSummary .grandTotal {
+    margin-top: 5px;
+    padding-top: 12px;
+
+    border-top: 1px solid #e5e7eb;
+
+    font-size: 15px;
+    font-weight: 800;
+}
+
+.transactionSummary .grandTotal span,
+.transactionSummary .grandTotal strong {
+    color: #17202a;
+}
+
+@media (max-width: 700px) {
+
+    .salesServiceHeader {
+        grid-template-columns:
+            minmax(0, 1fr)
+            130px
+            36px;
+    }
+
+    .salesServiceRow {
+        grid-template-columns:
+            minmax(0, 1fr)
+            130px
+            36px;
+    }
+
+}

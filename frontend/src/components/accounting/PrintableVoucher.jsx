@@ -352,7 +352,7 @@ export default function PrintableVoucher({
     paymentAmount,
 
     paymentAccount,
-    
+
     selectedPaymentExpense,
     selectedPaymentBill,
 
@@ -830,17 +830,19 @@ export default function PrintableVoucher({
                 </div>
 
 
-                <div>
+                {!isSale && (
+                    <div>
 
-                    <span>
-                        REFERENCE NO.
-                    </span>
+                        <span>
+                            REFERENCE NO.
+                        </span>
 
-                    <strong>
-                        {externalReference}
-                    </strong>
+                        <strong>
+                            {externalReference}
+                        </strong>
 
-                </div>
+                    </div>
+                )}
 
                 {isPayment && (
                     <div>
@@ -865,49 +867,80 @@ export default function PrintableVoucher({
 
             <section className={styles.itemsSection}>
 
-                <table className={styles.itemsTable}>
+                <table
+                    className={`${styles.itemsTable} ${isSale
+                        ? styles.salesItemsTable
+                        : ""
+                        }`}
+                >
 
                     <thead>
 
-                        <tr>
+                        {isSale ? (
 
-                            <th
-                                className={
-                                    styles.serialColumn
-                                }
-                            >
-                                #
-                            </th>
+                            <tr>
 
-                            <th>
-                                PARTICULARS
-                            </th>
+                                <th
+                                    className={styles.serialColumn}
+                                >
+                                    #
+                                </th>
 
-                            <th
-                                className={
-                                    styles.quantityColumn
-                                }
-                            >
-                                QTY
-                            </th>
+                                <th>
+                                    SERVICE
+                                </th>
 
-                            <th
-                                className={
-                                    styles.rateColumn
-                                }
-                            >
-                                RATE
-                            </th>
+                                <th
+                                    className={
+                                        styles.amountColumn
+                                    }
+                                >
+                                    AMOUNT
+                                </th>
 
-                            <th
-                                className={
-                                    styles.amountColumn
-                                }
-                            >
-                                AMOUNT
-                            </th>
+                            </tr>
 
-                        </tr>
+                        ) : (
+
+                            <tr>
+
+                                <th
+                                    className={styles.serialColumn}
+                                >
+                                    #
+                                </th>
+
+                                <th>
+                                    PARTICULARS
+                                </th>
+
+                                <th
+                                    className={
+                                        styles.quantityColumn
+                                    }
+                                >
+                                    QTY
+                                </th>
+
+                                <th
+                                    className={
+                                        styles.rateColumn
+                                    }
+                                >
+                                    RATE
+                                </th>
+
+                                <th
+                                    className={
+                                        styles.amountColumn
+                                    }
+                                >
+                                    AMOUNT
+                                </th>
+
+                            </tr>
+
+                        )}
 
                     </thead>
 
@@ -920,24 +953,21 @@ export default function PrintableVoucher({
                                 (item, index) => {
 
                                     const quantity =
-                                        getItemQuantity(
-                                            item
-                                        );
+                                        getItemQuantity(item);
 
                                     const rate =
-                                        getItemRate(
-                                            item
-                                        );
+                                        getItemRate(item);
 
                                     const lineAmount =
-                                        getItemAmount(
-                                            item
-                                        );
+                                        getItemAmount(item);
+
 
                                     return (
+
                                         <tr
                                             key={
-                                                item.id ||
+                                                item.id ??
+                                                item.customerServiceId ??
                                                 index
                                             }
                                         >
@@ -949,6 +979,7 @@ export default function PrintableVoucher({
                                             >
                                                 {index + 1}
                                             </td>
+
 
                                             <td>
 
@@ -964,42 +995,86 @@ export default function PrintableVoucher({
                                                     }
                                                 </div>
 
+
+                                                {isPayment &&
+                                                    externalReference !==
+                                                    "—" && (
+
+                                                        <div
+                                                            className={
+                                                                styles.itemSubtext
+                                                            }
+                                                        >
+                                                            Bill Reference:{" "}
+                                                            {
+                                                                externalReference
+                                                            }
+                                                        </div>
+
+                                                    )}
+
                                             </td>
 
-                                            <td
-                                                className={
-                                                    styles.numberCell
-                                                }
-                                            >
-                                                {
-                                                    quantity
-                                                }
-                                            </td>
 
-                                            <td
-                                                className={
-                                                    styles.numberCell
-                                                }
-                                            >
-                                                AED{" "}
-                                                {formatAmount(
-                                                    rate
-                                                )}
-                                            </td>
+                                            {isSale ? (
 
-                                            <td
-                                                className={
-                                                    styles.numberCell
-                                                }
-                                            >
-                                                AED{" "}
-                                                {formatAmount(
-                                                    lineAmount
-                                                )}
-                                            </td>
+                                                <td
+                                                    className={
+                                                        styles.numberCell
+                                                    }
+                                                >
+
+                                                    AED{" "}
+                                                    {formatAmount(
+                                                        lineAmount
+                                                    )}
+
+                                                </td>
+
+                                            ) : (
+
+                                                <>
+
+                                                    <td
+                                                        className={
+                                                            styles.numberCell
+                                                        }
+                                                    >
+                                                        {quantity}
+                                                    </td>
+
+
+                                                    <td
+                                                        className={
+                                                            styles.numberCell
+                                                        }
+                                                    >
+                                                        AED{" "}
+                                                        {formatAmount(
+                                                            rate
+                                                        )}
+                                                    </td>
+
+
+                                                    <td
+                                                        className={
+                                                            styles.numberCell
+                                                        }
+                                                    >
+                                                        AED{" "}
+                                                        {formatAmount(
+                                                            lineAmount
+                                                        )}
+                                                    </td>
+
+                                                </>
+
+                                            )}
 
                                         </tr>
+
                                     );
+
                                 }
                             )
 
@@ -1015,15 +1090,22 @@ export default function PrintableVoucher({
                                     1
                                 </td>
 
+
                                 <td>
 
-                                    <div className={styles.itemDescription}>
+                                    <div
+                                        className={
+                                            styles.itemDescription
+                                        }
+                                    >
                                         {description}
                                     </div>
+
 
                                     {isPayment &&
                                         externalReference !==
                                         "—" && (
+
                                             <div
                                                 className={
                                                     styles.itemSubtext
@@ -1034,36 +1116,59 @@ export default function PrintableVoucher({
                                                     externalReference
                                                 }
                                             </div>
+
                                         )}
 
                                 </td>
 
-                                <td
-                                    className={
-                                        styles.numberCell
-                                    }
-                                >
-                                    —
-                                </td>
 
-                                <td
-                                    className={
-                                        styles.numberCell
-                                    }
-                                >
-                                    —
-                                </td>
+                                {isSale ? (
 
-                                <td
-                                    className={
-                                        styles.numberCell
-                                    }
-                                >
-                                    AED{" "}
-                                    {formatAmount(
-                                        finalAmount
-                                    )}
-                                </td>
+                                    <td
+                                        className={
+                                            styles.numberCell
+                                        }
+                                    >
+                                        AED{" "}
+                                        {formatAmount(
+                                            finalAmount
+                                        )}
+                                    </td>
+
+                                ) : (
+
+                                    <>
+
+                                        <td
+                                            className={
+                                                styles.numberCell
+                                            }
+                                        >
+                                            —
+                                        </td>
+
+                                        <td
+                                            className={
+                                                styles.numberCell
+                                            }
+                                        >
+                                            —
+                                        </td>
+
+                                        <td
+                                            className={
+                                                styles.numberCell
+                                            }
+                                        >
+                                            AED{" "}
+                                            {formatAmount(
+                                                finalAmount
+                                            )}
+                                        </td>
+
+                                    </>
+
+                                )}
 
                             </tr>
 
@@ -1181,10 +1286,120 @@ export default function PrintableVoucher({
 
 
             {/* =====================================================
-                SALE / RECEIPT TOTAL
-            ===================================================== */}
+    SALE TOTALS
+===================================================== */}
 
-            {(isSale || isReceipt) && (
+            {isSale && (
+
+                <section
+                    className={styles.totalsSection}
+                >
+
+                    <div
+                        className={styles.totalRow}
+                    >
+
+                        <span>
+                            Subtotal
+                        </span>
+
+                        <strong>
+                            AED{" "}
+                            {formatAmount(
+                                subtotal
+                            )}
+                        </strong>
+
+                    </div>
+
+
+                    <div
+                        className={styles.totalRow}
+                    >
+
+                        <span>
+                            Discount
+                        </span>
+
+                        <strong>
+                            - AED{" "}
+                            {formatAmount(
+                                discount
+                            )}
+                        </strong>
+
+                    </div>
+
+
+                    <div
+                        className={styles.totalRow}
+                    >
+
+                        <span>
+                            Taxable Amount
+                        </span>
+
+                        <strong>
+                            AED{" "}
+                            {formatAmount(
+                                Math.max(
+                                    0,
+                                    subtotal -
+                                    discount
+                                )
+                            )}
+                        </strong>
+
+                    </div>
+
+
+                    <div
+                        className={styles.totalRow}
+                    >
+
+                        <span>
+                            VAT ({Number(vatRate || 0)}%)
+                        </span>
+
+                        <strong>
+                            AED{" "}
+                            {formatAmount(
+                                vat
+                            )}
+                        </strong>
+
+                    </div>
+
+
+                    <div
+                        className={
+                            styles.grandTotalRow
+                        }
+                    >
+
+                        <span>
+                            TOTAL
+                        </span>
+
+                        <strong>
+                            AED{" "}
+                            {formatAmount(
+                                finalAmount
+                            )}
+                        </strong>
+
+                    </div>
+
+                </section>
+
+            )}
+
+
+            {/* =====================================================
+    RECEIPT TOTAL
+===================================================== */}
+
+            {isReceipt && (
 
                 <section
                     className={
