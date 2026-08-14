@@ -876,30 +876,6 @@ export default function PrintableVoucher({
                     }
                 >
 
-                    <colgroup>
-
-                        <col className={styles.serialColumn} />
-
-                        {isSale ? (
-
-                            <>
-                                <col style={{ width: "66%" }} />
-                                <col className={styles.amountColumn} />
-                            </>
-
-                        ) : (
-
-                            <>
-                                <col />
-                                <col className={styles.quantityColumn} />
-                                <col className={styles.rateColumn} />
-                                <col className={styles.amountColumn} />
-                            </>
-
-                        )}
-
-                    </colgroup>
-
                     <thead>
                         <tr>
 
@@ -1018,18 +994,12 @@ export default function PrintableVoucher({
                                             </td>
 
                                             {isSale ? (
-
-                                                <td
-                                                    className={
-                                                        styles.numberCell
-                                                    }
-                                                >
+                                                <td className={styles.numberCell}>
                                                     AED{" "}
                                                     {formatAmount(
                                                         lineAmount
                                                     )}
                                                 </td>
-
                                             ) : (
 
                                                 <>

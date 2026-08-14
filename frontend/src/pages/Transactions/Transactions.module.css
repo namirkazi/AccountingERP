@@ -1630,46 +1630,26 @@
 
 @media print {
 
+    /* Hide the normal Transactions page */
     .page {
         display: none !important;
     }
 
-
-    .savedVoucherOverlay {
-        position: absolute;
-
-        inset: 0;
-
-        width: 100%;
-        height: auto;
-
-        padding: 0;
-
-        overflow: visible;
-
-        background: #ffffff;
+    /* Hide preview controls */
+    .savedVoucherActions {
+        display: none !important;
     }
-
 
     .savedVoucherOverlay .previewHeader {
         display: none !important;
     }
 
-
-    .savedVoucherOverlay .billPreview {
-        width: 100%;
-
-        margin: 0;
-
-        box-shadow: none;
-
-        border: none;
-    }
-
-
-    .savedVoucherActions {
-        display: none !important;
-    }
+    /*
+     * DO NOT set width, margin, padding, position,
+     * or height for the voucher container here.
+     *
+     * PrintableVoucher.module.css owns the A4 layout.
+     */
 }
 
 /* =========================================================
@@ -1795,15 +1775,9 @@
 
 .printableVoucherPaper {
     width: 210mm;
-
     max-width: 100%;
-
-    margin: 0 auto;
-
-    background: #ffffff;
-
-    box-shadow:
-        0 25px 70px rgba(0, 0, 0, 0.25);
+    margin: 0;
+    box-shadow: none;
 }
 
 @media print {
@@ -1839,11 +1813,8 @@
 
     .printableVoucherPaper {
         width: 210mm;
-
-        max-width: none;
-
+        max-width: 100%;
         margin: 0;
-
         box-shadow: none;
     }
 
@@ -2746,6 +2717,7 @@
         overflow: hidden;
     }
 }
+
 .salesServiceHeader {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 180px 36px;
@@ -2859,7 +2831,7 @@
     gap: 10px;
 }
 
-.transactionSummary > div {
+.transactionSummary>div {
     display: flex;
     justify-content: space-between;
     gap: 20px;
@@ -2867,11 +2839,11 @@
     font-size: 13px;
 }
 
-.transactionSummary > div span {
+.transactionSummary>div span {
     color: #667085;
 }
 
-.transactionSummary > div strong {
+.transactionSummary>div strong {
     color: #17202a;
 }
 
@@ -2894,16 +2866,12 @@
 
     .salesServiceHeader {
         grid-template-columns:
-            minmax(0, 1fr)
-            130px
-            36px;
+            minmax(0, 1fr) 130px 36px;
     }
 
     .salesServiceRow {
         grid-template-columns:
-            minmax(0, 1fr)
-            130px
-            36px;
+            minmax(0, 1fr) 130px 36px;
     }
 
 }

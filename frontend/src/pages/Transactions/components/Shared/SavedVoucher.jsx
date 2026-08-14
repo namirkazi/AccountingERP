@@ -1,10 +1,12 @@
 import { FileText } from "lucide-react";
+import { useRef, useState } from "react";
 
 import PrintableVoucher
     from "../../../../components/accounting/PrintableVoucher";
 
 import styles
     from "../../Transactions.module.css";
+import { generateVoucherPDF } from "../../../../utils/generateVoucherPDF";
 
 
 export default function SavedVoucher({
@@ -29,9 +31,29 @@ export default function SavedVoucher({
 
     narration,
 
-    printVoucher,
     closeSavedVoucher
 }) {
+
+    const voucherRef = useRef(null);
+    const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+
+    const handleSavePdf = async () => {
+        if (!voucherRef.current || isGeneratingPdf) return;
+
+        try {
+            setIsGeneratingPdf(true);
+
+            await generateVoucherPDF(voucherRef.current, {
+                fileName: `${String(voucherNumber || title)
+                    .replace(/[^a-z0-9/_-]+/gi, "-")
+                    .replace(/\//g, "-")}.pdf`
+            });
+        } catch (error) {
+            console.error("Failed to generate voucher PDF:", error);
+        } finally {
+            setIsGeneratingPdf(false);
+        }
+    };
 
     const title =
         type === "payment"
@@ -75,14 +97,15 @@ export default function SavedVoucher({
                         className={
                             styles.printVoucherButton
                         }
-                        onClick={printVoucher}
+                        onClick={handleSavePdf}
+                        disabled={isGeneratingPdf}
                     >
 
                         <FileText
                             size={17}
                         />
 
-                        Print / Save PDF
+                        {isGeneratingPdf ? "Generating PDF..." : "Print / Save PDF"}
 
                     </button>
 
@@ -105,9 +128,8 @@ export default function SavedVoucher({
 
 
             <div
-                className={
-                    styles.printableVoucherPaper
-                }
+                ref={voucherRef}
+                className={styles.printableVoucherPaper}
             >
 
                 <PrintableVoucher

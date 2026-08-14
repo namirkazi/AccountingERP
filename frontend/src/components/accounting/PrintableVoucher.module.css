@@ -1,34 +1,29 @@
 /* =========================================================
    PRINTABLE VOUCHER
-   Modern A4 accounting document
    ========================================================= */
 
 .voucher {
     width: 210mm;
     min-height: 297mm;
+    margin: 0 auto;
+    padding: 18mm 16mm 14mm;
+
     box-sizing: border-box;
 
-    padding: 14mm 15mm 12mm;
-
-    margin: 0 auto;
-
     background: #ffffff;
-
-    color: #18202a;
+    color: #111827;
 
     font-family:
-        Inter,
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
         Arial,
+        Helvetica,
         sans-serif;
 
-    font-size: 20px;
+    font-size: 12px;
     line-height: 1.45;
 
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
+    position: relative;
+
+    overflow: visible;
 }
 
 
@@ -38,212 +33,174 @@
 
 .documentHeader {
     display: grid;
+    grid-template-columns: 1fr 0.85fr;
 
-    grid-template-columns:
-        minmax(0, 1fr) 72mm;
+    gap: 28px;
 
-    gap: 10mm;
+    padding-bottom: 18px;
 
-    padding-bottom: 7mm;
-
-    border-bottom: 1px solid #dfe4ea;
-
-    align-items: start;
+    border-bottom: 2px solid #111827;
 }
-
-
-/* ---------------------------------------------------------
-   Company
-   --------------------------------------------------------- */
 
 .companyIdentity {
     display: flex;
-
     align-items: flex-start;
 
-    gap: 4mm;
+    gap: 14px;
 
     min-width: 0;
 }
 
-
 .companyLogo {
-    width: 18mm;
-    height: 18mm;
+    width: 62px;
+    height: 62px;
 
     object-fit: contain;
 
-    flex-shrink: 0;
+    flex: 0 0 62px;
 }
 
-
 .companyLogoPlaceholder {
-    width: 18mm;
-    height: 18mm;
+    width: 62px;
+    height: 62px;
+
+    flex: 0 0 62px;
 
     display: flex;
-
     align-items: center;
     justify-content: center;
 
-    flex-shrink: 0;
-
-    border-radius: 4mm;
-
-    background: #182230;
-
+    background: #111827;
     color: #ffffff;
 
-    font-size: 18px;
+    font-size: 30px;
     font-weight: 800;
-}
 
+    border-radius: 4px;
+}
 
 .companyInformation {
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 0.8mm;
-
     min-width: 0;
 
-    color: #59636f;
-
-    font-size: 15px;
-}
-
-
-.companyInformation h1 {
-    margin: 0 0 1mm;
-
-    color: #17202a;
-
-    font-size: 15px;
-    line-height: 1.1;
-
-    font-weight: 800;
-
-    letter-spacing: -0.2px;
-}
-
-
-/* ---------------------------------------------------------
-   Supplier / Customer
-   --------------------------------------------------------- */
-
-.partyInformation {
     display: flex;
-
     flex-direction: column;
 
-    gap: 1mm;
+    gap: 2px;
 
-    padding: 4mm;
+    color: #374151;
 
-    border: 1px solid #dfe4ea;
-
-    border-radius: 2mm;
-
-    background: #f8fafc;
-
-    min-height: 23mm;
-
-    box-sizing: border-box;
+    font-size: 10.5px;
 }
 
+.companyInformation h1 {
+    margin: 0 0 4px;
 
-.partyInformationLabel {
-    margin-bottom: 0.5mm;
+    color: #111827;
 
-    color: #7b8794;
-
-    font-size: 15px;
+    font-size: 18px;
+    line-height: 1.15;
 
     font-weight: 800;
 
-    letter-spacing: 1px;
+    text-transform: uppercase;
 }
 
+.partyInformation {
+    min-width: 0;
+
+    padding-left: 18px;
+
+    border-left: 1px solid #d1d5db;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 2px;
+
+    color: #374151;
+
+    font-size: 10.5px;
+}
+
+.partyInformationLabel {
+    margin-bottom: 4px;
+
+    color: #6b7280;
+
+    font-size: 9px;
+    font-weight: 700;
+
+    letter-spacing: 0.12em;
+
+    text-transform: uppercase;
+}
 
 .partyInformation strong {
-    color: #17202a;
+    color: #111827;
 
-    font-size: 20px;
-
-    font-weight: 750;
+    font-size: 13px;
+    font-weight: 700;
 }
 
-
 .partyInformation span {
-    color: #606b78;
-
-    font-size: 15px;
-
-    line-height: 1.35;
+    overflow-wrap: anywhere;
 }
 
 
 /* =========================================================
-   DOCUMENT TITLE
+   TITLE
    ========================================================= */
 
 .titleSection {
     display: flex;
-
     align-items: flex-end;
     justify-content: space-between;
 
-    gap: 8mm;
+    gap: 20px;
 
-    padding: 7mm 0 5mm;
+    padding: 20px 0 15px;
 }
-
 
 .documentEyebrow {
     display: block;
 
-    margin-bottom: 1.5mm;
+    margin-bottom: 4px;
 
-    color: #7b8794;
+    color: #6b7280;
 
-    font-size: 15px;
+    font-size: 8.5px;
+    font-weight: 700;
 
-    font-weight: 800;
+    letter-spacing: 0.16em;
 
-    letter-spacing: 1.3px;
+    text-transform: uppercase;
 }
-
 
 .titleSection h2 {
     margin: 0;
 
-    color: #111820;
+    color: #111827;
 
-    font-size: 20px;
-
-    line-height: 1.05;
-
-    font-weight: 850;
-
-    letter-spacing: -0.5px;
-}
-
-
-.documentStatus {
-    padding: 1.8mm 4mm;
-
-    border: 1px solid #cfd6de;
-
-    border-radius: 999px;
-
-    color: #5e6976;
-
-    font-size: 7px;
+    font-size: 22px;
+    line-height: 1.1;
 
     font-weight: 800;
 
-    letter-spacing: 1px;
+    letter-spacing: 0.01em;
+}
+
+.documentStatus {
+    padding: 5px 10px;
+
+    border: 1px solid #9ca3af;
+    border-radius: 3px;
+
+    color: #374151;
+
+    font-size: 8px;
+    font-weight: 700;
+
+    letter-spacing: 0.12em;
 
     white-space: nowrap;
 }
@@ -259,61 +216,54 @@
     grid-template-columns:
         repeat(3, minmax(0, 1fr));
 
-    border: 1px solid #d9dfe6;
+    gap: 0;
 
-    border-radius: 2mm;
+    margin-bottom: 18px;
 
-    overflow: hidden;
-
-    margin-bottom: 7mm;
+    border: 1px solid #d1d5db;
 }
-
 
 .documentDetails>div {
-    min-height: 15mm;
+    min-width: 0;
 
-    padding: 3mm 4mm;
+    padding: 9px 11px;
 
-    display: flex;
-
-    flex-direction: column;
-
-    justify-content: center;
-
-    gap: 1mm;
-
-    border-right: 1px solid #d9dfe6;
-
-    box-sizing: border-box;
-}
-
-
-.paymentDocumentDetails {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    border-right: 1px solid #d1d5db;
 }
 
 .documentDetails>div:last-child {
     border-right: none;
 }
 
-
 .documentDetails span {
-    color: #7a8693;
+    display: block;
 
-    font-size: 13px;
+    margin-bottom: 3px;
 
-    font-weight: 800;
+    color: #6b7280;
 
-    letter-spacing: 0.8px;
+    font-size: 8px;
+    font-weight: 700;
+
+    letter-spacing: 0.1em;
+
+    text-transform: uppercase;
 }
 
-
 .documentDetails strong {
-    color: #1d2630;
+    display: block;
 
-    font-size: 15px;
+    color: #111827;
 
-    font-weight: 750;
+    font-size: 11px;
+    font-weight: 700;
+
+    overflow-wrap: anywhere;
+}
+
+.paymentDocumentDetails {
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr));
 }
 
 
@@ -322,140 +272,225 @@
    ========================================================= */
 
 .itemsSection {
-    margin-bottom: 0;
+    width: 100%;
 
-    border: 1px solid #d9dfe6;
+    margin-top: 4px;
 
-    border-radius: 2mm;
-
-    overflow: hidden;
+    page-break-inside: avoid;
 }
-
 
 .itemsTable {
     width: 100%;
+    max-width: 100%;
 
     border-collapse: collapse;
 
     table-layout: fixed;
+
+    border: 1px solid #111827;
+
+    font-size: 10.5px;
 }
 
-
-/* ---------------------------------------------------------
-   Column sizing
-   --------------------------------------------------------- */
-
-.serialColumn {
-    width: 9%;
+.itemsTable thead {
+    display: table-header-group;
 }
 
+.itemsTable th {
+    padding: 8px 8px;
 
-.quantityColumn {
-    width: 12%;
-}
-
-
-.rateColumn {
-    width: 17%;
-}
-
-
-.amountColumn {
-    width: 21%;
-}
-
-
-/* ---------------------------------------------------------
-   Table header
-   --------------------------------------------------------- */
-
-.itemsTable thead th {
-    padding: 3.2mm 3mm;
-
-    background: #182230;
-
+    background: #111827;
     color: #ffffff;
 
-    border: none;
+    border-right: 1px solid #374151;
+    border-bottom: 1px solid #111827;
 
-    font-size: 10px;
+    font-size: 8.5px;
+    font-weight: 700;
 
-    font-weight: 800;
-
-    letter-spacing: 0.7px;
+    letter-spacing: 0.08em;
 
     text-align: left;
 
     text-transform: uppercase;
-}
-
-
-.itemsTable thead th:nth-child(1),
-.itemsTable thead th:nth-child(3),
-.itemsTable thead th:nth-child(4),
-.itemsTable thead th:nth-child(5) {
-    text-align: right;
-}
-
-
-/* ---------------------------------------------------------
-   Table body
-   --------------------------------------------------------- */
-
-.itemsTable tbody td {
-    padding: 4mm 3mm;
-
-    border-top: 1px solid #e2e6eb;
-
-    color: #26313d;
-
-    font-size: 15px;
-
-    vertical-align: middle;
 
     box-sizing: border-box;
+
+    min-width: 0;
+}
+
+.itemsTable th:last-child {
+    border-right: none;
+}
+
+.itemsTable td {
+    padding: 8px 8px;
+
+    border-right: 1px solid #d1d5db;
+    border-bottom: 1px solid #d1d5db;
+
+    vertical-align: top;
+
+    color: #1f2937;
+
+    box-sizing: border-box;
+
+    min-width: 0;
+}
+
+.itemsTable td:last-child {
+    border-right: none;
+}
+
+.itemsTable tbody tr:last-child td {
+    border-bottom: none;
 }
 
 
-.itemsTable tbody tr:nth-child(even) {
-    background: #fafbfc;
+/* =========================================================
+   TABLE COLUMNS
+   ========================================================= */
+
+.itemsTable:not(.salesItemsTable) th:nth-child(1),
+.itemsTable:not(.salesItemsTable) td:nth-child(1) {
+    width: 9%;
 }
 
+.itemsTable:not(.salesItemsTable) th:nth-child(3),
+.itemsTable:not(.salesItemsTable) td:nth-child(3) {
+    width: 12%;
+}
 
-.serialCell {
-    color: #7a8591 !important;
+.itemsTable:not(.salesItemsTable) th:nth-child(4),
+.itemsTable:not(.salesItemsTable) td:nth-child(4) {
+    width: 17%;
+}
 
-    font-weight: 700;
+.itemsTable:not(.salesItemsTable) th:nth-child(5),
+.itemsTable:not(.salesItemsTable) td:nth-child(5) {
+    width: 21%;
+}
+
+.serialColumn {
+    width: 34px;
+
+    text-align: center;
+}
+
+.quantityColumn {
+    width: 52px;
+
+    text-align: center;
+}
+
+.rateColumn {
+    width: 92px;
 
     text-align: right;
 }
 
+.amountColumn {
+    width: 110px;
+
+    text-align: right;
+}
+
+.serialCell {
+    width: 34px;
+
+    text-align: center;
+
+    color: #6b7280 !important;
+
+    font-weight: 600;
+}
 
 .numberCell {
     text-align: right;
 
     white-space: nowrap;
 
-    font-variant-numeric:
-        tabular-nums;
+    font-variant-numeric: tabular-nums;
+
+    padding-right: 12mm !important;
+    box-sizing: border-box;
 }
 
 
-.itemDescription {
-    color: #1c2630;
+/* =========================================================
+   SALES TABLE
+   ========================================================= */
 
-    font-weight: 650;
+.salesItemsTable {
+    width: 100%;
+    max-width: 100%;
+
+    table-layout: fixed;
+}
+
+.salesItemsTable .serialColumn {
+    width: 9%;
+}
+
+.salesItemsTable .amountColumn {
+    width: 25%;
+}
+
+.salesItemsTable th:first-child,
+.salesItemsTable td:first-child {
+    width: 9%;
+
+    text-align: center;
+}
+
+.salesItemsTable th:nth-child(2),
+.salesItemsTable td:nth-child(2) {
+    width: 66%;
+}
+
+.salesItemsTable th:last-child,
+.salesItemsTable td:last-child {
+    width: 25%;
+
+    padding-left: 2mm;
+    padding-right: 2mm;
+
+    box-sizing: border-box;
+
+    text-align: right;
+
+    white-space: nowrap;
+}
+
+.salesItemsTable tbody td {
+    min-height: 34px;
+}
+
+
+/* =========================================================
+   ITEM DESCRIPTION
+   ========================================================= */
+
+.itemDescription {
+    color: #111827;
+
+    font-size: 10.5px;
+    font-weight: 600;
+
+    line-height: 1.4;
 
     overflow-wrap: anywhere;
 }
 
-
 .itemSubtext {
-    margin-top: 1mm;
+    margin-top: 3px;
 
-    color: #7b8793;
+    color: #6b7280;
 
-    font-size: 10px;
+    font-size: 8.5px;
+    line-height: 1.35;
+
+    overflow-wrap: anywhere;
 }
 
 
@@ -465,125 +500,87 @@
 
 .totalsSection {
     width: 100%;
+    max-width: 360px;
 
+    margin-top: 14px;
     margin-left: auto;
 
-    border-left: 1px solid #d9dfe6;
-    border-right: 1px solid #d9dfe6;
-    border-bottom: 1px solid #d9dfe6;
-
-    box-sizing: border-box;
+    border-top: 1px solid #111827;
 }
-
 
 .totalRow {
-    min-height: 9mm;
-
-    padding: 2.2mm 4mm;
-
     display: flex;
-
     align-items: center;
+    justify-content: space-between;
 
-    justify-content: flex-end;
+    gap: 20px;
 
-    gap: 25mm;
+    padding: 6px 0;
 
-    border-top: 1px solid #e1e5e9;
+    border-bottom: 1px solid #e5e7eb;
 
-    box-sizing: border-box;
-}
-
-
-.totalRow span {
-    color: #65717d;
+    color: #374151;
 
     font-size: 10px;
-
-    font-weight: 650;
-
-    text-transform: uppercase;
-
-    letter-spacing: 0.4px;
 }
 
+.totalRow span {
+    min-width: 0;
+}
 
 .totalRow strong {
-    min-width: 30mm;
+    flex-shrink: 0;
 
-    color: #28333e;
+    color: #111827;
 
-    font-size: 15px;
-
-    font-weight: 750;
+    font-weight: 700;
 
     text-align: right;
 
-    font-variant-numeric:
-        tabular-nums;
+    font-variant-numeric: tabular-nums;
 }
-
-
-/* =========================================================
-   GRAND TOTAL
-   ========================================================= */
 
 .grandTotalRow {
-    min-height: 14mm;
-
-    padding: 3.5mm 4mm;
-
     display: flex;
-
     align-items: center;
-
     justify-content: space-between;
 
-    gap: 8mm;
+    gap: 20px;
 
-    background: #182230;
+    margin-top: 2px;
+    padding: 9px 0;
 
-    color: #ffffff;
+    border-bottom: 2px solid #111827;
 
-    box-sizing: border-box;
+    color: #111827;
+
+    font-size: 12px;
+    font-weight: 800;
 }
-
 
 .grandTotalRow span {
-    color: #ffffff;
+    font-weight: 800;
 
-    font-size: 9px;
-
-    font-weight: 850;
-
-    letter-spacing: 0.7px;
+    letter-spacing: 0.04em;
 }
-
 
 .grandTotalRow strong {
-    color: #ffffff;
+    flex-shrink: 0;
 
     font-size: 13px;
+    font-weight: 800;
 
-    font-weight: 850;
+    text-align: right;
 
-    font-variant-numeric:
-        tabular-nums;
+    font-variant-numeric: tabular-nums;
 }
 
-
-/* =========================================================
-   SINGLE TOTAL
-   ========================================================= */
-
 .singleTotalSection {
-    margin-top: 0;
+    width: 100%;
+    max-width: 360px;
 
-    border-left: 1px solid #d9dfe6;
-    border-right: 1px solid #d9dfe6;
-    border-bottom: 1px solid #d9dfe6;
-
-    overflow: hidden;
+    margin-top: 14px;
+    margin-left: auto;
 }
 
 
@@ -592,79 +589,75 @@
    ========================================================= */
 
 .paymentSummary {
-    margin-top: 5mm;
+    width: 100%;
+    max-width: 430px;
 
-    border: 1px solid #d9dfe6;
+    margin-top: 16px;
+    margin-left: auto;
 
-    border-radius: 2mm;
-
-    overflow: hidden;
+    border: 1px solid #d1d5db;
 }
-
 
 .paymentSummary>div {
-    min-height: 9mm;
-
-    padding: 2.5mm 4mm;
-
     display: flex;
-
     align-items: center;
-
     justify-content: space-between;
 
-    gap: 8mm;
+    gap: 20px;
 
-    border-bottom: 1px solid #e1e5e9;
+    padding: 7px 10px;
+
+    border-bottom: 1px solid #e5e7eb;
+
+    font-size: 10px;
 }
-
 
 .paymentSummary>div:last-child {
     border-bottom: none;
 }
 
-
 .paymentSummary span {
-    color: #68737f;
-
-    font-size: 10px;
-
-    font-weight: 650;
+    color: #4b5563;
 }
-
 
 .paymentSummary strong {
-    color: #26313c;
+    color: #111827;
 
-    font-size: 10px;
+    font-weight: 700;
 
-    font-weight: 750;
+    white-space: nowrap;
 
-    font-variant-numeric:
-        tabular-nums;
+    font-variant-numeric: tabular-nums;
 }
-
 
 .paymentBalance {
-    background: #f8fafc;
+    background: #f9fafb;
 }
 
-
+.paymentBalance span,
 .paymentBalance strong {
-    font-size: 10px;
+    font-weight: 700;
 }
-
 
 .paymentTotal {
-    background: #182230;
-}
+    background: #111827;
 
+    color: #ffffff !important;
+
+    padding-top: 9px !important;
+    padding-bottom: 9px !important;
+}
 
 .paymentTotal span,
 .paymentTotal strong {
     color: #ffffff;
 }
 
+.paymentTotal span {
+    font-weight: 800;
+
+    letter-spacing: 0.06em;
+}
 
 .paymentTotal strong {
     font-size: 12px;
@@ -676,43 +669,36 @@
    ========================================================= */
 
 .amountWordsSection {
-    margin-top: 6mm;
+    margin-top: 20px;
 
-    padding: 4mm 5mm;
+    padding: 10px 12px;
+
+    border: 1px solid #d1d5db;
 
     display: flex;
-
     flex-direction: column;
 
-    gap: 1.5mm;
-
-    border: 1px solid #d9dfe6;
-
-    border-radius: 2mm;
-
-    background: #f8fafc;
-
-    box-sizing: border-box;
+    gap: 4px;
 }
-
 
 .amountWordsSection span {
-    color: #7a8692;
+    color: #6b7280;
 
-    font-size: 10px;
+    font-size: 8px;
+    font-weight: 700;
 
-    font-weight: 800;
+    letter-spacing: 0.12em;
 
-    letter-spacing: 0.9px;
+    text-transform: uppercase;
 }
 
-
 .amountWordsSection strong {
-    color: #27323d;
+    color: #111827;
 
-    font-size: 12px;
+    font-size: 10px;
+    font-weight: 600;
 
-    font-weight: 700;
+    line-height: 1.45;
 }
 
 
@@ -721,39 +707,40 @@
    ========================================================= */
 
 .notesSection {
-    margin-top: 5mm;
+    margin-top: 14px;
 
-    padding: 4mm 5mm;
+    padding: 10px 12px;
 
-    border: 1px solid #d9dfe6;
+    border-left: 3px solid #111827;
 
-    border-radius: 2mm;
+    background: #f9fafb;
 }
 
-
-.notesSection span {
+.notesSection>span {
     display: block;
 
-    margin-bottom: 1.5mm;
+    margin-bottom: 4px;
 
-    color: #7a8692;
+    color: #6b7280;
 
-    font-size: 10px;
+    font-size: 8px;
+    font-weight: 700;
 
-    font-weight: 800;
+    letter-spacing: 0.12em;
 
-    letter-spacing: 0.9px;
+    text-transform: uppercase;
 }
-
 
 .notesSection p {
     margin: 0;
 
-    color: #394550;
+    color: #374151;
 
-    font-size: 8px;
-
+    font-size: 9.5px;
     line-height: 1.5;
+
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
 }
 
 
@@ -767,51 +754,46 @@
     grid-template-columns:
         repeat(3, minmax(0, 1fr));
 
-    gap: 5mm;
+    gap: 28px;
 
-    margin-top: 14mm;
+    margin-top: 42px;
+
+    page-break-inside: avoid;
 }
-
 
 .signatureBox {
-    min-height: 22mm;
-
-    padding-top: 10mm;
-
-    position: relative;
+    min-width: 0;
 
     display: flex;
-
     flex-direction: column;
 
-    gap: 1mm;
+    align-items: center;
 
-    border-top: 1px solid #9ca6b0;
-
-    box-sizing: border-box;
+    text-align: center;
 }
-
 
 .signatureLine {
-    display: none;
-}
+    width: 100%;
+    height: 1px;
 
+    margin-bottom: 7px;
+
+    background: #111827;
+}
 
 .signatureBox strong {
-    color: #26313c;
+    color: #111827;
 
-    font-size: 10px;
-
-    font-weight: 750;
-
-    text-transform: uppercase;
+    font-size: 9px;
+    font-weight: 700;
 }
 
-
 .signatureBox span {
-    color: #7b8792;
+    margin-top: 2px;
 
-    font-size: 7px;
+    color: #6b7280;
+
+    font-size: 8px;
 }
 
 
@@ -820,23 +802,26 @@
    ========================================================= */
 
 .documentFooter {
-    margin-top: 10mm;
-
-    padding-top: 4mm;
-
     display: flex;
-
     align-items: center;
-
     justify-content: space-between;
 
-    gap: 8mm;
+    gap: 20px;
 
-    border-top: 1px solid #e1e5e9;
+    margin-top: 28px;
+    padding-top: 10px;
 
-    color: #89939e;
+    border-top: 1px solid #d1d5db;
 
-    font-size: 6.8px;
+    color: #6b7280;
+
+    font-size: 7.5px;
+
+    page-break-inside: avoid;
+}
+
+.documentFooter span:last-child {
+    text-align: right;
 }
 
 
@@ -846,148 +831,143 @@
 
 @page {
     size: A4 portrait;
-
     margin: 0;
 }
 
-
 @media print {
-
-    html,
-    body {
-        margin: 0 !important;
-        padding: 0 !important;
-
-        background: #ffffff !important;
-    }
-
 
     .voucher {
         width: 210mm;
         min-height: 297mm;
 
-        margin: 0;
+        margin: 0 !important;
 
-        padding: 14mm 15mm 12mm;
+        
 
         box-sizing: border-box;
 
+        overflow: visible !important;
+
         box-shadow: none;
 
-        page-break-after: always;
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
     }
+
+    .documentHeader {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    .titleSection {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    .documentDetails {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    .itemsSection {
+        width: 100%;
+        max-width: 100%;
+
+        margin-top: 4px;
+        margin-left: 0;
+        margin-right: 0;
+
+        page-break-inside: avoid;
+
+        box-sizing: border-box;
+    }
+
     .itemsTable {
-    width: 100% !important;
-    max-width: 100% !important;
-    table-layout: fixed !important;
-}
-    .voucher:last-child {
-        page-break-after: auto;
+        break-inside: auto;
+        page-break-inside: auto;
     }
 
+    .itemsTable thead {
+        display: table-header-group;
+    }
 
-    .documentHeader,
-    .titleSection,
-    .documentDetails,
-    .itemsSection,
+    .itemsTable tr {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
     .totalsSection,
+    .singleTotalSection,
     .paymentSummary,
     .amountWordsSection,
     .notesSection,
     .signatureSection,
     .documentFooter {
         break-inside: avoid;
+        page-break-inside: avoid;
     }
 
+    .numberCell {
 
-    .itemsTable thead {
-        display: table-header-group;
+        box-sizing: border-box !important;
+        text-align: right !important;
+        white-space: nowrap !important;
     }
-
-
-    .itemsTable tr {
-        break-inside: avoid;
-    }
-
 }
 
 
 /* =========================================================
-   SCREEN PREVIEW
+   RESPONSIVE
    ========================================================= */
 
-@media screen {
-
-    .voucher {
-        margin: 20px auto;
-
-        box-shadow:
-            0 8px 35px rgba(20, 30, 40, 0.12);
-
-        border: 1px solid #e4e8ed;
-    }
-
-}
-
-
-/* =========================================================
-   RESPONSIVE PREVIEW
-   ========================================================= */
-
-@media screen and (max-width: 850px) {
-
+@media screen and (max-width: 900px) {
     .voucher {
         width: 100%;
-
         min-height: auto;
 
-        padding: 25px 20px;
+        padding: 24px;
     }
-
 
     .documentHeader {
         grid-template-columns: 1fr;
     }
 
-
     .partyInformation {
-        width: 100%;
+        padding-top: 14px;
+        padding-left: 0;
+
+        border-top: 1px solid #d1d5db;
+        border-left: none;
     }
 
-
-    .documentDetails {
-        grid-template-columns:
-            repeat(2, minmax(0, 1fr));
+    .documentDetails,
+    .paymentDocumentDetails {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
-
 
     .documentDetails>div:nth-child(2) {
         border-right: none;
     }
 
-
     .documentDetails>div:nth-child(3) {
-        border-top: 1px solid #d9dfe6;
+        border-top: 1px solid #d1d5db;
     }
 
+    .paymentDocumentDetails>div:nth-child(3),
+    .paymentDocumentDetails>div:nth-child(4) {
+        border-top: 1px solid #d1d5db;
+    }
 
     .signatureSection {
-        grid-template-columns: 1fr;
+        gap: 16px;
     }
-
 }
 
 
-/* =========================================================
-   SMALL SCREEN
-   ========================================================= */
-
-@media screen and (max-width: 550px) {
-
+@media screen and (max-width: 600px) {
     .voucher {
-        padding: 18px 12px;
+        padding: 18px;
     }
-
 
     .titleSection {
         align-items: flex-start;
@@ -995,261 +975,68 @@
         flex-direction: column;
     }
 
-
-    .documentDetails {
+    .documentDetails,
+    .paymentDocumentDetails {
         grid-template-columns: 1fr;
     }
 
-
-    .documentDetails>div {
+    .documentDetails>div,
+    .documentDetails>div:nth-child(2),
+    .documentDetails>div:nth-child(3),
+    .paymentDocumentDetails>div,
+    .paymentDocumentDetails>div:nth-child(3),
+    .paymentDocumentDetails>div:nth-child(4) {
         border-right: none;
-
-        border-bottom: 1px solid #d9dfe6;
+        border-top: 1px solid #d1d5db;
     }
 
-
-    .documentDetails>div:last-child {
-        border-bottom: none;
+    .documentDetails>div:first-child {
+        border-top: none;
     }
-
 
     .itemsTable {
-        min-width: 650px;
+        font-size: 9px;
     }
 
-
-    .itemsSection {
-        overflow-x: auto;
+    .itemsTable th,
+    .itemsTable td {
+        padding: 6px 5px;
     }
 
-
-    .totalsSection {
-        width: 100%;
+    .quantityColumn {
+        width: 42px;
     }
 
-
-    .totalRow {
-        gap: 10mm;
+    .rateColumn {
+        width: 72px;
     }
 
+    .amountColumn {
+        width: 88px;
+    }
+
+    .signatureSection {
+        grid-template-columns: 1fr;
+
+        gap: 30px;
+
+        margin-top: 30px;
+    }
+
+    .signatureBox {
+        width: 70%;
+        margin: 0 auto;
+    }
 
     .documentFooter {
+        align-items: flex-start;
+
         flex-direction: column;
 
-        align-items: flex-start;
+        gap: 4px;
     }
 
-}
-
-/* =========================================================
-   VOUCHER TYPOGRAPHY
-   Controlled hierarchy — do not globally scale children
-   ========================================================= */
-
-.voucher {
-    font-size: 10px;
-    line-height: 1.35;
-    color: #17202a;
-}
-
-
-/* =========================================================
-   COMPANY HEADER
-   ========================================================= */
-
-.companyName {
-    font-size: 14px;
-    line-height: 1.2;
-    font-weight: 800;
-}
-
-.companyAddress,
-.companyContact,
-.companyTrn {
-    font-size: 9px;
-    line-height: 1.35;
-}
-
-
-/* =========================================================
-   DOCUMENT TITLE
-   ========================================================= */
-
-.documentEyebrow {
-    font-size: 9px;
-    line-height: 1.2;
-    letter-spacing: 0.08em;
-    font-weight: 700;
-}
-
-.documentTitle {
-    font-size: 17px;
-    line-height: 1.15;
-    font-weight: 800;
-}
-
-
-/* =========================================================
-   SUPPLIER / CUSTOMER
-   ========================================================= */
-
-.partyLabel {
-    font-size: 8px;
-    line-height: 1.2;
-    letter-spacing: 0.07em;
-    font-weight: 700;
-}
-
-.partyName {
-    font-size: 11px;
-    line-height: 1.25;
-    font-weight: 700;
-}
-
-.partyDetails {
-    font-size: 9px;
-    line-height: 1.4;
-}
-
-
-/* =========================================================
-   DOCUMENT META
-   ========================================================= */
-
-.metaLabel {
-    font-size: 8px;
-    line-height: 1.2;
-    letter-spacing: 0.06em;
-    font-weight: 700;
-}
-
-.metaValue {
-    font-size: 10px;
-    line-height: 1.3;
-    font-weight: 600;
-}
-
-
-/* =========================================================
-   TABLE
-   ========================================================= */
-
-.tableHeader {
-    font-size: 8px;
-    line-height: 1.2;
-    letter-spacing: 0.03em;
-    font-weight: 800;
-}
-
-.tableCell {
-    font-size: 9px;
-    line-height: 1.35;
-}
-
-.itemDescription {
-    font-size: 15px;
-    line-height: 1.4;
-}
-
-
-/* =========================================================
-   TOTALS
-   ========================================================= */
-
-.summaryLabel {
-    font-size: 9px;
-    line-height: 1.3;
-    font-weight: 600;
-}
-
-.summaryValue {
-    font-size: 9px;
-    line-height: 1.3;
-    font-weight: 700;
-}
-
-.totalLabel {
-    font-size: 10px;
-    line-height: 1.2;
-    font-weight: 800;
-}
-
-.totalValue {
-    font-size: 11px;
-    line-height: 1.2;
-    font-weight: 800;
-}
-
-
-/* =========================================================
-   AMOUNT IN WORDS
-   ========================================================= */
-
-.amountWordsLabel {
-    font-size: 8px;
-    line-height: 1.2;
-    letter-spacing: 0.06em;
-    font-weight: 700;
-}
-
-.amountWordsValue {
-    font-size: 9px;
-    line-height: 1.4;
-    font-weight: 600;
-}
-
-
-/* =========================================================
-   SIGNATURES
-   ========================================================= */
-
-.signatureTitle {
-    font-size: 8px;
-    line-height: 1.2;
-    font-weight: 800;
-    letter-spacing: 0.03em;
-}
-
-.signatureName {
-    font-size: 9px;
-    line-height: 1.3;
-}
-
-
-/* =========================================================
-   FOOTER
-   ========================================================= */
-
-.footer {
-    font-size: 8px;
-    line-height: 1.3;
-}
-
-/* =========================================================
-   SALES TABLE
-   ========================================================= */
-
-.salesItemsTable {
-    table-layout: fixed;
-}
-
-.salesItemsTable .serialColumn {
-    width: 9%;
-}
-
-.salesItemsTable th:nth-child(2) {
-    width: 66%;
-    text-align: left;
-}
-
-.salesItemsTable .amountColumn {
-    width: 25%;
-}
-
-.salesItemsTable thead th:last-child {
-    text-align: right;
-}
-
-.salesItemsTable tbody td:last-child {
-    text-align: right;
+    .documentFooter span:last-child {
+        text-align: left;
+    }
 }
