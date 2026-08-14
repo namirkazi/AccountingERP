@@ -1630,14 +1630,8 @@
 
 @media print {
 
-    body * {
-        visibility: hidden !important;
-    }
-
-
-    .savedVoucherOverlay,
-    .savedVoucherOverlay * {
-        visibility: visible !important;
+    .page {
+        display: none !important;
     }
 
 
@@ -1818,17 +1812,6 @@
         size: A4;
 
         margin: 0;
-    }
-
-
-    body * {
-        visibility: hidden !important;
-    }
-
-
-    .savedVoucherOverlay,
-    .savedVoucherOverlay * {
-        visibility: visible !important;
     }
 
 

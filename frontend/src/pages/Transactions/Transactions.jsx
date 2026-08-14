@@ -113,6 +113,8 @@ export default function Transactions() {
     const [showPreview, setShowPreview] = useState(true);
     const [showSavedVoucher, setShowSavedVoucher] = useState(false);
 
+    const [savedSaleServices, setSavedSaleServices] = useState([]);
+
     const [voucherNumber, setVoucherNumber] = useState("");
 
     /* Sale BIll NO */
@@ -316,6 +318,7 @@ export default function Transactions() {
     function closeSavedVoucher() {
 
         setShowSavedVoucher(false);
+        setSavedSaleServices([]);
         resetTransactionForm();
     }
 
@@ -599,6 +602,16 @@ export default function Transactions() {
 
                 setVoucherNumber(
                     savedBillNumber
+                );
+
+                setSavedSaleServices(
+                    salesServices.map(service => ({
+                        ...service,
+                        amount:
+                            service.amount ??
+                            service.default_amount ??
+                            0
+                    }))
                 );
             }
             if (type === "expense") {
@@ -961,7 +974,7 @@ export default function Transactions() {
 
                     items={
                         type === "sale"
-                            ? salesServices
+                            ? savedSaleServices
                             : expenseItems
                     }
 

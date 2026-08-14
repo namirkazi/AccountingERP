@@ -304,6 +304,7 @@ function getItemRate(item) {
         item?.rate ??
         item?.unit_price ??
         item?.price ??
+        item?.default_amount ??
         item?.default_rate ??
         0
     );
@@ -874,6 +875,30 @@ export default function PrintableVoucher({
                             : styles.itemsTable
                     }
                 >
+
+                    <colgroup>
+
+                        <col className={styles.serialColumn} />
+
+                        {isSale ? (
+
+                            <>
+                                <col style={{ width: "66%" }} />
+                                <col className={styles.amountColumn} />
+                            </>
+
+                        ) : (
+
+                            <>
+                                <col />
+                                <col className={styles.quantityColumn} />
+                                <col className={styles.rateColumn} />
+                                <col className={styles.amountColumn} />
+                            </>
+
+                        )}
+
+                    </colgroup>
 
                     <thead>
                         <tr>

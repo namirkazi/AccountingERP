@@ -1238,7 +1238,7 @@
 }
 
 .salesItemsTable th:nth-child(2) {
-    width: auto;
+    width: 66%;
     text-align: left;
 }
 
