@@ -1,7 +1,9 @@
 import { useAuth } from "../../context/AuthContext";
 import AppLayout from "../../components/layout/AppLayout";
 import { useEffect, useState } from "react";
-
+import {
+    useNavigate
+} from "react-router-dom";
 import {
     getDashboardBalances
 } from "../../services/dashboardService";
@@ -32,6 +34,9 @@ function formatAmount(value) {
 
 
 export default function Dashboard() {
+
+    const navigate =
+        useNavigate();
 
     const [summary, setSummary] = useState({
         cash: 0,
@@ -163,7 +168,7 @@ export default function Dashboard() {
             ? summary.receivable
             : detailType === "payable"
                 ? summary.payable
-                : summary.capital_available;
+                : summary.capital_investor_total;
 
 
 
@@ -274,6 +279,7 @@ export default function Dashboard() {
 
                     <div className={styles.positionGrid}>
 
+
                         {/* =================================
                             ASSETS
                         ================================= */}
@@ -320,9 +326,13 @@ export default function Dashboard() {
                                 }
                             >
 
-                                <div
-                                    className={
-                                        styles.positionRow
+                                <button
+                                    type="button"
+                                    className={`${styles.positionRow} ${styles.clickableRow}`}
+                                    onClick={() =>
+                                        navigate(
+                                            "/ledger?type=sales"
+                                        )
                                     }
                                 >
 
@@ -361,12 +371,16 @@ export default function Dashboard() {
                                         )}
                                     </strong>
 
-                                </div>
+                                </button>
 
 
-                                <div
-                                    className={
-                                        styles.positionRow
+                                <button
+                                    type="button"
+                                    className={`${styles.positionRow} ${styles.clickableRow}`}
+                                    onClick={() =>
+                                        navigate(
+                                            "/ledger?type=receipt"
+                                        )
                                     }
                                 >
 
@@ -405,7 +419,7 @@ export default function Dashboard() {
                                         )}
                                     </strong>
 
-                                </div>
+                                </button>
 
 
                                 <button
@@ -514,9 +528,13 @@ export default function Dashboard() {
                                 }
                             >
 
-                                <div
-                                    className={
-                                        styles.positionRow
+                                <button
+                                    type="button"
+                                    className={`${styles.positionRow} ${styles.clickableRow}`}
+                                    onClick={() =>
+                                        navigate(
+                                            "/ledger?type=expense"
+                                        )
                                     }
                                 >
 
@@ -555,12 +573,16 @@ export default function Dashboard() {
                                         )}
                                     </strong>
 
-                                </div>
+                                </button>
 
 
-                                <div
-                                    className={
-                                        styles.positionRow
+                                <button
+                                    type="button"
+                                    className={`${styles.positionRow} ${styles.clickableRow}`}
+                                    onClick={() =>
+                                        navigate(
+                                            "/ledger?type=payments"
+                                        )
                                     }
                                 >
 
@@ -599,7 +621,7 @@ export default function Dashboard() {
                                         )}
                                     </strong>
 
-                                </div>
+                                </button>
 
 
                                 <button
@@ -660,291 +682,518 @@ export default function Dashboard() {
                             </div>
 
                         </div>
-
-                    </div>
-
-                </section>
-
-
-                {/* =========================================
+                        {/* =========================================
                     CASH / BANK
                 ========================================= */}
+                        <div className={styles.positionCard}>
 
-                <section>
+                            <div className={styles.positionHeader}>
 
-                    <div className={styles.sectionHeader}>
+                                <div>
 
-                        <h2>
-                            Cash & Bank
-                        </h2>
+                                    <div className={styles.positionIcon}>
+                                        <Wallet size={19} />
+                                    </div>
 
-                    </div>
+                                    <div>
 
+                                        <h3>
+                                            Cash in Hand & Bank
+                                        </h3>
 
-                    <div
-                        className={
-                            styles.cashGrid
-                        }
-                    >
+                                        <span>
+                                            Current cash and bank balances
+                                        </span>
 
-                        <div
-                            className={
-                                styles.cashCard
-                            }
-                        >
+                                    </div>
 
-                            <span>
-                                Cash
-                            </span>
-
-                            <strong>
-                                AED{" "}
-                                {formatAmount(
-                                    summary.cash
-                                )}
-                            </strong>
-
-                        </div>
-
-
-                        <div
-                            className={
-                                styles.cashCard
-                            }
-                        >
-
-                            <span>
-                                Bank
-                            </span>
-
-                            <strong>
-                                AED{" "}
-                                {formatAmount(
-                                    summary.bank
-                                )}
-                            </strong>
-
-                        </div>
-                        <button
-                            type="button"
-                            className={`${styles.cashCard} ${styles.capitalCard}`}
-                            onClick={() =>
-                                setDetailType(
-                                    "capital"
-                                )
-                            }
-                        >
-
-                            <div>
-
-                                <span>
-                                    Available Capital
-                                </span>
-
-                                <strong>
-                                    AED{" "}
-                                    {formatAmount(
-                                        summary.capital_available
-                                    )}
-                                </strong>
+                                </div>
 
                             </div>
 
-                            <ChevronRight size={19} />
 
-                        </button>
-                    </div>
+                            <div className={styles.positionRows}>
 
-                </section>
+                                <button
+                                    type="button"
+                                    className={`${styles.positionRow} ${styles.clickableRow}`}
+                                    onClick={() =>
+                                        navigate(
+                                            "/ledger?type=cash"
+                                        )
+                                    }
+                                >
+
+                                    <div className={styles.rowIcon}>
+                                        <Wallet size={16} />
+                                    </div>
+
+                                    <div className={styles.rowContent}>
+
+                                        <strong>
+                                            Cash in Hand
+                                        </strong>
+
+                                        <span>
+                                            Cash balance
+                                        </span>
+
+                                    </div>
+
+                                    <strong className={styles.rowAmount}>
+                                        AED{" "}
+                                        {formatAmount(
+                                            summary.cash
+                                        )}
+                                    </strong>
+
+                                </button>
 
 
-                {/* =========================================
-                    DETAIL MODAL
-                ========================================= */}
+                                <button
+                                    type="button"
+                                    className={`${styles.positionRow} ${styles.clickableRow}`}
+                                    onClick={() =>
+                                        navigate(
+                                            "/ledger?type=bank"
+                                        )
+                                    }
+                                >
 
-                {detailType && (
+                                    <div className={styles.rowIcon}>
+                                        <Building2 size={16} />
+                                    </div>
 
-                    <div
-                        className={
-                            styles.modalOverlay
-                        }
-                        onMouseDown={(event) => {
+                                    <div className={styles.rowContent}>
 
-                            if (
-                                event.target ===
-                                event.currentTarget
-                            ) {
-                                setDetailType(null);
-                            }
+                                        <strong>
+                                            Bank
+                                        </strong>
 
-                        }}
-                    >
+                                        <span>
+                                            Bank balance
+                                        </span>
 
-                        <div
-                            className={
-                                styles.detailModal
-                            }
-                        >
+                                    </div>
+                                    <strong className={styles.rowAmount}>
+                                        AED{" "}
+                                        {formatAmount(
+                                            summary.bank
+                                        )}
+                                    </strong>
+
+                                </button>
+
+                            </div>
+
+                        </div>
+                        {/* =================================
+                            CAPITAL
+                        ================================= */}
+
+                        <div className={styles.positionCard}>
 
                             <div
                                 className={
-                                    styles.modalHeader
+                                    styles.positionHeader
                                 }
                             >
 
                                 <div>
 
-                                    <h2>
-                                        {
-                                            detailType === "receivable"
-                                                ? "Accounts Receivable"
-                                                : detailType === "payable"
-                                                    ? "Accounts Payable"
-                                                    : "Capital by Investor"
+                                    <div
+                                        className={
+                                            styles.positionIcon
                                         }
-                                    </h2>
+                                    >
+                                        <Landmark
+                                            size={19}
+                                        />
+                                    </div>
 
-                                    <p>
-                                        {
-                                            detailType === "receivable"
-                                                ? "Outstanding amounts from customers"
-                                                : detailType === "payable"
-                                                    ? "Outstanding amounts owed to suppliers"
-                                                    : "Investor capital balances"
+                                    <div>
+
+                                        <h3>
+                                            Capital
+                                        </h3>
+
+                                        <span>
+                                            Investor funding and
+                                            capital allocation
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div
+                                className={
+                                    styles.positionRows
+                                }
+                            >
+
+                                {/* CAPITAL ALLOCATED */}
+
+                                <div
+                                    className={
+                                        styles.positionRow
+                                    }
+                                >
+
+                                    <div
+                                        className={
+                                            styles.rowIcon
                                         }
-                                    </p>
+                                    >
+                                        <ArrowDownToLine
+                                            size={16}
+                                        />
+                                    </div>
+
+
+                                    <div
+                                        className={
+                                            styles.rowContent
+                                        }
+                                    >
+
+                                        <strong>
+                                            Capital Allocated
+                                        </strong>
+
+                                        <span>
+                                            Moved into Cash and Bank
+                                        </span>
+
+                                    </div>
+
+
+                                    <strong
+                                        className={
+                                            styles.rowAmount
+                                        }
+                                    >
+                                        AED{" "}
+                                        {formatAmount(
+                                            summary.capital_transferred
+                                        )}
+                                    </strong>
 
                                 </div>
 
 
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        setDetailType(
-                                            null
-                                        )
-                                    }
+                                {/* AVAILABLE CAPITAL */}
+
+                                <div
                                     className={
-                                        styles.closeButton
+                                        styles.positionRow
                                     }
                                 >
-                                    <X size={18} />
+
+                                    <div
+                                        className={
+                                            styles.rowIcon
+                                        }
+                                    >
+                                        <Wallet
+                                            size={16}
+                                        />
+                                    </div>
+
+
+                                    <div
+                                        className={
+                                            styles.rowContent
+                                        }
+                                    >
+
+                                        <strong>
+                                            Available Capital
+                                        </strong>
+
+                                        <span>
+                                            Capital not yet allocated
+                                        </span>
+
+                                    </div>
+
+
+                                    <strong
+                                        className={
+                                            styles.rowAmount
+                                        }
+                                    >
+                                        AED{" "}
+                                        {formatAmount(
+                                            summary.capital_available
+                                        )}
+                                    </strong>
+
+                                </div>
+                                {/* INVESTOR CAPITAL */}
+
+                                <button
+                                    type="button"
+                                    className={`${styles.positionRow} ${styles.clickableRow}`}
+                                    onClick={() =>
+                                        setDetailType(
+                                            "capital"
+                                        )
+                                    }
+                                >
+
+                                    <div
+                                        className={
+                                            styles.rowIcon
+                                        }
+                                    >
+                                        <Users
+                                            size={16}
+                                        />
+                                    </div>
+
+
+                                    <div
+                                        className={
+                                            styles.rowContent
+                                        }
+                                    >
+
+                                        <strong>
+                                            Investor Capital
+                                        </strong>
+
+                                        <span>
+                                            Total contributed by investors
+                                        </span>
+
+                                    </div>
+
+
+                                    <strong
+                                        className={
+                                            styles.rowAmount
+                                        }
+                                    >
+                                        AED{" "}
+                                        {formatAmount(
+                                            summary.capital_investor_total
+                                        )}
+                                    </strong>
+
+
+                                    <ChevronRight
+                                        size={17}
+                                        className={
+                                            styles.rowArrow
+                                        }
+                                    />
+
                                 </button>
 
-                            </div>
-
-
-                            <div
-                                className={
-                                    styles.detailTotal
-                                }
-                            >
-
-                                <span>
-                                    {
-                                        detailType === "capital"
-                                            ? "Total Capital"
-                                            : "Total Outstanding"
-                                    }
-                                </span>
-
-                                <strong>
-                                    AED{" "}
-                                    {formatAmount(
-                                        detailTotal
-                                    )}
-                                </strong>
-
-                            </div>
-
-
-                            <div
-                                className={
-                                    styles.detailList
-                                }
-                            >
-
-                                {loading ? (
-
-                                    <div
-                                        className={
-                                            styles.detailEmpty
-                                        }
-                                    >
-                                        Loading...
-                                    </div>
-
-                                ) : detailItems.length === 0 ? (
-
-                                    <div
-                                        className={
-                                            styles.detailEmpty
-                                        }
-                                    >
-                                        {
-                                            detailType === "capital"
-                                                ? "No investor capital found."
-                                                : "No outstanding balances found."
-                                        }
-                                    </div>
-
-                                ) : (
-
-                                    detailItems.map(
-                                        (item) => (
-
-                                            <div
-                                                key={
-                                                    item.party_id ||
-                                                    item.investor_id
-                                                }
-                                                className={
-                                                    styles.detailRow
-                                                }
-                                            >
-
-                                                <div>
-
-                                                    <strong>
-                                                        {
-                                                            item.party_name ||
-                                                            item.investor_name
-                                                        }
-                                                    </strong>
-
-                                                    <span>
-                                                        {
-                                                            detailType === "capital"
-                                                                ? "Investor"
-                                                                : item.party_type
-                                                        }
-                                                    </span>
-
-                                                </div>
-
-                                                <strong>
-                                                    AED{" "}
-                                                    {formatAmount(
-                                                        item.balance
-                                                    )}
-                                                </strong>
-
-                                            </div>
-
-                                        )
-                                    )
-                                )}
 
                             </div>
 
                         </div>
 
+
+
                     </div>
 
-                )}
+                </section>
 
-            </div>
+                {/* =========================================
+                    DETAIL MODAL
+                ========================================= */}
 
-        </AppLayout>
+                {
+                    detailType && (
+
+                        <div
+                            className={
+                                styles.modalOverlay
+                            }
+                            onMouseDown={(event) => {
+
+                                if (
+                                    event.target ===
+                                    event.currentTarget
+                                ) {
+                                    setDetailType(null);
+                                }
+
+                            }}
+                        >
+
+                            <div
+                                className={
+                                    styles.detailModal
+                                }
+                            >
+
+                                <div
+                                    className={
+                                        styles.modalHeader
+                                    }
+                                >
+
+                                    <div>
+
+                                        <h2>
+                                            {
+                                                detailType === "receivable"
+                                                    ? "Accounts Receivable"
+                                                    : detailType === "payable"
+                                                        ? "Accounts Payable"
+                                                        : "Capital by Investor"
+                                            }
+                                        </h2>
+
+                                        <p>
+                                            {
+                                                detailType === "receivable"
+                                                    ? "Outstanding amounts from customers"
+                                                    : detailType === "payable"
+                                                        ? "Outstanding amounts owed to suppliers"
+                                                        : "Original capital contributed by each investor"
+                                            }
+                                        </p>
+
+                                    </div>
+
+
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            setDetailType(
+                                                null
+                                            )
+                                        }
+                                        className={
+                                            styles.closeButton
+                                        }
+                                    >
+                                        <X size={18} />
+                                    </button>
+
+                                </div>
+
+
+                                <div
+                                    className={
+                                        styles.detailTotal
+                                    }
+                                >
+
+                                    <span>
+                                        {
+                                            detailType === "capital"
+                                                ? "Total Investor Capital"
+                                                : "Total Outstanding"
+                                        }
+                                    </span>
+
+                                    <strong>
+                                        AED{" "}
+                                        {formatAmount(
+                                            detailTotal
+                                        )}
+                                    </strong>
+
+                                </div>
+
+
+                                <div
+                                    className={
+                                        styles.detailList
+                                    }
+                                >
+
+                                    {loading ? (
+
+                                        <div
+                                            className={
+                                                styles.detailEmpty
+                                            }
+                                        >
+                                            Loading...
+                                        </div>
+
+                                    ) : detailItems.length === 0 ? (
+
+                                        <div
+                                            className={
+                                                styles.detailEmpty
+                                            }
+                                        >
+                                            {
+                                                detailType === "capital"
+                                                    ? "No investor capital found."
+                                                    : "No outstanding balances found."
+                                            }
+                                        </div>
+
+                                    ) : (
+
+                                        detailItems.map(
+                                            (item) => (
+
+                                                <div
+                                                    key={
+                                                        item.party_id ||
+                                                        item.investor_id
+                                                    }
+                                                    className={
+                                                        styles.detailRow
+                                                    }
+                                                >
+
+                                                    <div>
+
+                                                        <strong>
+                                                            {
+                                                                item.party_name ||
+                                                                item.investor_name
+                                                            }
+                                                        </strong>
+
+                                                        <span>
+                                                            {
+                                                                detailType === "capital"
+                                                                    ? "Investor"
+                                                                    : item.party_type
+                                                            }
+                                                        </span>
+
+                                                    </div>
+
+                                                    <strong>
+                                                        AED{" "}
+                                                        {formatAmount(
+                                                            item.balance
+                                                        )}
+                                                    </strong>
+
+                                                </div>
+
+                                            )
+                                        )
+                                    )}
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    )
+                }
+
+            </div >
+
+        </AppLayout >
     );
 }

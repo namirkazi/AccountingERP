@@ -365,58 +365,89 @@ try {
         ];
     }
     /*
-     * =========================================================
-     * INVESTOR CAPITAL
-     * =========================================================
-     */
+ * =========================================================
+ * INVESTOR CAPITAL
+ * =========================================================
+ *
+ * Investor balances represent actual investor capital.
+ *
+ * A CAPITAL voucher is NOT an investor withdrawal.
+ * It simply moves part of the available capital pool
+ * into Cash and/or Bank.
+ *
+ * Therefore:
+ *
+ * Investor A contribution = 20,000
+ * Investor B contribution = 20,000
+ *
+ * Investor capital = 40,000
+ *
+ * Move Capital = 10,000
+ *
+ * Available capital = 30,000
+ *
+ * The investor rows remain:
+ *
+ * Investor A = 20,000
+ * Investor B = 20,000
+ *
+ */
+
+    /*
+ * ---------------------------------------------------------
+ * INVESTOR CONTRIBUTIONS
+ * ---------------------------------------------------------
+ *
+ * Only CONTRIBUTION transactions are shown as investor
+ * capital on the dashboard.
+ *
+ * Genuine WITHDRAWAL transactions are intentionally not
+ * subtracted here because the dashboard is showing the
+ * investor's contributed capital.
+ *
+ */
 
     $capitalInvestorStmt = $pdo->prepare("
-        SELECT
-            i.id AS investor_id,
-            i.investor_name,
+    SELECT
+        i.id AS investor_id,
+        i.investor_name,
 
-            COALESCE(
-                SUM(
-                    CASE
-                        WHEN ict.transaction_type = 'CONTRIBUTION'
-                        THEN ict.amount
-                        WHEN ict.transaction_type = 'WITHDRAWAL'
-                        THEN -ict.amount
-                        ELSE 0
-                    END
-                ),
-                0
-            ) AS balance
+        COALESCE(
+            SUM(
+                CASE
+                    WHEN ict.transaction_type = 'CONTRIBUTION'
+                    THEN ict.amount
+                    ELSE 0
+                END
+            ),
+            0
+        ) AS balance
 
-        FROM investors i
+    FROM investors i
 
-        INNER JOIN investor_capital_transactions ict
-            ON ict.investor_id = i.id
-            AND ict.company_id = i.company_id
+    INNER JOIN investor_capital_transactions ict
+        ON ict.investor_id = i.id
+        AND ict.company_id = i.company_id
 
-        WHERE i.company_id = :company_id
+    WHERE i.company_id = :company_id
 
-        GROUP BY
-            i.id,
-            i.investor_name
+    GROUP BY
+        i.id,
+        i.investor_name
 
-        HAVING
-            ABS(
-                SUM(
-                    CASE
-                        WHEN ict.transaction_type = 'CONTRIBUTION'
-                        THEN ict.amount
-                        WHEN ict.transaction_type = 'WITHDRAWAL'
-                        THEN -ict.amount
-                        ELSE 0
-                    END
-                )
-            ) > 0.005
+    HAVING
+        SUM(
+            CASE
+                WHEN ict.transaction_type = 'CONTRIBUTION'
+                THEN ict.amount
+                ELSE 0
+            END
+        ) > 0.005
 
-        ORDER BY
-            balance DESC,
-            i.investor_name ASC
-    ");
+    ORDER BY
+        balance DESC,
+        i.investor_name ASC
+");
 
     $capitalInvestorStmt->execute([
         ':company_id' => $companyId
@@ -427,39 +458,126 @@ try {
     while ($row = $capitalInvestorStmt->fetch()) {
 
         $capitalInvestors[] = [
-            'investor_id' => (int) $row['investor_id'],
-            'investor_name' => $row['investor_name'],
-            'balance' => round(
+            'investor_id' =>
+            (int) $row['investor_id'],
+
+            'investor_name' =>
+            $row['investor_name'],
+
+            'balance' =>
+            round(
                 (float) $row['balance'],
                 2
             )
         ];
     }
+
+
+    /*
+ * ---------------------------------------------------------
+ * TOTAL INVESTOR CAPITAL
+ * ---------------------------------------------------------
+ */
+
     $investorCapitalTotal = 0;
 
     foreach ($capitalInvestors as $investor) {
+
         $investorCapitalTotal +=
             (float) $investor['balance'];
     }
 
 
+    /*
+ * ---------------------------------------------------------
+ * CAPITAL ALREADY TRANSFERRED
+ * ---------------------------------------------------------
+ *
+ * A CAPITAL voucher means that capital has been moved
+ * from the unallocated capital pool into Cash and/or Bank.
+ *
+ * It does NOT change the investor's contributed amount.
+ *
+ */
+
+    /*
+ * ---------------------------------------------------------
+ * FIRST INVESTOR CONTRIBUTION DATE
+ * ---------------------------------------------------------
+ *
+ * CAPITAL vouchers before investor contributions are
+ * opening balances and should not reduce investor capital.
+ *
+ */
+
+    $firstContributionStmt = $pdo->prepare("
+    SELECT
+        MIN(transaction_date)
+
+    FROM investor_capital_transactions
+
+    WHERE company_id = :company_id
+
+    AND transaction_type = 'CONTRIBUTION'
+");
+
+    $firstContributionStmt->execute([
+        ':company_id' => $companyId
+    ]);
+
+    $firstContributionDate =
+        $firstContributionStmt->fetchColumn();
+
+
+    /*
+ * ---------------------------------------------------------
+ * CAPITAL ALREADY TRANSFERRED
+ * ---------------------------------------------------------
+ *
+ * Only CAPITAL vouchers from the investor-capital period
+ * are deducted from available investor capital.
+ *
+ */
+
     $capitalTransferStmt = $pdo->prepare("
-        SELECT
-            COALESCE(SUM(amount), 0)
+    SELECT
+        COALESCE(
+            SUM(amount),
+            0
+        )
 
-        FROM vouchers
+    FROM vouchers
 
-        WHERE company_id = :company_id
-        AND voucher_type = 'CAPITAL'
-    ");
+    WHERE company_id = :company_id
+
+    AND voucher_type = 'CAPITAL'
+
+    AND voucher_date >= :contribution_date
+");
 
     $capitalTransferStmt->execute([
-        ':company_id' => $companyId
+        ':company_id' =>
+        $companyId,
+
+        ':contribution_date' =>
+        $firstContributionDate
     ]);
 
     $capitalTransferred =
         (float) $capitalTransferStmt->fetchColumn();
 
+    /*
+ * ---------------------------------------------------------
+ * AVAILABLE CAPITAL
+ * ---------------------------------------------------------
+ *
+ * Investor Capital
+ *       -
+ * Capital already transferred
+ *       =
+ * Available Capital
+ *
+ */
 
     $availableCapital =
         $investorCapitalTotal -
@@ -467,11 +585,18 @@ try {
 
 
     if ($availableCapital < 0) {
+
         $availableCapital = 0;
     }
-    
-    $profit = $sales - $expenses;
 
+
+    /*
+ * ---------------------------------------------------------
+ * PROFIT
+ * ---------------------------------------------------------
+ */
+
+    $profit = $sales - $expenses;
 
     echo json_encode([
 
@@ -489,7 +614,29 @@ try {
 
                 'payable' => round($payable, 2),
 
-                'capital' => round($capital, 2),
+                'capital' =>
+                round(
+                    $capital,
+                    2
+                ),
+
+                'capital_investor_total' =>
+                round(
+                    $investorCapitalTotal,
+                    2
+                ),
+
+                'capital_available' =>
+                round(
+                    $availableCapital,
+                    2
+                ),
+
+                'capital_transferred' =>
+                round(
+                    $capitalTransferred,
+                    2
+                ),
 
                 'sales' => round($sales, 2),
 
@@ -498,12 +645,6 @@ try {
                 'payments' => round($payments, 2),
 
                 'expenses' => round($expenses, 2),
-
-                'capital_available' =>
-                round($availableCapital, 2),
-
-                'capital_transferred' =>
-                round($capitalTransferred, 2),
 
                 'profit' => round($profit, 2)
             ],

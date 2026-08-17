@@ -6,7 +6,14 @@ export function getLedger(params = {}) {
     const query =
         new URLSearchParams();
 
+    if (params.type) {
 
+        query.set(
+            "type",
+            params.type
+        );
+
+    }
     if (params.search) {
 
         query.set(
@@ -75,10 +82,9 @@ export function getLedger(params = {}) {
 
 
     return apiRequest(
-        `accounting/ledger.php${
-            queryString
-                ? `?${queryString}`
-                : ""
+        `accounting/ledger.php${queryString
+            ? `?${queryString}`
+            : ""
         }`,
         {
             method: "GET"

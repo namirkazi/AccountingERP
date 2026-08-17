@@ -3,6 +3,10 @@ import {
     RefreshCw,
 } from "lucide-react";
 
+import {
+    useSearchParams,
+} from "react-router-dom";
+
 import AppLayout
     from "../../components/layout/AppLayout";
 
@@ -17,14 +21,17 @@ import LedgerSummary
 
 import styles
     from "./Ledger.module.css";
+
 import {
     useCallback,
     useEffect,
     useState,
 } from "react";
+
 import {
     getLedger
 } from "../../services/ledgerService";
+
 
 const VOUCHER_TYPES = [
     {
@@ -48,66 +55,178 @@ const VOUCHER_TYPES = [
 
 export default function Ledger() {
 
+    const [searchParams] =
+        useSearchParams();
+
+
+    /*
+     * Dashboard navigation type.
+     *
+     * Examples:
+     *
+     * /ledger?type=sales
+     * /ledger?type=receipt
+     * /ledger?type=expense
+     * /ledger?type=payments
+     *
+     */
+
+    const type =
+        searchParams.get("type") || "";
+
+
     const [search, setSearch] =
         useState("");
+
 
     const [selectedAccounts, setSelectedAccounts] =
         useState([]);
 
+
     const [selectedVoucherTypes, setSelectedVoucherTypes] =
         useState([]);
+
 
     const [selectedParties, setSelectedParties] =
         useState([]);
 
+
     const [dateFrom, setDateFrom] =
         useState("");
+
 
     const [dateTo, setDateTo] =
         useState("");
 
+
     const [entries, setEntries] =
         useState([]);
+
 
     const [accountOptions, setAccountOptions] =
         useState([]);
 
+
     const [partyOptions, setPartyOptions] =
         useState([]);
+
 
     const [loading, setLoading] =
         useState(false);
 
+
     const [error, setError] =
         useState("");
 
+
     const [totalDebit, setTotalDebit] =
         useState(0);
+
 
     const [totalCredit, setTotalCredit] =
         useState(0);
 
 
+    /*
+     * =====================================================
+     * DASHBOARD TYPE → VOUCHER TYPE FILTER
+     * =====================================================
+     *
+     * The Dashboard sends a simple type through the URL.
+     *
+     * Example:
+     *
+     * /ledger?type=sales
+     *
+     * That needs to activate the existing Voucher Type
+     * filter rather than creating a second filter system.
+     *
+     */
+
+    useEffect(() => {
+
+        const typeMap = {
+
+            sales: ["SALE"],
+
+            receipt: ["RECEIPT"],
+
+            expense: ["EXPENSE"],
+
+            payments: ["PAYMENT"],
+
+        };
+
+
+        const voucherType =
+            typeMap[type];
+
+
+        /*
+         * If this is one of the voucher-based Dashboard
+         * types, select it in the existing Voucher Type
+         * filter.
+         */
+
+        if (voucherType) {
+
+            setSelectedVoucherTypes(
+                voucherType
+            );
+
+        }
+
+    }, [type]);
+
+
+    /*
+     * =====================================================
+     * CLEAR FILTERS
+     * =====================================================
+     */
+
     function clearFilters() {
+
         setSearch("");
+
         setSelectedAccounts([]);
+
         setSelectedVoucherTypes([]);
+
         setSelectedParties([]);
+
         setDateFrom("");
+
         setDateTo("");
+
     }
 
+
+    /*
+     * =====================================================
+     * LOAD LEDGER
+     * =====================================================
+     */
 
     const loadLedger = useCallback(
         async () => {
 
             setLoading(true);
+
             setError("");
+
 
             try {
 
                 const response =
                     await getLedger({
+
+                        /*
+                         * Keep the Dashboard type in the
+                         * request as well.
+                         */
+
+                        type,
 
                         search,
 
@@ -131,6 +250,10 @@ export default function Ledger() {
                     response?.data || {};
 
 
+                /*
+                 * Ledger entries
+                 */
+
                 setEntries(
                     Array.isArray(
                         data.entries
@@ -139,6 +262,10 @@ export default function Ledger() {
                         : []
                 );
 
+
+                /*
+                 * Totals
+                 */
 
                 setTotalDebit(
                     Number(
@@ -164,6 +291,7 @@ export default function Ledger() {
                         []
                     ).map(
                         (account) => ({
+
                             value:
                                 String(
                                     account.id
@@ -171,6 +299,7 @@ export default function Ledger() {
 
                             label:
                                 account.account_name,
+
                         })
                     )
                 );
@@ -186,6 +315,7 @@ export default function Ledger() {
                         []
                     ).map(
                         (party) => ({
+
                             value:
                                 String(
                                     party.id
@@ -193,9 +323,11 @@ export default function Ledger() {
 
                             label:
                                 party.party_name,
+
                         })
                     )
                 );
+
 
             } catch (requestError) {
 
@@ -219,6 +351,7 @@ export default function Ledger() {
                     "Unable to load ledger."
                 );
 
+
             } finally {
 
                 setLoading(false);
@@ -227,6 +360,7 @@ export default function Ledger() {
 
         },
         [
+            type,
             search,
             selectedAccounts,
             selectedVoucherTypes,
@@ -236,17 +370,33 @@ export default function Ledger() {
         ]
     );
 
+
+    /*
+     * =====================================================
+     * LOAD WHEN FILTERS CHANGE
+     * =====================================================
+     */
+
     useEffect(() => {
 
         loadLedger();
 
     }, [loadLedger]);
+
+
+    /*
+     * =====================================================
+     * VIEW VOUCHER
+     * =====================================================
+     */
+
     function handleViewVoucher(entry) {
 
         console.log(
             "View voucher:",
             entry
         );
+
 
         /*
          * Next step:
@@ -255,25 +405,39 @@ export default function Ledger() {
          * and pass it through the existing
          * PrintableVoucher / PDF flow.
          */
+
     }
 
 
     return (
+
         <AppLayout>
 
             <div className={styles.page}>
 
+
+                {/* =================================================
+                    HEADER
+                ================================================= */}
+
                 <header className={styles.header}>
 
+
                     <div className={styles.titleArea}>
+
 
                         <div
                             className={
                                 styles.titleIcon
                             }
                         >
-                            <BookOpen size={22} />
+
+                            <BookOpen
+                                size={22}
+                            />
+
                         </div>
+
 
                         <div>
 
@@ -288,6 +452,7 @@ export default function Ledger() {
 
                         </div>
 
+
                     </div>
 
 
@@ -299,6 +464,7 @@ export default function Ledger() {
                         onClick={loadLedger}
                         disabled={loading}
                     >
+
                         <RefreshCw
                             size={16}
                             className={
@@ -309,15 +475,79 @@ export default function Ledger() {
                         />
 
                         Refresh
+
                     </button>
+
 
                 </header>
 
 
+                {/* =================================================
+                    ACTIVE DASHBOARD FILTER
+                ================================================= */}
+
+                {type && (
+
+                    <div
+                        className={
+                            styles.activeTypeFilter
+                        }
+                    >
+
+                        <span
+                            className={
+                                styles.activeTypeLabel
+                            }
+                        >
+                            Showing:
+                        </span>
+
+
+                        <strong>
+
+                            {
+                                type === "sales"
+                                    ? "Sales"
+                                    : type === "receipt"
+                                        ? "Receipts"
+                                        : type === "expense"
+                                            ? "Expenses"
+                                            : type === "payments"
+                                                ? "Payments"
+                                                : type === "receivable"
+                                                    ? "Receivables"
+                                                    : type === "payable"
+                                                        ? "Payables"
+                                                        : type === "cash"
+                                                            ? "Cash"
+                                                            : type === "bank"
+                                                                ? "Bank"
+                                                                : type === "capital"
+                                                                    ? "Capital"
+                                                                    : type
+                            }
+
+                        </strong>
+
+                    </div>
+
+                )}
+
+
+                {/* =================================================
+                    FILTERS
+                ================================================= */}
+
                 <LedgerFilters
 
-                    search={search}
-                    setSearch={setSearch}
+                    search={
+                        search
+                    }
+
+                    setSearch={
+                        setSearch
+                    }
+
 
                     accountOptions={
                         accountOptions
@@ -331,6 +561,7 @@ export default function Ledger() {
                         setSelectedAccounts
                     }
 
+
                     voucherTypeOptions={
                         VOUCHER_TYPES
                     }
@@ -342,6 +573,7 @@ export default function Ledger() {
                     setSelectedVoucherTypes={
                         setSelectedVoucherTypes
                     }
+
 
                     partyOptions={
                         partyOptions
@@ -355,11 +587,24 @@ export default function Ledger() {
                         setSelectedParties
                     }
 
-                    dateFrom={dateFrom}
-                    setDateFrom={setDateFrom}
 
-                    dateTo={dateTo}
-                    setDateTo={setDateTo}
+                    dateFrom={
+                        dateFrom
+                    }
+
+                    setDateFrom={
+                        setDateFrom
+                    }
+
+
+                    dateTo={
+                        dateTo
+                    }
+
+                    setDateTo={
+                        setDateTo
+                    }
+
 
                     clearFilters={
                         clearFilters
@@ -368,19 +613,49 @@ export default function Ledger() {
                 />
 
 
+                {/* =================================================
+                    ERROR
+                ================================================= */}
+
                 {error && (
-                    <div className={styles.error}>
+
+                    <div
+                        className={
+                            styles.error
+                        }
+                    >
+
                         {error}
+
                     </div>
+
                 )}
 
 
+                {/* =================================================
+                    SUMMARY
+                ================================================= */}
+
                 <LedgerSummary
-                    entries={entries}
-                    totalDebit={totalDebit}
-                    totalCredit={totalCredit}
+
+                    entries={
+                        entries
+                    }
+
+                    totalDebit={
+                        totalDebit
+                    }
+
+                    totalCredit={
+                        totalCredit
+                    }
+
                 />
 
+
+                {/* =================================================
+                    TABLE
+                ================================================= */}
 
                 <section
                     className={
@@ -389,17 +664,28 @@ export default function Ledger() {
                 >
 
                     <LedgerTable
-                        entries={entries}
-                        loading={loading}
+
+                        entries={
+                            entries
+                        }
+
+                        loading={
+                            loading
+                        }
+
                         onViewVoucher={
                             handleViewVoucher
                         }
+
                     />
 
                 </section>
 
+
             </div>
 
         </AppLayout>
+
     );
+
 }

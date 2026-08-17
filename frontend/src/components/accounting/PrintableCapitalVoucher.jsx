@@ -355,7 +355,7 @@ export default function PrintableCapitalVoucher({
                 <div className={styles.transferRow}>
 
                     <span>
-                        Cash :
+                        Cash : 
                     </span>
 
                     <strong>
@@ -368,7 +368,7 @@ export default function PrintableCapitalVoucher({
                 <div className={styles.transferRow}>
 
                     <span>
-                        Bank :
+                        Bank : 
                     </span>
 
                     <strong>

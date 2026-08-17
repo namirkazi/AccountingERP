@@ -271,3 +271,27 @@
         grid-template-columns: 1fr;
     }
 }
+
+.activeTypeFilter {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    width: fit-content;
+    margin-bottom: 16px;
+    padding: 8px 14px;
+    border-radius: 10px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    color: #334155;
+    font-size: 14px;
+}
+
+.activeTypeLabel {
+    color: #64748b;
+    font-weight: 500;
+}
+
+.activeTypeFilter strong {
+    color: #0f172a;
+    font-weight: 600;
+}

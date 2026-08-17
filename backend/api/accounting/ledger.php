@@ -49,7 +49,29 @@ try {
         trim(
             $_GET['date_to'] ?? ''
         );
+    /*
+ * =========================================================
+ * DASHBOARD TYPE FILTER
+ * =========================================================
+ *
+ * Supported values:
+ *
+ * sales
+ * expense
+ * receivable
+ * payable
+ * cash
+ * bank
+ * capital
+ *
+ */
 
+    $type =
+        strtolower(
+            trim(
+                $_GET['type'] ?? ''
+            )
+        );
 
     /*
      * Accept both:
@@ -59,6 +81,7 @@ try {
      * and comma-separated values.
      */
 
+    
     $accountIds =
         $_GET['account_ids']
         ?? [];
@@ -73,7 +96,7 @@ try {
         $_GET['party_ids']
         ?? [];
 
-
+    
     if (!is_array($accountIds)) {
 
         $accountIds =
@@ -317,7 +340,94 @@ try {
             $dateTo;
     }
 
+    /*
+ * =========================================================
+ * TYPE FILTER
+ * =========================================================
+ *
+ * This is used by Dashboard links.
+ *
+ */
 
+switch ($type) {
+
+    case 'sales':
+
+        $where[] =
+            'v.voucher_type = :dashboard_type_sales';
+
+        $params[':dashboard_type_sales'] =
+            'SALE';
+
+        break;
+
+
+    case 'expense':
+
+        $where[] =
+            'v.voucher_type = :dashboard_type_expense';
+
+        $params[':dashboard_type_expense'] =
+            'EXPENSE';
+
+        break;
+
+
+    case 'receivable':
+
+        $where[] =
+            'a.account_subtype = :dashboard_type_receivable';
+
+        $params[':dashboard_type_receivable'] =
+            'receivable';
+
+        break;
+
+
+    case 'payable':
+
+        $where[] =
+            'a.account_subtype = :dashboard_type_payable';
+
+        $params[':dashboard_type_payable'] =
+            'payable';
+
+        break;
+
+
+    case 'cash':
+
+        $where[] =
+            'a.account_subtype = :dashboard_type_cash';
+
+        $params[':dashboard_type_cash'] =
+            'cash';
+
+        break;
+
+
+    case 'bank':
+
+        $where[] =
+            'a.account_subtype = :dashboard_type_bank';
+
+        $params[':dashboard_type_bank'] =
+            'bank';
+
+        break;
+
+
+    case 'capital':
+
+        $where[] =
+            'a.account_subtype = :dashboard_type_capital';
+
+        $params[':dashboard_type_capital'] =
+            'capital';
+
+        break;
+
+}
     /*
      * =========================================================
      * GLOBAL SEARCH
@@ -583,9 +693,9 @@ try {
 
         $entry['party_id'] =
             $entry['party_id'] !== null
-                ? (int)
-                    $entry['party_id']
-                : null;
+            ? (int)
+            $entry['party_id']
+            : null;
 
 
         $entry['debit'] =
@@ -689,7 +799,7 @@ try {
 
     $accountStmt->execute([
         ':company_id' =>
-            $companyId
+        $companyId
     ]);
 
 
@@ -739,7 +849,7 @@ try {
 
     $partyStmt->execute([
         ':company_id' =>
-            $companyId
+        $companyId
     ]);
 
 
@@ -774,44 +884,42 @@ try {
         'data' => [
 
             'entries' =>
-                $entries,
+            $entries,
 
             'totals' => [
 
                 'debit' =>
-                    round(
-                        $totalDebit,
-                        2
-                    ),
+                round(
+                    $totalDebit,
+                    2
+                ),
 
                 'credit' =>
-                    round(
-                        $totalCredit,
-                        2
-                    )
+                round(
+                    $totalCredit,
+                    2
+                )
 
             ],
 
             'filters' => [
 
                 'accounts' =>
-                    $accounts,
+                $accounts,
 
                 'parties' =>
-                    $parties
+                $parties
 
             ]
 
         ]
 
     ]);
-
-
 } catch (Throwable $e) {
 
     error_log(
         'Ledger API error: ' .
-        $e->getMessage()
+            $e->getMessage()
     );
 
 
@@ -823,7 +931,7 @@ try {
         'success' => false,
 
         'message' =>
-            $e->getMessage()
+        $e->getMessage()
 
     ]);
 }
