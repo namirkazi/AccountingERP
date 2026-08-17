@@ -20,6 +20,11 @@ export const TRANSACTION_TYPES = [
         key: "expense",
         label: "Expense",
         shortcut: "Alt + E"
+    },
+    {
+        key: "capital",
+        label: "Capital",
+        shortcut: "Alt + C"
     }
 ];
 

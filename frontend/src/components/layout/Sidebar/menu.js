@@ -12,6 +12,7 @@ import {
   Package,
   CircleDollarSign,
   Calculator,
+  BookOpen,
 } from "lucide-react";
 
 export const menuItems = [
@@ -53,34 +54,17 @@ export const menuItems = [
       },
     ],
   },
-  
+
   {
     title: "Accounting",
     icon: Calculator,
-    children: [
-      {
-        title: "Sales",
-        icon: Receipt,
-        path: "/transactions",
-      },
-      {
-        title: "Receipts",
-        icon: Landmark,
-        path: "/transactions",
-      },
-      {
-        title: "Payments",
-        icon: CreditCard,
-        path: "/transactions",
-      },
-      {
-        title: "Expenses",
-        icon: Receipt,
-        path: "/transactions",
-      },
-    ],
+    path: "/transactions"
   },
-
+  {
+    title: "Ledger",
+    icon: BookOpen,
+    path: "/ledger",
+  },
   {
     title: "Reports",
     icon: ChartColumn,

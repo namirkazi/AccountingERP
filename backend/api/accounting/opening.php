@@ -1,4 +1,3 @@
-
 <?php
 
 require_once __DIR__ . '/../../config/cors.php';
@@ -8,9 +7,13 @@ header('Content-Type: application/json');
 require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../config/middleware/auth.php';
-// =========================================================
-// CORS - MUST BE FIRST
-// =========================================================
+
+
+/*
+|--------------------------------------------------------------------------
+| CORS
+|--------------------------------------------------------------------------
+*/
 
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 
@@ -20,41 +23,44 @@ $allowedOrigins = [
 ];
 
 if (in_array($origin, $allowedOrigins, true)) {
-    header("Access-Control-Allow-Origin: $origin");
-    header("Access-Control-Allow-Credentials: true");
-    header("Access-Control-Allow-Headers: Content-Type");
-    header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+
+    header(
+        "Access-Control-Allow-Origin: $origin"
+    );
+
+    header(
+        "Access-Control-Allow-Credentials: true"
+    );
+
+    header(
+        "Access-Control-Allow-Headers: Content-Type"
+    );
+
+    header(
+        "Access-Control-Allow-Methods: GET, POST, OPTIONS"
+    );
 }
 
-// Handle browser preflight request BEFORE anything else
+
+/*
+|--------------------------------------------------------------------------
+| OPTIONS
+|--------------------------------------------------------------------------
+*/
+
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+
     http_response_code(204);
+
     exit;
 }
 
 
-// =========================================================
-// JSON
-// =========================================================
-
-
-
-// =========================================================
-// Dependencies
-// =========================================================
-
-
-
-
-// =========================================================
-// Authentication
-// =========================================================
-
-
-
-// =========================================================
-// Method
-// =========================================================
+/*
+|--------------------------------------------------------------------------
+| Method
+|--------------------------------------------------------------------------
+*/
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
@@ -69,33 +75,56 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 
-// =========================================================
-// Current User
-// =========================================================
+/*
+|--------------------------------------------------------------------------
+| Current User / Company
+|--------------------------------------------------------------------------
+*/
 
 $companyId = getCurrentCompanyId();
 $userId = getCurrentUserId();
 
 
-// =========================================================
-// Request Data
-// =========================================================
+/*
+|--------------------------------------------------------------------------
+| Request
+|--------------------------------------------------------------------------
+*/
 
 $data = json_decode(
     file_get_contents('php://input'),
     true
 );
 
-$capital = (float) ($data['capital'] ?? 0);
-$bank = (float) ($data['bank'] ?? 0);
-$cash = (float) ($data['cash'] ?? 0);
+$investorId = (int) (
+    $data['investor_id'] ?? 0
+);
+
+$amount = (float) (
+    $data['amount'] ?? 0
+);
 
 
-// =========================================================
-// Validation
-// =========================================================
+/*
+|--------------------------------------------------------------------------
+| Validation
+|--------------------------------------------------------------------------
+*/
 
-if ($capital <= 0) {
+if ($investorId <= 0) {
+
+    http_response_code(422);
+
+    echo json_encode([
+        'success' => false,
+        'message' => 'Please select an investor.'
+    ]);
+
+    exit;
+}
+
+
+if ($amount <= 0) {
 
     http_response_code(422);
 
@@ -108,260 +137,188 @@ if ($capital <= 0) {
     exit;
 }
 
-if ($bank < 0 || $cash < 0) {
 
-    http_response_code(422);
-
-    echo json_encode([
-        'success' => false,
-        'message' =>
-            'Bank and Cash cannot be negative.'
-    ]);
-
-    exit;
-}
-
-$totalAssets = $bank + $cash;
-
-if (abs($capital - $totalAssets) > 0.001) {
-
-    http_response_code(422);
-
-    echo json_encode([
-        'success' => false,
-        'message' =>
-            'Capital must equal the total opening Bank and Cash balances.'
-    ]);
-
-    exit;
-}
-
-
-// =========================================================
-// Database Transaction
-// =========================================================
+/*
+|--------------------------------------------------------------------------
+| Database Transaction
+|--------------------------------------------------------------------------
+*/
 
 try {
 
     $pdo->beginTransaction();
 
 
-    // -----------------------------------------------------
-    // Prevent duplicate opening
-    // -----------------------------------------------------
+    /*
+    |--------------------------------------------------------------------------
+    | Verify Investor
+    |--------------------------------------------------------------------------
+    */
 
-    $check = $pdo->prepare("
-        SELECT id
-        FROM vouchers
-        WHERE company_id = :company_id
-        AND voucher_type = 'CAPITAL'
+    $investorStmt = $pdo->prepare("
+        SELECT
+            id,
+            investor_name,
+            status
+        FROM investors
+        WHERE id = :investor_id
+        AND company_id = :company_id
         LIMIT 1
     ");
 
-    $check->execute([
+    $investorStmt->execute([
+        ':investor_id' => $investorId,
         ':company_id' => $companyId
     ]);
 
-    if ($check->fetch()) {
-
-        $pdo->rollBack();
-
-        http_response_code(409);
-
-        echo json_encode([
-            'success' => false,
-            'message' =>
-                'Opening balance has already been posted for this company.'
-        ]);
-
-        exit;
-    }
+    $investor =
+        $investorStmt->fetch(PDO::FETCH_ASSOC);
 
 
-    // -----------------------------------------------------
-    // Get accounts
-    // -----------------------------------------------------
-
-    $accountStmt = $pdo->prepare("
-        SELECT
-            id,
-            account_name
-        FROM accounts
-        WHERE company_id = :company_id
-        AND account_name IN (
-            'Cash',
-            'Bank',
-            'Capital'
-        )
-    ");
-
-    $accountStmt->execute([
-        ':company_id' => $companyId
-    ]);
-
-    $accounts = $accountStmt->fetchAll();
-
-    $accountMap = [];
-
-    foreach ($accounts as $account) {
-
-        $accountMap[
-            $account['account_name']
-        ] = (int) $account['id'];
-    }
-
-
-    // -----------------------------------------------------
-    // Check accounts
-    // -----------------------------------------------------
-
-    if (
-        !isset($accountMap['Cash']) ||
-        !isset($accountMap['Bank']) ||
-        !isset($accountMap['Capital'])
-    ) {
+    if (!$investor) {
 
         throw new Exception(
-            'Cash, Bank or Capital account is missing.'
+            'Selected investor does not exist.'
         );
     }
 
 
-    // -----------------------------------------------------
-    // Create voucher
-    // -----------------------------------------------------
+    if ($investor['status'] !== 'active') {
 
-    $voucherStmt = $pdo->prepare("
-        INSERT INTO vouchers (
+        throw new Exception(
+            'Selected investor is inactive.'
+        );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Insert Capital Contribution
+    |--------------------------------------------------------------------------
+    */
+
+    $insertStmt = $pdo->prepare("
+        INSERT INTO investor_capital_transactions (
             company_id,
-            voucher_type,
-            voucher_date,
-            reference_number,
-            party_id,
+            investor_id,
+            transaction_type,
             amount,
+            transaction_date,
             narration,
+            voucher_id,
             created_by
         )
         VALUES (
             :company_id,
-            'CAPITAL',
-            :voucher_date,
-            NULL,
-            NULL,
+            :investor_id,
+            'CONTRIBUTION',
             :amount,
+            :transaction_date,
             :narration,
+            NULL,
             :created_by
         )
     ");
 
-    $voucherStmt->execute([
-        ':company_id' => $companyId,
-        ':voucher_date' => date('Y-m-d'),
-        ':amount' => $capital,
+
+    $insertStmt->execute([
+
+        ':company_id' =>
+            $companyId,
+
+        ':investor_id' =>
+            $investorId,
+
+        ':amount' =>
+            number_format(
+                $amount,
+                2,
+                '.',
+                ''
+            ),
+
+        ':transaction_date' =>
+            date('Y-m-d'),
+
         ':narration' =>
-            'Opening capital and opening cash/bank balances.',
-        ':created_by' => $userId
+            'Capital contribution from '
+            . $investor['investor_name'],
+
+        ':created_by' =>
+            $userId
+
     ]);
 
-    $voucherId =
+
+    $transactionId =
         (int) $pdo->lastInsertId();
 
 
-    // -----------------------------------------------------
-    // Ledger entries
-    // -----------------------------------------------------
-
-    $ledgerStmt = $pdo->prepare("
-        INSERT INTO ledger_entries (
-            company_id,
-            voucher_id,
-            account_id,
-            party_id,
-            debit,
-            credit
-        )
-        VALUES (
-            :company_id,
-            :voucher_id,
-            :account_id,
-            NULL,
-            :debit,
-            :credit
-        )
-    ");
-
-
-    // Bank
-    if ($bank > 0) {
-
-        $ledgerStmt->execute([
-            ':company_id' => $companyId,
-            ':voucher_id' => $voucherId,
-            ':account_id' => $accountMap['Bank'],
-            ':debit' => $bank,
-            ':credit' => 0
-        ]);
-    }
-
-
-    // Cash
-    if ($cash > 0) {
-
-        $ledgerStmt->execute([
-            ':company_id' => $companyId,
-            ':voucher_id' => $voucherId,
-            ':account_id' => $accountMap['Cash'],
-            ':debit' => $cash,
-            ':credit' => 0
-        ]);
-    }
-
-
-    // Capital
-    $ledgerStmt->execute([
-        ':company_id' => $companyId,
-        ':voucher_id' => $voucherId,
-        ':account_id' => $accountMap['Capital'],
-        ':debit' => 0,
-        ':credit' => $capital
-    ]);
-
-
-    // -----------------------------------------------------
-    // Commit
-    // -----------------------------------------------------
+    /*
+    |--------------------------------------------------------------------------
+    | Commit
+    |--------------------------------------------------------------------------
+    */
 
     $pdo->commit();
 
 
     echo json_encode([
+
         'success' => true,
+
         'message' =>
-            'Opening balance posted successfully.',
+            'Capital added successfully.',
+
         'data' => [
-            'voucher_id' => $voucherId,
-            'capital' => $capital,
-            'bank' => $bank,
-            'cash' => $cash
+
+            'transaction_id' =>
+                $transactionId,
+
+            'investor_id' =>
+                $investorId,
+
+            'investor_name' =>
+                $investor['investor_name'],
+
+            'amount' =>
+                $amount,
+
+            'transaction_type' =>
+                'CONTRIBUTION',
+
+            'transaction_date' =>
+                date('Y-m-d')
+
         ]
+
     ]);
+
 
 } catch (Throwable $e) {
 
     if ($pdo->inTransaction()) {
+
         $pdo->rollBack();
+
     }
 
+
     error_log(
-        'Opening balance error: '
+        'Capital contribution error: '
         . $e->getMessage()
     );
+
 
     http_response_code(500);
 
     echo json_encode([
+
         'success' => false,
+
         'message' =>
-            'Unable to post opening balance.'
+            $e->getMessage()
+
     ]);
+
 }

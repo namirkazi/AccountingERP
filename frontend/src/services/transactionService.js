@@ -24,3 +24,36 @@ export function getNextSalesBillNumber(date) {
         }
     );
 }
+export function getNextReceiptNumber(date) {
+
+    const query =
+        date
+            ? `?date=${encodeURIComponent(date)}`
+            : "";
+
+    return apiRequest(
+        `accounting/next_receipt_number.php${query}`,
+        {
+            method: "GET"
+        }
+    );
+}
+export function searchReceiptInvoices(search) {
+    return apiRequest(
+        `accounting/receipt_invoices.php?search=${encodeURIComponent(search)}`,
+        {
+            method: "GET"
+        }
+    );
+
+}
+export function getAvailableCapital() {
+
+    return apiRequest(
+        "accounting/capital_balance.php",
+        {
+            method: "GET"
+        }
+    );
+
+}

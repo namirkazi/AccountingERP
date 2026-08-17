@@ -356,7 +356,8 @@ export default function PrintableVoucher({
 
     selectedPaymentExpense,
     selectedPaymentBill,
-
+    selectedReceiptBill,
+    receiptAmount,
     narration,
 
     /*
@@ -502,12 +503,21 @@ export default function PrintableVoucher({
 
     const ourBillNumber =
         clean(voucherNumber) ||
+
+        clean(
+            isReceipt
+                ? selectedReceiptBill?.invoice_number
+                : ""
+        ) ||
+
         clean(
             selectedPaymentBill?.voucher_number
         ) ||
+
         clean(
             selectedPaymentBill?.voucher_no
         ) ||
+
         "—";
 
     const externalReference =
@@ -558,20 +568,29 @@ export default function PrintableVoucher({
     let finalAmount = 0;
 
     if (isPayment) {
+
         finalAmount = paymentTotal;
+
+    } else if (isReceipt) {
+
+        finalAmount =
+            Number(receiptAmount || 0);
+
     } else if (isExpense) {
+
         finalAmount =
             expenseTotal ||
             Math.max(
                 0,
                 subtotal - discount + vat
             );
+
     } else {
+
         finalAmount =
             Number(totalAmount || 0) ||
             transactionAmount;
     }
-
 
     /*
     |--------------------------------------------------------------------------
@@ -628,8 +647,8 @@ export default function PrintableVoucher({
     if (isPayment) {
         defaultDescription =
             externalReference !== "—"
-                ? `Payment to ${partyName} against Bill ${externalReference}`
-                : `Payment to ${partyName}`;
+                ? `${partyName}`
+                : `${partyName}`;
     }
 
     if (isReceipt) {
@@ -831,9 +850,8 @@ export default function PrintableVoucher({
                 </div>
 
 
-                {!isSale && (
+                {!isSale && !isReceipt && (
                     <div>
-
                         <span>
                             REFERENCE NO.
                         </span>
@@ -841,7 +859,6 @@ export default function PrintableVoucher({
                         <strong>
                             {externalReference}
                         </strong>
-
                     </div>
                 )}
 
@@ -925,7 +942,40 @@ export default function PrintableVoucher({
 
                     <tbody>
 
-                        {expenseItems.length > 0 ? (
+                        {isReceipt ? (
+                            <tr>
+                                <td className={styles.serialCell}>
+                                    1
+                                </td>
+
+                                <td>
+                                    <div className={styles.itemDescription}>
+                                        Receipt against Sales Bill
+                                    </div>
+
+                                    {selectedReceiptBill?.invoice_number && (
+                                        <div className={styles.itemSubtext}>
+                                            Bill No:{" "}
+                                            {selectedReceiptBill.invoice_number}
+                                        </div>
+                                    )}
+                                </td>
+
+                                <td className={styles.numberCell}>
+                                    —
+                                </td>
+
+                                <td className={styles.numberCell}>
+                                    —
+                                </td>
+
+                                <td className={styles.numberCell}>
+                                    AED{" "}
+                                    {formatAmount(finalAmount)}
+                                </td>
+                            </tr>
+
+                        ) : expenseItems.length > 0 ? (
 
                             expenseItems.map(
                                 (item, index) => {
@@ -1367,21 +1417,75 @@ export default function PrintableVoucher({
 ===================================================== */}
 
             {isReceipt && (
+                <section className={styles.paymentSummary}>
 
-                <section
-                    className={
-                        styles.singleTotalSection
-                    }
-                >
+                    <div>
+                        <span>
+                            Bill Amount
+                        </span>
 
-                    <div
-                        className={
-                            styles.grandTotalRow
-                        }
-                    >
+                        <strong>
+                            AED{" "}
+                            {formatAmount(
+                                selectedReceiptBill?.amount || 0
+                            )}
+                        </strong>
+                    </div>
+
+
+                    <div>
+                        <span>
+                            Previously Received
+                        </span>
+
+                        <strong>
+                            AED{" "}
+                            {formatAmount(
+                                selectedReceiptBill?.received_amount || 0
+                            )}
+                        </strong>
+                    </div>
+
+
+                    <div>
+                        <span>
+                            This Receipt
+                        </span>
+
+                        <strong>
+                            AED{" "}
+                            {formatAmount(
+                                finalAmount
+                            )}
+                        </strong>
+                    </div>
+
+
+                    <div className={styles.paymentBalance}>
 
                         <span>
-                            TOTAL
+                            Balance Due
+                        </span>
+
+                        <strong>
+                            AED{" "}
+                            {formatAmount(
+                                Math.max(
+                                    0,
+                                    Number(
+                                        selectedReceiptBill?.outstanding_amount || 0
+                                    ) - finalAmount
+                                )
+                            )}
+                        </strong>
+
+                    </div>
+
+
+                    <div className={styles.paymentTotal}>
+
+                        <span>
+                            TOTAL RECEIVED
                         </span>
 
                         <strong>
@@ -1394,7 +1498,6 @@ export default function PrintableVoucher({
                     </div>
 
                 </section>
-
             )}
 
 

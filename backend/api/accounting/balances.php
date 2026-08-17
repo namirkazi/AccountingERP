@@ -204,7 +204,272 @@ try {
                 break;
         }
     }
+    /*
+ * =========================================================
+ * CUSTOMER RECEIVABLES
+ * =========================================================
+ *
+ * Receivable balance is calculated from the
+ * Accounts Receivable ledger entries grouped
+ * by customer.
+ *
+ * Asset account:
+ *     Debit - Credit
+ *
+ */
 
+    $receivableStmt = $pdo->prepare("
+    SELECT
+        p.id AS party_id,
+        p.party_name,
+        p.party_type,
+
+        COALESCE(
+            SUM(le.debit - le.credit),
+            0
+        ) AS balance
+
+    FROM ledger_entries le
+
+    INNER JOIN accounts a
+        ON a.id = le.account_id
+        AND a.company_id = le.company_id
+
+    INNER JOIN parties p
+        ON p.id = le.party_id
+        AND p.company_id = le.company_id
+
+    WHERE le.company_id = :company_id
+
+      AND a.account_subtype = 'receivable'
+
+    GROUP BY
+        p.id,
+        p.party_name,
+        p.party_type
+
+    HAVING
+        ABS(
+            SUM(le.debit - le.credit)
+        ) > 0.005
+
+    ORDER BY
+        balance DESC,
+        p.party_name ASC
+");
+
+    $receivableStmt->execute([
+        ':company_id' => $companyId
+    ]);
+
+    $receivables = [];
+
+    while (
+        $row = $receivableStmt->fetch()
+    ) {
+
+        $receivables[] = [
+            'party_id' =>
+            (int) $row['party_id'],
+
+            'party_name' =>
+            $row['party_name'],
+
+            'party_type' =>
+            $row['party_type'],
+
+            'balance' =>
+            round(
+                (float) $row['balance'],
+                2
+            )
+        ];
+    }
+
+
+    /*
+ * =========================================================
+ * SUPPLIER PAYABLES
+ * =========================================================
+ *
+ * Liability account:
+ *     Credit - Debit
+ *
+ */
+
+    $payableStmt = $pdo->prepare("
+    SELECT
+        p.id AS party_id,
+        p.party_name,
+        p.party_type,
+
+        COALESCE(
+            SUM(le.credit - le.debit),
+            0
+        ) AS balance
+
+    FROM ledger_entries le
+
+    INNER JOIN accounts a
+        ON a.id = le.account_id
+        AND a.company_id = le.company_id
+
+    INNER JOIN parties p
+        ON p.id = le.party_id
+        AND p.company_id = le.company_id
+
+    WHERE le.company_id = :company_id
+
+      AND a.account_subtype = 'payable'
+
+    GROUP BY
+        p.id,
+        p.party_name,
+        p.party_type
+
+    HAVING
+        ABS(
+            SUM(le.credit - le.debit)
+        ) > 0.005
+
+    ORDER BY
+        balance DESC,
+        p.party_name ASC
+");
+
+    $payableStmt->execute([
+        ':company_id' => $companyId
+    ]);
+
+    $payables = [];
+
+    while (
+        $row = $payableStmt->fetch()
+    ) {
+
+        $payables[] = [
+            'party_id' =>
+            (int) $row['party_id'],
+
+            'party_name' =>
+            $row['party_name'],
+
+            'party_type' =>
+            $row['party_type'],
+
+            'balance' =>
+            round(
+                (float) $row['balance'],
+                2
+            )
+        ];
+    }
+    /*
+     * =========================================================
+     * INVESTOR CAPITAL
+     * =========================================================
+     */
+
+    $capitalInvestorStmt = $pdo->prepare("
+        SELECT
+            i.id AS investor_id,
+            i.investor_name,
+
+            COALESCE(
+                SUM(
+                    CASE
+                        WHEN ict.transaction_type = 'CONTRIBUTION'
+                        THEN ict.amount
+                        WHEN ict.transaction_type = 'WITHDRAWAL'
+                        THEN -ict.amount
+                        ELSE 0
+                    END
+                ),
+                0
+            ) AS balance
+
+        FROM investors i
+
+        INNER JOIN investor_capital_transactions ict
+            ON ict.investor_id = i.id
+            AND ict.company_id = i.company_id
+
+        WHERE i.company_id = :company_id
+
+        GROUP BY
+            i.id,
+            i.investor_name
+
+        HAVING
+            ABS(
+                SUM(
+                    CASE
+                        WHEN ict.transaction_type = 'CONTRIBUTION'
+                        THEN ict.amount
+                        WHEN ict.transaction_type = 'WITHDRAWAL'
+                        THEN -ict.amount
+                        ELSE 0
+                    END
+                )
+            ) > 0.005
+
+        ORDER BY
+            balance DESC,
+            i.investor_name ASC
+    ");
+
+    $capitalInvestorStmt->execute([
+        ':company_id' => $companyId
+    ]);
+
+    $capitalInvestors = [];
+
+    while ($row = $capitalInvestorStmt->fetch()) {
+
+        $capitalInvestors[] = [
+            'investor_id' => (int) $row['investor_id'],
+            'investor_name' => $row['investor_name'],
+            'balance' => round(
+                (float) $row['balance'],
+                2
+            )
+        ];
+    }
+    $investorCapitalTotal = 0;
+
+    foreach ($capitalInvestors as $investor) {
+        $investorCapitalTotal +=
+            (float) $investor['balance'];
+    }
+
+
+    $capitalTransferStmt = $pdo->prepare("
+        SELECT
+            COALESCE(SUM(amount), 0)
+
+        FROM vouchers
+
+        WHERE company_id = :company_id
+        AND voucher_type = 'CAPITAL'
+    ");
+
+    $capitalTransferStmt->execute([
+        ':company_id' => $companyId
+    ]);
+
+    $capitalTransferred =
+        (float) $capitalTransferStmt->fetchColumn();
+
+
+    $availableCapital =
+        $investorCapitalTotal -
+        $capitalTransferred;
+
+
+    if ($availableCapital < 0) {
+        $availableCapital = 0;
+    }
+    
     $profit = $sales - $expenses;
 
 
@@ -234,9 +499,18 @@ try {
 
                 'expenses' => round($expenses, 2),
 
+                'capital_available' =>
+                round($availableCapital, 2),
+
+                'capital_transferred' =>
+                round($capitalTransferred, 2),
+
                 'profit' => round($profit, 2)
             ],
-            'accounts' => $balances
+            'accounts' => $balances,
+            'receivables' => $receivables,
+            'payables' => $payables,
+            'capital_investors' => $capitalInvestors,
         ]
     ]);
 } catch (Throwable $e) {

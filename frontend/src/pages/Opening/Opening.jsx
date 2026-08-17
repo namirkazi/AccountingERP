@@ -1,90 +1,78 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import {
-    Landmark,
-    Wallet,
     CircleDollarSign,
-    CheckCircle2
+    CheckCircle2,
+    UserRound,
+    ArrowUpRight
 } from "lucide-react";
 
 import AppLayout from "../../components/layout/AppLayout";
-
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
 
+import PartySelector
+    from "../../components/accounting/PartySelector";
+
 import {
-    getAccounts,
     saveOpeningBalance
 } from "../../services/accountService";
 
 import styles from "./Opening.module.css";
 
+
 export default function Opening() {
 
-    const [accounts, setAccounts] = useState([]);
+    const [investor, setInvestor] =
+        useState(null);
 
-    const [capital, setCapital] = useState("");
-    const [bank, setBank] = useState("");
-    const [cash, setCash] = useState("");
+    const [amount, setAmount] =
+        useState("");
 
-    const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
+    const [saving, setSaving] =
+        useState(false);
 
-    const [error, setError] = useState("");
-    const [success, setSuccess] = useState("");
+    const [error, setError] =
+        useState("");
 
-    useEffect(() => {
+    const [success, setSuccess] =
+        useState("");
 
-        async function loadAccounts() {
 
-            try {
+    const amountValue =
+        Number(amount) || 0;
 
-                const response =
-                    await getAccounts();
-
-                setAccounts(
-                    response.data.accounts
-                );
-
-            } catch (error) {
-
-                setError(error.message);
-
-            } finally {
-
-                setLoading(false);
-            }
-        }
-
-        loadAccounts();
-
-    }, []);
-
-    const capitalValue =
-        Number(capital) || 0;
-
-    const bankValue =
-        Number(bank) || 0;
-
-    const cashValue =
-        Number(cash) || 0;
-
-    const allocated =
-        bankValue + cashValue;
-
-    const unallocated =
-        capitalValue - allocated;
 
     function formatAmount(value) {
 
-        return Number(value).toLocaleString(
+        return Number(value || 0).toLocaleString(
             "en-AE",
             {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
             }
         );
+
     }
+
+
+    function getInvestorId() {
+
+        if (!investor) {
+            return 0;
+        }
+
+        if (
+            typeof investor === "object" &&
+            investor.id
+        ) {
+            return Number(investor.id);
+        }
+
+        return Number(investor);
+
+    }
+
 
     async function handleSubmit(event) {
 
@@ -93,7 +81,22 @@ export default function Opening() {
         setError("");
         setSuccess("");
 
-        if (capitalValue <= 0) {
+
+        const investorId =
+            getInvestorId();
+
+
+        if (!investorId) {
+
+            setError(
+                "Please select an investor."
+            );
+
+            return;
+        }
+
+
+        if (amountValue <= 0) {
 
             setError(
                 "Capital amount must be greater than zero."
@@ -102,72 +105,56 @@ export default function Opening() {
             return;
         }
 
-        if (bankValue < 0 || cashValue < 0) {
-
-            setError(
-                "Bank and Cash cannot be negative."
-            );
-
-            return;
-        }
-
-        if (Math.abs(unallocated) > 0.001) {
-
-            setError(
-                "Capital must equal the total opening Bank and Cash balances."
-            );
-
-            return;
-        }
 
         setSaving(true);
 
+
         try {
 
-            /*
-             * API will be connected next.
-             */
+            const response =
+                await saveOpeningBalance({
 
-            const response = await saveOpeningBalance({
-                capital: capitalValue,
-                bank: bankValue,
-                cash: cashValue
-            });
+                    investor_id:
+                        investorId,
+
+                    amount:
+                        amountValue
+
+                });
+
 
             setSuccess(
                 response.message ||
-                "Opening balance posted successfully."
+                "Capital added successfully."
             );
 
-            setCapital("");
-            setBank("");
-            setCash("");
+
+            setInvestor(null);
+            setAmount("");
+
 
         } catch (error) {
 
             setError(
                 error.message ||
-                "Unable to save opening balances."
+                "Unable to save capital."
             );
 
         } finally {
 
             setSaving(false);
+
         }
+
     }
 
-    if (loading) {
 
-        return (
-            <AppLayout>
+    const hasInvestor = Boolean(
+        getInvestorId()
+    );
 
-                <div className={styles.loading}>
-                    Loading accounting setup...
-                </div>
+    const hasAmount = amountValue > 0;
 
-            </AppLayout>
-        );
-    }
 
     return (
 
@@ -175,22 +162,31 @@ export default function Opening() {
 
             <div className={styles.page}>
 
-                <div className={styles.header}>
+                <header className={styles.header}>
 
-                    <div>
+                    <div className={styles.headerCopy}>
+
+                        <div className={styles.eyebrow}>
+                            ACCOUNTING SETUP
+                        </div>
 
                         <h1>
-                            Opening Balance
+                            Opening
                         </h1>
 
                         <p>
-                            Set the initial capital,
-                            bank and cash position.
+                            Record an investor capital contribution
+                            to establish the company's opening position.
                         </p>
 
                     </div>
 
-                </div>
+                    <div className={styles.headerBadge}>
+                        <CircleDollarSign size={18} />
+                        <span>Capital</span>
+                    </div>
+
+                </header>
 
 
                 <form
@@ -198,189 +194,216 @@ export default function Opening() {
                     onSubmit={handleSubmit}
                 >
 
-                    <div className={styles.card}>
+                    <div className={styles.layout}>
 
-                        <div className={styles.cardHeader}>
+                        <section className={styles.mainCard}>
 
-                            <div
-                                className={
-                                    styles.icon
-                                }
-                            >
-                                <CircleDollarSign
-                                    size={20}
-                                />
-                            </div>
+                            <div className={styles.cardHeader}>
 
-                            <div>
+                                <div className={styles.icon}>
+                                    <UserRound size={19} />
+                                </div>
 
-                                <h2>
-                                    Capital
-                                </h2>
+                                <div>
+                                    <div className={styles.sectionEyebrow}>
+                                        CONTRIBUTION
+                                    </div>
 
-                                <p>
-                                    Initial owner's
-                                    capital.
-                                </p>
+                                    <h2>
+                                        Investor Capital
+                                    </h2>
 
-                            </div>
-
-                        </div>
-
-                        <Input
-                            label="Capital Amount"
-                            type="number"
-                            placeholder="0.00"
-                            value={capital}
-                            onChange={(e) =>
-                                setCapital(
-                                    e.target.value
-                                )
-                            }
-                            required
-                        />
-
-                    </div>
-
-
-                    <div className={styles.card}>
-
-                        <div className={styles.cardHeader}>
-
-                            <div
-                                className={
-                                    styles.icon
-                                }
-                            >
-                                <Landmark
-                                    size={20}
-                                />
-                            </div>
-
-                            <div>
-
-                                <h2>
-                                    Bank
-                                </h2>
-
-                                <p>
-                                    Opening bank
-                                    balance.
-                                </p>
+                                    <p>
+                                        Select the investor and enter the
+                                        amount being contributed.
+                                    </p>
+                                </div>
 
                             </div>
 
-                        </div>
 
-                        <Input
-                            label="Bank Amount"
-                            type="number"
-                            placeholder="0.00"
-                            value={bank}
-                            onChange={(e) =>
-                                setBank(
-                                    e.target.value
-                                )
-                            }
-                        />
+                            <div className={styles.fields}>
 
-                    </div>
+                                <div className={styles.field}>
+
+                                    <label>
+                                        Investor
+                                    </label>
+
+                                    <PartySelector
+                                        value={investor}
+                                        onChange={setInvestor}
+                                        partyType="investor"
+                                    />
+
+                                    <span className={styles.fieldHint}>
+                                        Search an existing investor or add a new one.
+                                    </span>
+
+                                </div>
 
 
-                    <div className={styles.card}>
+                                <div className={styles.amountField}>
 
-                        <div className={styles.cardHeader}>
+                                    <Input
+                                        label="Capital Amount"
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        placeholder="0.00"
+                                        value={amount}
+                                        onChange={(event) =>
+                                            setAmount(
+                                                event.target.value
+                                            )
+                                        }
+                                        required
+                                    />
 
-                            <div
-                                className={
-                                    styles.icon
-                                }
-                            >
-                                <Wallet
-                                    size={20}
-                                />
+                                    <span className={styles.currency}>
+                                        AED
+                                    </span>
+
+                                </div>
+
                             </div>
 
-                            <div>
 
-                                <h2>
-                                    Cash
-                                </h2>
+                            <div className={styles.accountingNote}>
 
-                                <p>
-                                    Opening cash
-                                    balance.
-                                </p>
+                                <div className={styles.noteIcon}>
+                                    <ArrowUpRight size={16} />
+                                </div>
+
+                                <div>
+                                    <strong>
+                                        Capital contribution
+                                    </strong>
+
+                                    <p>
+                                        This entry will be recorded against
+                                        the selected investor as a contribution.
+                                    </p>
+                                </div>
 
                             </div>
 
-                        </div>
-
-                        <Input
-                            label="Cash Amount"
-                            type="number"
-                            placeholder="0.00"
-                            value={cash}
-                            onChange={(e) =>
-                                setCash(
-                                    e.target.value
-                                )
-                            }
-                        />
-
-                    </div>
+                        </section>
 
 
-                    <div className={styles.summary}>
+                        <aside className={styles.summaryCard}>
 
-                        <div>
-                            <span>
-                                Capital
-                            </span>
+                            <div className={styles.summaryTop}>
 
-                            <strong>
-                                AED{" "}
-                                {formatAmount(
-                                    capitalValue
-                                )}
-                            </strong>
-                        </div>
+                                <div>
+                                    <div className={styles.sectionEyebrow}>
+                                        PREVIEW
+                                    </div>
 
-                        <div>
-                            <span>
-                                Bank + Cash
-                            </span>
+                                    <h2>
+                                        Contribution
+                                    </h2>
+                                </div>
 
-                            <strong>
-                                AED{" "}
-                                {formatAmount(
-                                    allocated
-                                )}
-                            </strong>
-                        </div>
+                                <div
+                                    className={
+                                        hasInvestor && hasAmount
+                                            ? styles.statusReady
+                                            : styles.statusPending
+                                    }
+                                >
+                                    <span className={styles.statusDot} />
 
-                        <div
-                            className={
-                                unallocated === 0
-                                    ? styles.balanced
-                                    : styles.unbalanced
-                            }
-                        >
+                                    {hasInvestor && hasAmount
+                                        ? "Ready"
+                                        : "Pending"}
+                                </div>
 
-                            <span>
-                                Difference
-                            </span>
+                            </div>
 
-                            <strong>
-                                AED{" "}
-                                {formatAmount(
-                                    Math.abs(
-                                        unallocated
-                                    )
-                                )}
-                            </strong>
 
-                        </div>
+                            <div className={styles.amountPreview}>
+
+                                <span>
+                                    Contribution amount
+                                </span>
+
+                                <strong>
+                                    <small>AED</small>
+                                    {formatAmount(amountValue)}
+                                </strong>
+
+                            </div>
+
+
+                            <div className={styles.summaryDivider} />
+
+
+                            <div className={styles.summaryRows}>
+
+                                <div className={styles.summaryRow}>
+
+                                    <span>
+                                        Investor
+                                    </span>
+
+                                    <strong>
+                                        {investor?.party_name ||
+                                            "Not selected"}
+                                    </strong>
+
+                                </div>
+
+
+                                <div className={styles.summaryRow}>
+
+                                    <span>
+                                        Transaction
+                                    </span>
+
+                                    <strong>
+                                        Capital contribution
+                                    </strong>
+
+                                </div>
+
+
+                                <div className={styles.summaryRow}>
+
+                                    <span>
+                                        Currency
+                                    </span>
+
+                                    <strong>
+                                        AED
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+
+                            <div className={styles.summaryFooter}>
+
+                                <div
+                                    className={
+                                        hasInvestor && hasAmount
+                                            ? styles.checkReady
+                                            : styles.checkPending
+                                    }
+                                >
+                                    <CheckCircle2 size={17} />
+
+                                    <span>
+                                        {hasInvestor && hasAmount
+                                            ? "All required details are ready."
+                                            : "Select an investor and enter an amount."}
+                                    </span>
+                                </div>
+
+                            </div>
+
+                        </aside>
 
                     </div>
 
@@ -402,7 +425,9 @@ export default function Opening() {
                                 size={18}
                             />
 
-                            {success}
+                            <span>
+                                {success}
+                            </span>
 
                         </div>
 
@@ -411,14 +436,25 @@ export default function Opening() {
 
                     <div className={styles.actions}>
 
+                        <div className={styles.actionText}>
+                            <span>
+                                Opening entry
+                            </span>
+
+                            <strong>
+                                {hasInvestor && hasAmount
+                                    ? `AED ${formatAmount(amountValue)}`
+                                    : "Not ready"}
+                            </strong>
+                        </div>
+
                         <Button
                             type="submit"
                             disabled={saving}
                         >
                             {saving
                                 ? "Saving..."
-                                : "Save Opening Balance"
-                            }
+                                : "Add Capital"}
                         </Button>
 
                     </div>
@@ -428,5 +464,7 @@ export default function Opening() {
             </div>
 
         </AppLayout>
+
     );
+
 }

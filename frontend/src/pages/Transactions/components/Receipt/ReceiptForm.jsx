@@ -1,24 +1,51 @@
-import { CalendarDays, FileText } from "lucide-react";
-import PartySelector from "../../../../components/accounting/PartySelector";
-import AccountSelector from "../../../../components/accounting/AccountSelector";
-import TransactionActions from "../Shared/TransactionActions";
-import styles from "../../Transactions.module.css";
+import {
+    CalendarDays,
+    FileText
+} from "lucide-react";
+
+import PartySelector
+    from "../../../../components/accounting/PartySelector";
+
+import AccountSelector
+    from "../../../../components/accounting/AccountSelector";
+
+import ReceiptInvoiceSelector
+    from "./ReceiptInvoiceSelector";
+
+import TransactionActions
+    from "../Shared/TransactionActions";
+
+import styles
+    from "../../Transactions.module.css";
+
 
 export default function ReceiptForm({
+
     date,
     setDate,
+
     party,
     setParty,
-    amount,
-    setAmount,
+
+    receiptBills,
+    selectedReceiptBill,
+    setSelectedReceiptBill,
+
+    receiptAmount,
+    setReceiptAmount,
+
     accountId,
     setAccountId,
+
     narration,
     setNarration,
+
     error,
     message,
     saving,
+
     onSubmit
+
 }) {
 
     return (
@@ -28,8 +55,8 @@ export default function ReceiptForm({
             onSubmit={onSubmit}
         >
 
-            {/* =================================
-                BASIC DETAILS
+            {/* ================================
+                RECEIPT DETAILS
             ================================= */}
 
             <div className={styles.card}>
@@ -45,9 +72,9 @@ export default function ReceiptForm({
                 </div>
 
 
-                {/* DATE + PARTY */}
-
                 <div className={styles.fieldRow}>
+
+                    {/* DATE */}
 
                     <div className={styles.field}>
 
@@ -62,9 +89,10 @@ export default function ReceiptForm({
                             <input
                                 type="date"
                                 value={date}
-                                onChange={
-                                    event =>
-                                        setDate(event.target.value)
+                                onChange={event =>
+                                    setDate(
+                                        event.target.value
+                                    )
                                 }
                             />
 
@@ -72,6 +100,8 @@ export default function ReceiptForm({
 
                     </div>
 
+
+                    {/* CUSTOMER */}
 
                     <div className={styles.field}>
 
@@ -92,14 +122,26 @@ export default function ReceiptForm({
             </div>
 
 
-            {/* =================================
-                AMOUNT
+            {/* ================================
+                SALES BILL
+            ================================= */}
+
+            <ReceiptInvoiceSelector
+                customer={party}
+                invoices={receiptBills}
+                selectedInvoice={selectedReceiptBill}
+                selectInvoice={setSelectedReceiptBill}
+            />
+
+
+            {/* ================================
+                AMOUNT RECEIVED
             ================================= */}
 
             <div className={styles.card}>
 
                 <div className={styles.sectionTitle}>
-                    Amount Details
+                    Amount Received
                 </div>
 
                 <div className={styles.fieldRow}>
@@ -107,7 +149,7 @@ export default function ReceiptForm({
                     <div className={styles.field}>
 
                         <label>
-                            Amount
+                            Amount Received
                         </label>
 
                         <div className={styles.amountField}>
@@ -120,12 +162,13 @@ export default function ReceiptForm({
                                 type="number"
                                 min="0"
                                 step="0.01"
-                                placeholder="0.00"
-                                value={amount}
-                                onChange={
-                                    event =>
-                                        setAmount(event.target.value)
+                                value={receiptAmount}
+                                onChange={event =>
+                                    setReceiptAmount(
+                                        event.target.value
+                                    )
                                 }
+                                placeholder="0.00"
                             />
 
                         </div>
@@ -137,7 +180,7 @@ export default function ReceiptForm({
             </div>
 
 
-            {/* =================================
+            {/* ================================
                 RECEIVED THROUGH
             ================================= */}
 
@@ -160,7 +203,7 @@ export default function ReceiptForm({
             </div>
 
 
-            {/* =================================
+            {/* ================================
                 NARRATION
             ================================= */}
 
@@ -173,9 +216,10 @@ export default function ReceiptForm({
                 <textarea
                     rows={4}
                     value={narration}
-                    onChange={
-                        event =>
-                            setNarration(event.target.value)
+                    onChange={event =>
+                        setNarration(
+                            event.target.value
+                        )
                     }
                     placeholder="Optional description..."
                 />

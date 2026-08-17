@@ -15,6 +15,11 @@ import {
     createSupplier
 } from "../../services/partyService";
 
+import {
+    searchInvestors,
+    createInvestor
+} from "../../services/investorService";
+
 import styles from "./PartySelector.module.css";
 
 
@@ -27,11 +32,15 @@ export default function PartySelector({
     const isSupplier =
         partyType === "supplier";
 
+    const isInvestor =
+        partyType === "investor";
 
     const label =
-        isSupplier
-            ? "Supplier"
-            : "Customer";
+        isInvestor
+            ? "Investor"
+            : isSupplier
+                ? "Supplier"
+                : "Customer";
 
 
     const [query, setQuery] =
@@ -167,13 +176,11 @@ export default function PartySelector({
 
 
                         const response =
-                            isSupplier
-                                ? await searchSuppliers(
-                                    trimmed
-                                )
-                                : await searchCustomers(
-                                    trimmed
-                                );
+                            isInvestor
+                                ? await searchInvestors(trimmed)
+                                : isSupplier
+                                    ? await searchSuppliers(trimmed)
+                                    : await searchCustomers(trimmed);
 
 
                         setResults(
@@ -193,6 +200,10 @@ export default function PartySelector({
 
                         setResults([]);
 
+                        // Keep the dropdown open so the
+                        // user can still add a new party.
+                        setOpen(true);
+
                     } finally {
 
                         setLoading(false);
@@ -210,7 +221,8 @@ export default function PartySelector({
     }, [
         query,
         value,
-        isSupplier
+        isSupplier,
+        isInvestor
     ]);
 
 
@@ -296,14 +308,11 @@ export default function PartySelector({
 
 
             const response =
-                isSupplier
-                    ? await createSupplier(
-                        payload
-                    )
-                    : await createCustomer(
-                        payload
-                    );
-
+                isInvestor
+                    ? await createInvestor(payload)
+                    : isSupplier
+                        ? await createSupplier(payload)
+                        : await createCustomer(payload);
 
             const party =
                 response?.data?.party;

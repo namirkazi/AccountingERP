@@ -1,20 +1,38 @@
 import { useAuth } from "../../context/AuthContext";
 import AppLayout from "../../components/layout/AppLayout";
-import StatCard from "../../components/ui/StatCard";
 import { useEffect, useState } from "react";
 
-import { getDashboardBalances } from "../../services/dashboardService";
+import {
+    getDashboardBalances
+} from "../../services/dashboardService";
 
 import {
     Wallet,
-    Landmark,
     ArrowDownToLine,
     ArrowUpFromLine,
+    Landmark,
+    Users,
+    Building2,
+    X,
+    ChevronRight,
 } from "lucide-react";
 
 import styles from "./Dashboard.module.css";
 
+
+function formatAmount(value) {
+    return Number(value || 0).toLocaleString(
+        "en-AE",
+        {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }
+    );
+}
+
+
 export default function Dashboard() {
+
     const [summary, setSummary] = useState({
         cash: 0,
         bank: 0,
@@ -28,13 +46,37 @@ export default function Dashboard() {
         profit: 0
     });
 
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
+
+    const [receivables, setReceivables] =
+        useState([]);
+
+
+    const [payables, setPayables] =
+        useState([]);
+
+    const [capitalInvestors, setCapitalInvestors] =
+        useState([]);
+    const [loading, setLoading] =
+        useState(true);
+
+
+    const [error, setError] =
+        useState("");
+
+
+    const [detailType, setDetailType] =
+        useState(null);
+
+
     const { user } = useAuth();
 
-    const firstName = user?.full_name
-        ? user.full_name.split(" ")[0]
-        : "User";
+
+    const firstName =
+        user?.full_name
+            ? user.full_name.split(" ")[0]
+            : "User";
+
+
     useEffect(() => {
 
         async function loadDashboard() {
@@ -43,11 +85,43 @@ export default function Dashboard() {
 
                 setLoading(true);
 
+                setError("");
+
+
                 const response =
                     await getDashboardBalances();
 
+
+                const data =
+                    response?.data || {};
+
+
                 setSummary(
-                    response.data.summary
+                    data.summary || {}
+                );
+
+
+                setReceivables(
+                    Array.isArray(
+                        data.receivables
+                    )
+                        ? data.receivables
+                        : []
+                );
+
+
+                setPayables(
+                    Array.isArray(
+                        data.payables
+                    )
+                        ? data.payables
+                        : []
+                );
+
+                setCapitalInvestors(
+                    Array.isArray(data.capital_investors)
+                        ? data.capital_investors
+                        : []
                 );
 
             } catch (error) {
@@ -57,60 +131,112 @@ export default function Dashboard() {
                     error
                 );
 
+
                 setError(
                     error.message ||
                     "Unable to load dashboard."
                 );
 
+
             } finally {
 
                 setLoading(false);
+
             }
         }
+
 
         loadDashboard();
 
     }, []);
+
+    const detailItems =
+        detailType === "receivable"
+            ? receivables
+            : detailType === "payable"
+                ? payables
+                : capitalInvestors;
+
+
+    const detailTotal =
+        detailType === "receivable"
+            ? summary.receivable
+            : detailType === "payable"
+                ? summary.payable
+                : summary.capital_available;
+
+
+
     return (
         <AppLayout>
 
             <div className={styles.page}>
 
-                {/* Header */}
+                {/* =========================================
+                    HEADER
+                ========================================= */}
+
                 <div className={styles.header}>
 
                     <div>
-                        <h1>Dashboard</h1>
+
+                        <h1>
+                            Dashboard
+                        </h1>
 
                         <p>
                             Good morning, {firstName}.
                             Here's your business overview.
                         </p>
+
                     </div>
+
 
                     <div className={styles.company}>
 
                         {user?.logo ? (
+
                             <img
                                 src={user.logo}
-                                alt={user.company_name}
+                                alt={
+                                    user.company_name
+                                }
                             />
+
                         ) : (
-                            <div className={styles.companyLogo}>
-                                {user?.company_code?.charAt(0) || "C"}
+
+                            <div
+                                className={
+                                    styles.companyLogo
+                                }
+                            >
+                                {
+                                    user?.company_code
+                                        ?.charAt(0) ||
+                                    "C"
+                                }
                             </div>
+
                         )}
 
+
                         <div>
+
                             <strong>
-                                {user?.company_name || "Company"}
+                                {
+                                    user?.company_name ||
+                                    "Company"
+                                }
                             </strong>
 
                             <span>
-                                {user?.role === "admin"
-                                    ? "Administrator"
-                                    : "User"}
+                                {
+                                    user?.role === "admin"
+                                        ? "Administrator"
+                                        : "User"
+                                }
                             </span>
+
                         </div>
 
                     </div>
@@ -118,138 +244,704 @@ export default function Dashboard() {
                 </div>
 
 
-                {/* Main Accounting Overview */}
+                {error && (
+
+                    <div className={styles.error}>
+                        {error}
+                    </div>
+
+                )}
+
+
+                {/* =========================================
+                    ASSETS / LIABILITIES
+                ========================================= */}
+
                 <section>
 
                     <div className={styles.sectionHeader}>
-                        <h2>Overview</h2>
+
+                        <h2>
+                            Accounting Overview
+                        </h2>
 
                         <span>
-                            Current Period
+                            Current Position
                         </span>
+
                     </div>
 
 
-                    <div className={styles.stats}>
+                    <div className={styles.positionGrid}>
 
-                        <StatCard
-                            title="Sales"
-                            value={`AED ${summary.sales.toLocaleString("en-AE", {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
-                            })}`}
-                            icon={Wallet}
-                        />
+                        {/* =================================
+                            ASSETS
+                        ================================= */}
 
-                        <StatCard
-                            title="Receipts"
-                            value={`AED ${summary.receipts.toLocaleString("en-AE", {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
-                            })}`}
-                            icon={ArrowDownToLine}
-                        />
+                        <div className={styles.positionCard}>
 
-                        <StatCard
-                            title="Payments"
-                            value={`AED ${summary.payments.toLocaleString("en-AE", {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
-                            })}`}
-                            icon={ArrowUpFromLine}
-                        />
+                            <div
+                                className={
+                                    styles.positionHeader
+                                }
+                            >
 
-                        <StatCard
-                            title="Expenses"
-                            value={`AED ${summary.expenses.toLocaleString("en-AE", {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
-                            })}`}
-                            icon={Landmark}
-                        />
+                                <div>
+
+                                    <div
+                                        className={
+                                            styles.positionIcon
+                                        }
+                                    >
+                                        <Wallet
+                                            size={19}
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <h3>
+                                            Assets
+                                        </h3>
+
+                                        <span>
+                                            Business inflows
+                                            and receivables
+                                        </span>
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div
+                                className={
+                                    styles.positionRows
+                                }
+                            >
+
+                                <div
+                                    className={
+                                        styles.positionRow
+                                    }
+                                >
+
+                                    <div
+                                        className={
+                                            styles.rowIcon
+                                        }
+                                    >
+                                        <Wallet
+                                            size={16}
+                                        />
+                                    </div>
+
+                                    <div
+                                        className={
+                                            styles.rowContent
+                                        }
+                                    >
+                                        <strong>
+                                            Sales
+                                        </strong>
+
+                                        <span>
+                                            Total sales
+                                        </span>
+                                    </div>
+
+                                    <strong
+                                        className={
+                                            styles.rowAmount
+                                        }
+                                    >
+                                        AED{" "}
+                                        {formatAmount(
+                                            summary.sales
+                                        )}
+                                    </strong>
+
+                                </div>
+
+
+                                <div
+                                    className={
+                                        styles.positionRow
+                                    }
+                                >
+
+                                    <div
+                                        className={
+                                            styles.rowIcon
+                                        }
+                                    >
+                                        <ArrowDownToLine
+                                            size={16}
+                                        />
+                                    </div>
+
+                                    <div
+                                        className={
+                                            styles.rowContent
+                                        }
+                                    >
+                                        <strong>
+                                            Receipts
+                                        </strong>
+
+                                        <span>
+                                            Money received
+                                        </span>
+                                    </div>
+
+                                    <strong
+                                        className={
+                                            styles.rowAmount
+                                        }
+                                    >
+                                        AED{" "}
+                                        {formatAmount(
+                                            summary.receipts
+                                        )}
+                                    </strong>
+
+                                </div>
+
+
+                                <button
+                                    type="button"
+                                    className={`${styles.positionRow} ${styles.clickableRow}`}
+                                    onClick={() =>
+                                        setDetailType(
+                                            "receivable"
+                                        )
+                                    }
+                                >
+
+                                    <div
+                                        className={
+                                            styles.rowIcon
+                                        }
+                                    >
+                                        <Users
+                                            size={16}
+                                        />
+                                    </div>
+
+                                    <div
+                                        className={
+                                            styles.rowContent
+                                        }
+                                    >
+                                        <strong>
+                                            Receivable
+                                        </strong>
+
+                                        <span>
+                                            Money owed by
+                                            customers
+                                        </span>
+                                    </div>
+
+                                    <strong
+                                        className={
+                                            styles.rowAmount
+                                        }
+                                    >
+                                        AED{" "}
+                                        {formatAmount(
+                                            summary.receivable
+                                        )}
+                                    </strong>
+
+                                    <ChevronRight
+                                        size={17}
+                                        className={
+                                            styles.rowArrow
+                                        }
+                                    />
+
+                                </button>
+
+                            </div>
+
+                        </div>
+
+
+                        {/* =================================
+                            LIABILITIES
+                        ================================= */}
+
+                        <div className={styles.positionCard}>
+
+                            <div
+                                className={
+                                    styles.positionHeader
+                                }
+                            >
+
+                                <div>
+
+                                    <div
+                                        className={
+                                            styles.positionIcon
+                                        }
+                                    >
+                                        <Landmark
+                                            size={19}
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <h3>
+                                            Liabilities
+                                        </h3>
+
+                                        <span>
+                                            Business outflows
+                                            and obligations
+                                        </span>
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div
+                                className={
+                                    styles.positionRows
+                                }
+                            >
+
+                                <div
+                                    className={
+                                        styles.positionRow
+                                    }
+                                >
+
+                                    <div
+                                        className={
+                                            styles.rowIcon
+                                        }
+                                    >
+                                        <ArrowUpFromLine
+                                            size={16}
+                                        />
+                                    </div>
+
+                                    <div
+                                        className={
+                                            styles.rowContent
+                                        }
+                                    >
+                                        <strong>
+                                            Expenses
+                                        </strong>
+
+                                        <span>
+                                            Total expenses
+                                        </span>
+                                    </div>
+
+                                    <strong
+                                        className={
+                                            styles.rowAmount
+                                        }
+                                    >
+                                        AED{" "}
+                                        {formatAmount(
+                                            summary.expenses
+                                        )}
+                                    </strong>
+
+                                </div>
+
+
+                                <div
+                                    className={
+                                        styles.positionRow
+                                    }
+                                >
+
+                                    <div
+                                        className={
+                                            styles.rowIcon
+                                        }
+                                    >
+                                        <ArrowUpFromLine
+                                            size={16}
+                                        />
+                                    </div>
+
+                                    <div
+                                        className={
+                                            styles.rowContent
+                                        }
+                                    >
+                                        <strong>
+                                            Payments
+                                        </strong>
+
+                                        <span>
+                                            Money paid
+                                        </span>
+                                    </div>
+
+                                    <strong
+                                        className={
+                                            styles.rowAmount
+                                        }
+                                    >
+                                        AED{" "}
+                                        {formatAmount(
+                                            summary.payments
+                                        )}
+                                    </strong>
+
+                                </div>
+
+
+                                <button
+                                    type="button"
+                                    className={`${styles.positionRow} ${styles.clickableRow}`}
+                                    onClick={() =>
+                                        setDetailType(
+                                            "payable"
+                                        )
+                                    }
+                                >
+
+                                    <div
+                                        className={
+                                            styles.rowIcon
+                                        }
+                                    >
+                                        <Building2
+                                            size={16}
+                                        />
+                                    </div>
+
+                                    <div
+                                        className={
+                                            styles.rowContent
+                                        }
+                                    >
+                                        <strong>
+                                            Payable
+                                        </strong>
+
+                                        <span>
+                                            Money owed to
+                                            suppliers
+                                        </span>
+                                    </div>
+
+                                    <strong
+                                        className={
+                                            styles.rowAmount
+                                        }
+                                    >
+                                        AED{" "}
+                                        {formatAmount(
+                                            summary.payable
+                                        )}
+                                    </strong>
+
+                                    <ChevronRight
+                                        size={17}
+                                        className={
+                                            styles.rowArrow
+                                        }
+                                    />
+
+                                </button>
+
+                            </div>
+
+                        </div>
 
                     </div>
 
                 </section>
 
 
-                {/* Financial Position */}
-                <section className={styles.financialSection}>
+                {/* =========================================
+                    CASH / BANK
+                ========================================= */}
+
+                <section>
 
                     <div className={styles.sectionHeader}>
 
-                        <h2>Financial Position</h2>
+                        <h2>
+                            Cash & Bank
+                        </h2>
 
                     </div>
 
-                    <div className={styles.financialGrid}>
 
-                        <div className={styles.financialCard}>
-                            <span>Cash</span>
-                            <strong>AED {summary.cash.toLocaleString("en-AE", {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
-                            })}</strong>
-                        </div>
+                    <div
+                        className={
+                            styles.cashGrid
+                        }
+                    >
 
-                        <div className={styles.financialCard}>
-                            <span>Bank</span>
-                            <strong>AED {summary.bank.toLocaleString("en-AE", {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
-                            })}</strong>
-                        </div>
+                        <div
+                            className={
+                                styles.cashCard
+                            }
+                        >
 
-                        <div className={styles.financialCard}>
-                            <span>Receivable</span>
-                            <strong>AED {summary.receivable.toLocaleString("en-AE", {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
-                            })}</strong>
-                        </div>
+                            <span>
+                                Cash
+                            </span>
 
-                        <div className={styles.financialCard}>
-                            <span>Payable</span>
-                            <strong>AED {summary.payable.toLocaleString("en-AE", {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
-                            })}</strong>
-                        </div>
-
-                    </div>
-
-                </section>
-
-
-                {/* Recent Activity */}
-                <section className={styles.activitySection}>
-
-                    <div className={styles.sectionHeader}>
-
-                        <h2>Recent Activity</h2>
-
-                    </div>
-
-                    <div className={styles.emptyActivity}>
-
-                        <div className={styles.emptyIcon}>
-                            <Wallet size={22} />
-                        </div>
-
-                        <div>
                             <strong>
-                                No transactions yet
+                                AED{" "}
+                                {formatAmount(
+                                    summary.cash
+                                )}
                             </strong>
 
-                            <p>
-                                Your sales, receipts, payments
-                                and expenses will appear here.
-                            </p>
+                        </div>
+
+
+                        <div
+                            className={
+                                styles.cashCard
+                            }
+                        >
+
+                            <span>
+                                Bank
+                            </span>
+
+                            <strong>
+                                AED{" "}
+                                {formatAmount(
+                                    summary.bank
+                                )}
+                            </strong>
+
+                        </div>
+                        <button
+                            type="button"
+                            className={`${styles.cashCard} ${styles.capitalCard}`}
+                            onClick={() =>
+                                setDetailType(
+                                    "capital"
+                                )
+                            }
+                        >
+
+                            <div>
+
+                                <span>
+                                    Available Capital
+                                </span>
+
+                                <strong>
+                                    AED{" "}
+                                    {formatAmount(
+                                        summary.capital_available
+                                    )}
+                                </strong>
+
+                            </div>
+
+                            <ChevronRight size={19} />
+
+                        </button>
+                    </div>
+
+                </section>
+
+
+                {/* =========================================
+                    DETAIL MODAL
+                ========================================= */}
+
+                {detailType && (
+
+                    <div
+                        className={
+                            styles.modalOverlay
+                        }
+                        onMouseDown={(event) => {
+
+                            if (
+                                event.target ===
+                                event.currentTarget
+                            ) {
+                                setDetailType(null);
+                            }
+
+                        }}
+                    >
+
+                        <div
+                            className={
+                                styles.detailModal
+                            }
+                        >
+
+                            <div
+                                className={
+                                    styles.modalHeader
+                                }
+                            >
+
+                                <div>
+
+                                    <h2>
+                                        {
+                                            detailType === "receivable"
+                                                ? "Accounts Receivable"
+                                                : detailType === "payable"
+                                                    ? "Accounts Payable"
+                                                    : "Capital by Investor"
+                                        }
+                                    </h2>
+
+                                    <p>
+                                        {
+                                            detailType === "receivable"
+                                                ? "Outstanding amounts from customers"
+                                                : detailType === "payable"
+                                                    ? "Outstanding amounts owed to suppliers"
+                                                    : "Investor capital balances"
+                                        }
+                                    </p>
+
+                                </div>
+
+
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        setDetailType(
+                                            null
+                                        )
+                                    }
+                                    className={
+                                        styles.closeButton
+                                    }
+                                >
+                                    <X size={18} />
+                                </button>
+
+                            </div>
+
+
+                            <div
+                                className={
+                                    styles.detailTotal
+                                }
+                            >
+
+                                <span>
+                                    {
+                                        detailType === "capital"
+                                            ? "Total Capital"
+                                            : "Total Outstanding"
+                                    }
+                                </span>
+
+                                <strong>
+                                    AED{" "}
+                                    {formatAmount(
+                                        detailTotal
+                                    )}
+                                </strong>
+
+                            </div>
+
+
+                            <div
+                                className={
+                                    styles.detailList
+                                }
+                            >
+
+                                {loading ? (
+
+                                    <div
+                                        className={
+                                            styles.detailEmpty
+                                        }
+                                    >
+                                        Loading...
+                                    </div>
+
+                                ) : detailItems.length === 0 ? (
+
+                                    <div
+                                        className={
+                                            styles.detailEmpty
+                                        }
+                                    >
+                                        {
+                                            detailType === "capital"
+                                                ? "No investor capital found."
+                                                : "No outstanding balances found."
+                                        }
+                                    </div>
+
+                                ) : (
+
+                                    detailItems.map(
+                                        (item) => (
+
+                                            <div
+                                                key={
+                                                    item.party_id ||
+                                                    item.investor_id
+                                                }
+                                                className={
+                                                    styles.detailRow
+                                                }
+                                            >
+
+                                                <div>
+
+                                                    <strong>
+                                                        {
+                                                            item.party_name ||
+                                                            item.investor_name
+                                                        }
+                                                    </strong>
+
+                                                    <span>
+                                                        {
+                                                            detailType === "capital"
+                                                                ? "Investor"
+                                                                : item.party_type
+                                                        }
+                                                    </span>
+
+                                                </div>
+
+                                                <strong>
+                                                    AED{" "}
+                                                    {formatAmount(
+                                                        item.balance
+                                                    )}
+                                                </strong>
+
+                                            </div>
+
+                                        )
+                                    )
+                                )}
+
+                            </div>
+
                         </div>
 
                     </div>
 
-                </section>
+                )}
 
             </div>
 

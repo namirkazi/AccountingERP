@@ -1,0 +1,398 @@
+.form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* ================================
+   HEADER
+================================ */
+
+.formHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eef0f3;
+}
+
+.formHeader h2 {
+    margin: 0 0 5px;
+    color: #111827;
+    font-size: 20px;
+    line-height: 1.25;
+    font-weight: 650;
+    letter-spacing: -0.02em;
+}
+
+.formHeader p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 13px;
+    line-height: 1.55;
+}
+
+/* ================================
+   AVAILABLE CAPITAL
+================================ */
+
+.capitalCard {
+    padding: 18px 20px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #f9fafb;
+}
+
+.capitalCardInner {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+}
+
+.capitalIcon {
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #dbeafe;
+    border-radius: 10px;
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+.capitalLabel {
+    margin-bottom: 3px;
+    color: #6b7280;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.capitalValue {
+    color: #111827;
+    font-size: 22px;
+    line-height: 1.2;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+/* ================================
+   FORM GROUP
+================================ */
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.formGroup label {
+    color: #374151;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.formGroup input,
+.formGroup textarea {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #dfe3e8;
+    border-radius: 9px;
+    background: #ffffff;
+    color: #111827;
+    font-family: inherit;
+    font-size: 13px;
+    outline: none;
+    transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+.formGroup input {
+    height: 42px;
+    padding: 0 12px;
+}
+
+.formGroup textarea {
+    min-height: 88px;
+    padding: 11px 12px;
+    resize: vertical;
+    line-height: 1.5;
+}
+
+.formGroup input::placeholder,
+.formGroup textarea::placeholder {
+    color: #9ca3af;
+}
+
+.formGroup input:focus,
+.formGroup textarea:focus {
+    border-color: #93c5fd;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+}
+
+/* ================================
+   AMOUNT INPUT
+================================ */
+
+.amountInput {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.amountInput span {
+    position: absolute;
+    left: 13px;
+    z-index: 1;
+    color: #6b7280;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    pointer-events: none;
+}
+
+.amountInput input {
+    padding-left: 48px;
+    text-align: right;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+/* Remove browser number arrows */
+
+.amountInput input::-webkit-outer-spin-button,
+.amountInput input::-webkit-inner-spin-button {
+    margin: 0;
+    -webkit-appearance: none;
+}
+
+.amountInput input[type="number"] {
+    appearance: textfield;
+    -moz-appearance: textfield;
+}
+
+/* ================================
+   CASH / BANK ROW
+================================ */
+
+.formRow {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+/* ================================
+   ALLOCATION SUMMARY
+================================ */
+
+.allocationCard {
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #ffffff;
+}
+
+.allocationHeader {
+    padding: 13px 16px;
+    border-bottom: 1px solid #eef0f3;
+    color: #374151;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.allocationBody {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+}
+
+.allocationRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    color: #6b7280;
+    font-size: 12px;
+}
+
+.allocationRow strong {
+    color: #374151;
+    font-size: 12px;
+    font-weight: 650;
+}
+
+.allocationDivider {
+    width: 100%;
+    height: 1px;
+    background: #eef0f3;
+}
+
+.remainingRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    color: #374151;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.remainingRow strong {
+    color: #111827;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+/* ================================
+   BALANCE STATUS
+================================ */
+
+.balanceReady,
+.balancePending {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: 3px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 11px;
+    line-height: 1.45;
+}
+
+.balanceReady {
+    border: 1px solid #a7f3d0;
+    background: #ecfdf5;
+    color: #047857;
+}
+
+.balancePending {
+    border: 1px solid #e5e7eb;
+    background: #f9fafb;
+    color: #6b7280;
+}
+
+/* ================================
+   MESSAGES
+================================ */
+
+.error,
+.success {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 11px 13px;
+    border-radius: 9px;
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.error {
+    border: 1px solid #fecaca;
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+.success {
+    border: 1px solid #a7f3d0;
+    background: #ecfdf5;
+    color: #047857;
+}
+
+/* ================================
+   ACTIONS
+================================ */
+
+.formActions {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 3px;
+}
+
+.primaryButton {
+    min-width: 150px;
+    height: 42px;
+    padding: 0 18px;
+    border: 0;
+    border-radius: 9px;
+    background: #111827;
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+        background 0.15s ease,
+        transform 0.15s ease,
+        opacity 0.15s ease;
+}
+
+.primaryButton:hover:not(:disabled) {
+    background: #1f2937;
+    transform: translateY(-1px);
+}
+
+.primaryButton:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.primaryButton:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+/* ================================
+   RESPONSIVE
+================================ */
+
+@media (max-width: 700px) {
+
+    .form {
+        gap: 16px;
+    }
+
+    .formRow {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .capitalCard {
+        padding: 16px;
+    }
+
+    .capitalValue {
+        font-size: 20px;
+    }
+
+    .formActions {
+        justify-content: stretch;
+    }
+
+    .primaryButton {
+        width: 100%;
+    }
+
+}
+
+@media (max-width: 430px) {
+
+    .formHeader h2 {
+        font-size: 18px;
+    }
+
+    .capitalCardInner {
+        gap: 10px;
+    }
+
+    .capitalIcon {
+        width: 38px;
+        height: 38px;
+        flex-basis: 38px;
+    }
+
+}

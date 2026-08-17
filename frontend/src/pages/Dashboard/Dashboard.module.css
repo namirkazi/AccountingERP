@@ -1,111 +1,87 @@
 .page {
     max-width: 1600px;
-
     margin: 0 auto;
 }
 
 
-/* Header */
+/* =========================================
+   HEADER
+========================================= */
 
 .header {
     display: flex;
-
     align-items: center;
-
     justify-content: space-between;
-
     margin-bottom: 35px;
 }
 
 .header h1 {
     margin: 0 0 7px;
-
     font-size: 30px;
-
     font-weight: 650;
-
     color: #111827;
 }
 
 .header p {
     margin: 0;
-
     color: #6b7280;
-
     font-size: 14px;
 }
 
 
-/* Company */
+/* =========================================
+   COMPANY
+========================================= */
 
 .company {
     display: flex;
-
     align-items: center;
-
     gap: 11px;
-
     padding: 8px 12px;
-
     border: 1px solid #e5e7eb;
-
     border-radius: 10px;
-
     background: #ffffff;
 }
 
 .companyLogo {
     width: 38px;
-
     height: 38px;
-
     border-radius: 8px;
-
     background: #2563eb;
-
     color: #ffffff;
-
     display: flex;
-
     align-items: center;
-
     justify-content: center;
-
     font-weight: 600;
 }
 
 .company img {
     width: 38px;
-
     height: 38px;
-
     object-fit: contain;
-
     border-radius: 8px;
 }
 
 .company div:last-child {
     display: flex;
-
     flex-direction: column;
-
     gap: 2px;
 }
 
 .company strong {
     font-size: 13px;
-
     color: #111827;
 }
 
 .company span {
     font-size: 12px;
-
     color: #6b7280;
 }
 
 
-/* Section */
+/* =========================================
+   SECTIONS
+========================================= */
 
 section {
     margin-bottom: 30px;
@@ -113,165 +89,415 @@ section {
 
 .sectionHeader {
     display: flex;
-
     align-items: center;
-
     justify-content: space-between;
-
     margin-bottom: 14px;
 }
 
 .sectionHeader h2 {
     margin: 0;
-
     font-size: 16px;
-
     font-weight: 600;
-
     color: #111827;
 }
 
 .sectionHeader span {
     font-size: 13px;
-
     color: #9ca3af;
 }
 
 
-/* Statistics */
+/* =========================================
+   ASSETS / LIABILITIES
+========================================= */
 
-.stats {
+.positionGrid {
     display: grid;
-
     grid-template-columns:
-        repeat(4, minmax(0, 1fr));
-
-    gap: 16px;
+        repeat(2, minmax(0, 1fr));
+    gap: 18px;
 }
 
-
-/* Financial */
-
-.financialGrid {
-    display: grid;
-
-    grid-template-columns:
-        repeat(4, minmax(0, 1fr));
-
-    gap: 16px;
-}
-
-.financialCard {
+.positionCard {
     background: #ffffff;
-
     border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    overflow: hidden;
+}
 
-    border-radius: 10px;
-
+.positionHeader {
     padding: 18px 20px;
+    border-bottom: 1px solid #f1f5f9;
+}
 
+.positionHeader > div {
     display: flex;
+    align-items: center;
+    gap: 12px;
+}
 
+.positionIcon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: #f3f4f6;
+    color: #374151;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.positionHeader h3 {
+    margin: 0 0 3px;
+    font-size: 15px;
+    font-weight: 650;
+    color: #111827;
+}
+
+.positionHeader span {
+    font-size: 12px;
+    color: #9ca3af;
+}
+
+.positionRows {
+    padding: 4px 8px 8px;
+}
+
+.positionRow {
+    width: 100%;
+    min-height: 68px;
+    padding: 10px 12px;
+    border: none;
+    border-bottom: 1px solid #f3f4f6;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    text-align: left;
+}
+
+.positionRow:last-child {
+    border-bottom: none;
+}
+
+.clickableRow {
+    cursor: pointer;
+    border-radius: 8px;
+}
+
+.clickableRow:hover {
+    background: #f8fafc;
+}
+
+.rowIcon {
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    border-radius: 8px;
+    background: #f8fafc;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.rowContent {
+    min-width: 0;
+    flex: 1;
+    display: flex;
     flex-direction: column;
+    gap: 3px;
+}
 
+.rowContent strong {
+    font-size: 13px;
+    font-weight: 600;
+    color: #111827;
+}
+
+.rowContent span {
+    font-size: 11px;
+    color: #9ca3af;
+}
+
+.rowAmount {
+    font-size: 13px;
+    font-weight: 600;
+    color: #111827;
+    white-space: nowrap;
+}
+
+.rowArrow {
+    flex: 0 0 auto;
+    color: #9ca3af;
+}
+
+
+/* =========================================
+   CASH / BANK
+========================================= */
+
+.cashGrid {
+    display: grid;
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.cashCard {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
     gap: 8px;
 }
 
-.financialCard span {
+.cashCard span {
     font-size: 13px;
-
     color: #6b7280;
 }
 
-.financialCard strong {
+.cashCard strong {
     font-size: 19px;
-
     font-weight: 600;
-
     color: #111827;
 }
 
 
-/* Activity */
+/* =========================================
+   MODAL
+========================================= */
 
-.activitySection {
+.modalOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(15, 23, 42, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.detailModal {
+    width: min(620px, 100%);
+    max-height: min(720px, 90vh);
+    background: #ffffff;
+    border-radius: 14px;
+    border: 1px solid #e5e7eb;
+    box-shadow:
+        0 24px 70px rgba(15, 23, 42, 0.18);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.modalHeader {
+    padding: 20px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.modalHeader h2 {
+    margin: 0 0 5px;
+    font-size: 18px;
+    font-weight: 650;
+    color: #111827;
+}
+
+.modalHeader p {
+    margin: 0;
+    color: #9ca3af;
+    font-size: 12px;
+}
+
+.closeButton {
+    width: 34px;
+    height: 34px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.closeButton:hover {
+    background: #f9fafb;
+    color: #111827;
+}
+
+.detailTotal {
+    padding: 18px 20px;
+    background: #f8fafc;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.detailTotal span {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.detailTotal strong {
+    font-size: 17px;
+    font-weight: 650;
+    color: #111827;
+}
+
+.detailList {
+    overflow-y: auto;
+    padding: 8px 20px 16px;
+}
+
+.detailRow {
+    min-height: 62px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.detailRow:last-child {
+    border-bottom: none;
+}
+
+.detailRow > div {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.detailRow strong {
+    font-size: 13px;
+    color: #111827;
+}
+
+.detailRow span {
+    font-size: 11px;
+    color: #9ca3af;
+    text-transform: capitalize;
+}
+
+.detailEmpty {
+    min-height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #9ca3af;
+    font-size: 13px;
+}
+
+
+/* =========================================
+   ERROR
+========================================= */
+
+.error {
+    margin-bottom: 20px;
+    padding: 12px 14px;
+    border: 1px solid #fecaca;
+    border-radius: 9px;
+    background: #fef2f2;
+    color: #b91c1c;
+    font-size: 13px;
+}
+
+
+/* =========================================
+   CAPITAL
+========================================= */
+
+.capitalSection {
     padding-bottom: 20px;
 }
 
-.emptyActivity {
-    background: #ffffff;
-
-    border: 1px solid #e5e7eb;
-
-    border-radius: 10px;
-
+.capitalCard {
+    width: 100%;
     min-height: 100px;
-
     padding: 20px;
-
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: #ffffff;
+    color: inherit;
+    cursor: pointer;
     display: flex;
-
     align-items: center;
-
     gap: 14px;
+    text-align: left;
 }
 
-.emptyIcon {
+.capitalCard:hover {
+    border-color: #cbd5e1;
+    background: #f8fafc;
+}
+
+.capitalIcon {
     width: 42px;
-
     height: 42px;
-
     border-radius: 9px;
-
     background: #f3f4f6;
-
     color: #6b7280;
-
     display: flex;
-
     align-items: center;
-
     justify-content: center;
 }
 
-.emptyActivity strong {
-    display: block;
-
-    font-size: 14px;
-
-    color: #374151;
-
-    margin-bottom: 4px;
+.capitalCard > div:nth-child(2) {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
-.emptyActivity p {
-    margin: 0;
-
+.capitalCard span {
     font-size: 13px;
+    color: #6b7280;
+}
 
+.capitalCard strong {
+    font-size: 20px;
+    color: #111827;
+}
+
+.capitalCard p {
+    margin: 0;
+    font-size: 13px;
+    color: #9ca3af;
+}
+
+.capitalCard > svg {
     color: #9ca3af;
 }
 
 
-/* Responsive */
+/* =========================================
+   RESPONSIVE
+========================================= */
 
-@media (max-width: 1100px) {
+@media (max-width: 1000px) {
 
-    .stats,
-    .financialGrid {
-        grid-template-columns:
-            repeat(2, minmax(0, 1fr));
+    .positionGrid {
+        grid-template-columns: 1fr;
     }
 
 }
+
 
 @media (max-width: 700px) {
 
     .header {
         align-items: flex-start;
-
         flex-direction: column;
-
         gap: 18px;
     }
 
@@ -279,9 +505,17 @@ section {
         width: 100%;
     }
 
-    .stats,
-    .financialGrid {
+    .cashGrid {
         grid-template-columns: 1fr;
+    }
+
+    .positionRow {
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+
+    .rowAmount {
+        font-size: 12px;
     }
 
 }

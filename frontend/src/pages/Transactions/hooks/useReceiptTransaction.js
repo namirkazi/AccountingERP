@@ -2,6 +2,9 @@ import {
     useState
 } from "react";
 
+import {
+    searchReceiptInvoices
+} from "../../../services/transactionService";
 
 export default function useReceiptTransaction() {
 
@@ -40,7 +43,58 @@ export default function useReceiptTransaction() {
         setNarration
     ] = useState("");
 
+    useEffect(() => {
 
+        if (!customer?.party_name) {
+
+            setInvoices([]);
+            setSelectedInvoice(null);
+            setReceiptAmount("");
+
+            return;
+        }
+
+        let cancelled = false;
+
+        async function loadInvoices() {
+
+            try {
+
+                const response =
+                    await searchReceiptInvoices(
+                        customer.party_name
+                    );
+
+                if (cancelled) {
+                    return;
+                }
+
+                const invoices =
+                    response?.data?.invoices || [];
+
+                setInvoices(invoices);
+
+            } catch (error) {
+
+                if (!cancelled) {
+
+                    console.error(
+                        "Unable to load receipt invoices:",
+                        error
+                    );
+
+                    setInvoices([]);
+                }
+            }
+        }
+
+        loadInvoices();
+
+        return () => {
+            cancelled = true;
+        };
+
+    }, [customer]);
     function selectInvoice(
         invoice
     ) {

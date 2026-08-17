@@ -12,7 +12,7 @@ import Dashboard from "../pages/Dashboard/Dashboard";
 import Customers from "../pages/Customers/Customers";
 import Openings from "../pages/Opening/Opening";
 import ProtectedRoute from "./ProtectedRoute";
-
+import Ledger from "../pages/Ledger/Ledger"
 
 export default function AppRouter() {
 
@@ -44,6 +44,10 @@ export default function AppRouter() {
                     <Route
                         path="/transactions"
                         element={<Transactions />}
+                    />
+                    <Route
+                        path="/ledger"
+                        element={<Ledger />}
                     />
                 </Route>
 

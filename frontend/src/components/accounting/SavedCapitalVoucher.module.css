@@ -1,0 +1,222 @@
+.savedVoucherOverlay {
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 99999;
+
+    width: 100vw;
+    height: 100vh;
+
+    overflow-y: auto;
+
+    box-sizing: border-box;
+
+    padding: 24px;
+
+    background:
+        rgba(15, 23, 42, 0.72);
+}
+
+
+.savedVoucherToolbar {
+    width: min(
+        210mm,
+        100%
+    );
+
+    margin:
+        0 auto 18px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 20px;
+
+    color: #ffffff;
+}
+
+
+.savedVoucherToolbar > div:first-child {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 4px;
+}
+
+
+.savedVoucherToolbar span {
+    font-size: 10px;
+
+    font-weight: 700;
+
+    letter-spacing: 0.08em;
+
+    opacity: 0.7;
+}
+
+
+.savedVoucherToolbar strong {
+    font-size: 18px;
+
+    font-weight: 700;
+}
+
+
+.savedVoucherActions {
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+}
+
+
+.printVoucherButton,
+.closeVoucherButton {
+    height: 40px;
+
+    padding: 0 15px;
+
+    border-radius: 8px;
+
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 8px;
+
+    border: 1px solid transparent;
+
+    font-family: inherit;
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+
+.printVoucherButton {
+    background: #ffffff;
+
+    color: #111827;
+}
+
+
+.printVoucherButton:hover {
+    background: #f3f4f6;
+}
+
+
+.printVoucherButton:disabled {
+    opacity: 0.6;
+
+    cursor: not-allowed;
+}
+
+
+.closeVoucherButton {
+    background: transparent;
+
+    color: #ffffff;
+
+    border-color:
+        rgba(
+            255,
+            255,
+            255,
+            0.4
+        );
+}
+
+
+.closeVoucherButton:hover {
+    background:
+        rgba(
+            255,
+            255,
+            255,
+            0.08
+        );
+}
+
+
+.printableVoucherPaper {
+    width: 210mm;
+
+    max-width: 100%;
+
+    margin: 0 auto;
+
+    background: #ffffff;
+
+    box-shadow:
+        0 25px 70px
+        rgba(
+            0,
+            0,
+            0,
+            0.25
+        );
+}
+
+
+@media print {
+
+    @page {
+        size: A4;
+
+        margin: 0;
+    }
+
+
+    body * {
+        visibility: hidden !important;
+    }
+
+
+    .savedVoucherOverlay,
+    .savedVoucherOverlay * {
+        visibility: visible !important;
+    }
+
+
+    .savedVoucherOverlay {
+        position: absolute;
+
+        inset: 0;
+
+        width: 100%;
+
+        height: auto;
+
+        padding: 0;
+
+        overflow: visible;
+
+        background: #ffffff;
+    }
+
+
+    .savedVoucherToolbar {
+        display: none !important;
+    }
+
+
+    .printableVoucherPaper {
+        width: 210mm;
+
+        max-width: none;
+
+        margin: 0;
+
+        box-shadow: none;
+    }
+
+}

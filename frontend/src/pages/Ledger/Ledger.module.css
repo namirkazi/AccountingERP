@@ -1,0 +1,273 @@
+.page {
+    min-height: 100%;
+    padding: 28px;
+    background: #f8fafc;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.titleArea {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.titleIcon {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #eef2ff;
+    color: #4338ca;
+}
+
+.titleArea h1 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.titleArea p {
+    margin: 5px 0 0;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.refreshButton {
+    height: 40px;
+    padding: 0 15px;
+    border: 1px solid #e5e7eb;
+    border-radius: 9px;
+    background: #ffffff;
+    color: #374151;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.refreshButton:hover {
+    background: #f9fafb;
+}
+
+.refreshButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.spin {
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.summaryGrid {
+    display: grid;
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    margin: 18px 0;
+}
+
+.summaryCard {
+    min-height: 82px;
+    padding: 16px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 13px;
+}
+
+.summaryIcon {
+    width: 38px;
+    height: 38px;
+    border-radius: 9px;
+    background: #f3f4f6;
+    color: #4b5563;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.summaryCard span {
+    display: block;
+    color: #6b7280;
+    font-size: 12px;
+    margin-bottom: 4px;
+}
+
+.summaryCard strong {
+    display: block;
+    color: #111827;
+    font-size: 16px;
+}
+
+.tableCard {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.tableWrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 1050px;
+}
+
+.table th {
+    padding: 13px 16px;
+    text-align: left;
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #374151;
+    font-size: 13px;
+    vertical-align: middle;
+}
+
+.table tbody tr:hover {
+    background: #fafafa;
+}
+
+.voucherCell,
+.accountCell,
+.partyCell {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.voucherCell strong,
+.accountCell strong,
+.partyCell strong {
+    color: #111827;
+    font-weight: 600;
+}
+
+.voucherCell span,
+.accountCell span,
+.partyCell span {
+    color: #9ca3af;
+    font-size: 11px;
+    text-transform: capitalize;
+}
+
+.debitCell {
+    color: #111827 !important;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.creditCell {
+    color: #111827 !important;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.viewButton {
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+    border-radius: 7px;
+    height: 32px;
+    padding: 0 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #374151;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.viewButton:hover {
+    background: #f9fafb;
+    border-color: #d1d5db;
+}
+
+.tableState {
+    min-height: 280px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #9ca3af;
+}
+
+.tableState strong {
+    color: #374151;
+    font-size: 14px;
+}
+
+.tableState span {
+    font-size: 13px;
+}
+
+.spinner {
+    width: 25px;
+    height: 25px;
+    border: 3px solid #e5e7eb;
+    border-top-color: #4f46e5;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+.error {
+    margin-top: 16px;
+    padding: 12px 14px;
+    border-radius: 9px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #b91c1c;
+    font-size: 13px;
+}
+
+@media (max-width: 1100px) {
+    .summaryGrid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 700px) {
+    .page {
+        padding: 18px;
+    }
+
+    .header {
+        align-items: flex-start;
+    }
+
+    .summaryGrid {
+        grid-template-columns: 1fr;
+    }
+}

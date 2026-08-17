@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
 
 import AppLayout from "../../components/layout/AppLayout";
-
-import { createTransaction } from "../../services/transactionService";
+import CapitalForm
+    from "./components/Capital/CapitalForm";
 import { searchPaymentExpenses, createPayment } from "../../services/paymentService";
-
+import {
+    createTransaction,
+    searchReceiptInvoices,
+    getAvailableCapital
+} from "../../services/transactionService";
 import TransactionHeader, { TRANSACTION_TYPES } from "./components/TransactionHeader";
 import SavedVoucher from "./components/Shared/SavedVoucher";
 
@@ -18,12 +22,15 @@ import ExpenseForm from "./components/Expense/ExpenseForm";
 import useExpenseTransaction from "./hooks/useExpenseTransaction";
 import PrintableVoucher
     from "../../components/accounting/PrintableVoucher";
+import PrintableCapitalVoucher
+    from "../../components/accounting/PrintableCapitalVoucher";
 import styles from "./Transactions.module.css";
-
+import SavedCapitalVoucher from "../../components/accounting/SavedCapitalVoucher";
 import useSalesTransaction from "./hooks/useSalesTransaction";
 
 import {
-    getNextSalesBillNumber
+    getNextSalesBillNumber,
+    getNextReceiptNumber
 } from "../../services/transactionService";
 
 export default function Transactions() {
@@ -105,6 +112,11 @@ export default function Transactions() {
     const [accountId, setAccountId] = useState("");
     const [paymentAccount, setPaymentAccount] = useState(null);
 
+    const [receiptBills, setReceiptBills] = useState([]);
+    const [selectedReceiptBill, setSelectedReceiptBill] = useState(null);
+
+    const [receiptAmount, setReceiptAmount] = useState("");
+
     const [saving, setSaving] = useState(false);
 
     const [message, setMessage] = useState("");
@@ -113,8 +125,89 @@ export default function Transactions() {
     const [showPreview, setShowPreview] = useState(true);
     const [showSavedVoucher, setShowSavedVoucher] = useState(false);
 
+    const [capitalAmount, setCapitalAmount] =
+        useState("");
 
+    const [capitalCash, setCapitalCash] =
+        useState("");
+
+    const [capitalBank, setCapitalBank] =
+        useState("");
+
+    const [availableCapital, setAvailableCapital] =
+        useState(0);
     const [voucherNumber, setVoucherNumber] = useState("");
+
+
+    /* Receipt Number */
+    useEffect(() => {
+
+        if (type !== "receipt") {
+            return;
+        }
+
+        let cancelled = false;
+
+        async function loadNextReceiptNumber() {
+
+            try {
+
+                setError("");
+
+                const response =
+                    await getNextReceiptNumber(date);
+
+                console.log(
+                    "Receipt number response:",
+                    response
+                );
+
+                if (cancelled) {
+                    return;
+                }
+
+                const receiptNumber =
+                    response?.data?.receipt_number ||
+                    response?.receipt_number ||
+                    "";
+
+                if (!receiptNumber) {
+                    throw new Error(
+                        "The server did not return a Receipt number."
+                    );
+                }
+
+                setVoucherNumber(
+                    receiptNumber
+                );
+
+            } catch (error) {
+
+                if (cancelled) {
+                    return;
+                }
+
+                console.error(
+                    "Unable to generate Receipt number:",
+                    error
+                );
+
+                setVoucherNumber("");
+
+                setError(
+                    error.message ||
+                    "Unable to generate Receipt number."
+                );
+            }
+        }
+
+        loadNextReceiptNumber();
+
+        return () => {
+            cancelled = true;
+        };
+
+    }, [type, date]);
 
     /* Sale BIll NO */
     useEffect(() => {
@@ -187,6 +280,73 @@ export default function Transactions() {
         };
 
     }, [type, date]);
+
+    /*
+ * =====================================================
+ * AVAILABLE CAPITAL
+ * =====================================================
+ */
+
+    useEffect(() => {
+
+        if (type !== "capital") {
+            setAvailableCapital(0);
+            return;
+        }
+
+        let cancelled = false;
+
+        async function loadAvailableCapital() {
+
+            try {
+
+                setError("");
+
+                const response =
+                    await getAvailableCapital();
+
+                if (cancelled) {
+                    return;
+                }
+
+                const available =
+                    response?.data?.available_capital ??
+                    response?.available_capital ??
+                    0;
+
+                setAvailableCapital(
+                    Number(available) || 0
+                );
+
+            } catch (error) {
+
+                if (cancelled) {
+                    return;
+                }
+
+                console.error(
+                    "Unable to load available capital:",
+                    error
+                );
+
+                setAvailableCapital(0);
+
+                setError(
+                    error.message ||
+                    "Unable to load available capital."
+                );
+
+            }
+
+        }
+
+        loadAvailableCapital();
+
+        return () => {
+            cancelled = true;
+        };
+
+    }, [type]);
     /*
      * =====================================================
      * KEYBOARD SHORTCUTS
@@ -271,7 +431,62 @@ export default function Transactions() {
         };
 
     }, [type, party?.id, party?.party_name]);
+    useEffect(() => {
 
+        if (type !== "receipt" || !party?.party_name) {
+            setReceiptBills([]);
+            setSelectedReceiptBill(null);
+            setReceiptAmount("");
+            return;
+        }
+
+        let cancelled = false;
+
+        async function loadReceiptInvoices() {
+
+            try {
+
+                setError("");
+
+                const response = await searchReceiptInvoices(
+                    party.party_name
+                );
+
+                if (cancelled) {
+                    return;
+                }
+
+                setReceiptBills(
+                    response?.data?.invoices || []
+                );
+
+            } catch (error) {
+
+                if (cancelled) {
+                    return;
+                }
+
+                console.error(
+                    "Unable to load receipt invoices:",
+                    error
+                );
+
+                setReceiptBills([]);
+
+                setError(
+                    error.message ||
+                    "Unable to load outstanding sales bills."
+                );
+            }
+        }
+
+        loadReceiptInvoices();
+
+        return () => {
+            cancelled = true;
+        };
+
+    }, [type, party?.id, party?.party_name]);
     /*
      * =====================================================
      * CHANGE TYPE / RESET
@@ -292,9 +507,15 @@ export default function Transactions() {
         setPaymentBills([]);
         setSelectedPaymentBill(null);
         setPaymentAmount("");
+        setReceiptBills([]);
+        setSelectedReceiptBill(null);
+        setReceiptAmount("");
         setMessage("");
         setError("");
         setDiscount("");
+        setCapitalAmount("");
+        setCapitalCash("");
+        setCapitalBank("");
     }
 
     function resetTransactionForm() {
@@ -309,15 +530,26 @@ export default function Transactions() {
         setAccountId("");
         setPaymentAccount(null);
         setPaymentBills([]);
+        setReceiptBills([]);
+        setSelectedReceiptBill(null);
+        setReceiptAmount("");
         setSelectedPaymentBill(null);
         setMessage("");
         setError("");
+
+        if (type === "capital") {
+
+            setCapitalAmount("");
+            setCapitalCash("");
+            setCapitalBank("");
+
+        }
     }
 
     function closeSavedVoucher() {
 
         setShowSavedVoucher(false);
-        
+
         resetTransactionForm();
     }
 
@@ -393,8 +625,17 @@ export default function Transactions() {
         setError("");
         setMessage("");
 
-        if (!party) {
-            setError(type === "expense" ? "Please select a supplier." : "Please select a party.");
+        if (
+            type !== "capital" &&
+            !party
+        ) {
+
+            setError(
+                type === "expense"
+                    ? "Please select a supplier."
+                    : "Please select a party."
+            );
+
             return;
         }
 
@@ -452,7 +693,11 @@ export default function Transactions() {
                     ? Number(totalAmount)
                     : type === "sale"
                         ? Number(salesTotalAmount)
-                        : Number(amount);
+                        : type === "receipt"
+                            ? Number(receiptAmount)
+                            : type === "capital"
+                                ? Number(capitalAmount)
+                                : Number(amount);
 
         if (!currentAmount || currentAmount <= 0) {
             setError(
@@ -462,7 +707,61 @@ export default function Transactions() {
             );
             return;
         }
+        if (type === "capital") {
 
+            const transferAmount =
+                Number(capitalAmount) || 0;
+
+            const cash =
+                Number(capitalCash) || 0;
+
+            const bank =
+                Number(capitalBank) || 0;
+
+            const allocated =
+                cash + bank;
+
+
+            if (transferAmount <= 0) {
+
+                setError(
+                    "Please enter the amount to move from Capital."
+                );
+
+                return;
+            }
+
+
+            if (transferAmount > Number(availableCapital)) {
+
+                setError(
+                    "Capital amount cannot exceed the available capital."
+                );
+
+                return;
+            }
+
+
+            if (cash < 0 || bank < 0) {
+
+                setError(
+                    "Cash and Bank cannot be negative."
+                );
+
+                return;
+            }
+
+
+            if (Math.abs(allocated - transferAmount) > 0.001) {
+
+                setError(
+                    "Cash and Bank must equal the amount being moved."
+                );
+
+                return;
+            }
+
+        }
         if (type === "payment") {
 
             if (!selectedPaymentBill) {
@@ -486,7 +785,30 @@ export default function Transactions() {
             }
 
         }
+        if (type === "receipt") {
 
+            if (!selectedReceiptBill) {
+                setError("Please select a Sales bill to receive payment against.");
+                return;
+            }
+
+            if (!accountId) {
+                setError("Please select Cash or Bank.");
+                return;
+            }
+
+            const outstanding =
+                Number(
+                    selectedReceiptBill.outstanding_amount
+                ) || 0;
+
+            if (currentAmount > outstanding) {
+                setError(
+                    `Receipt cannot exceed the outstanding amount of AED ${outstanding.toFixed(2)}.`
+                );
+                return;
+            }
+        }
         if (type === "expense" && (Number(vatRate) < 0 || Number(vatRate) > 100)) {
             setError("VAT percentage must be between 0 and 100.");
             return;
@@ -501,7 +823,6 @@ export default function Transactions() {
             if (type === "payment") {
 
                 response = await createPayment({
-
                     expense_id:
                         Number(selectedPaymentBill.id),
 
@@ -515,6 +836,29 @@ export default function Transactions() {
 
                     narration:
                         narration.trim()
+                });
+
+            } else if (type === "capital") {
+
+                // Capital API will be wired here next.
+
+                response = await createTransaction({
+
+                    type: "capital",
+
+                    date,
+
+                    amount:
+                        Number(capitalAmount) || 0,
+
+                    cash_amount:
+                        Number(capitalCash) || 0,
+
+                    bank_amount:
+                        Number(capitalBank) || 0,
+
+                    narration:
+                        narration?.trim() || ""
 
                 });
 
@@ -534,47 +878,38 @@ export default function Transactions() {
                             ? referenceNumber.trim()
                             : type === "sale"
                                 ? voucherNumber
-                                : null,
+                                : type === "receipt"
+                                    ? selectedReceiptBill?.invoice_number || null
+                                    : null,
+
+                    source_voucher_id:
+                        type === "receipt"
+                            ? selectedReceiptBill?.id || null
+                            : null,
 
                     amount:
                         type === "expense"
                             ? Number(totalAmount) || 0
                             : type === "sale"
                                 ? Number(salesTotalAmount) || 0
-                                : Number(amount) || 0,
+                                : type === "receipt"
+                                    ? Number(receiptAmount) || 0
+                                    : Number(amount) || 0,
 
                     vat_input:
                         type === "expense"
                             ? Number(vatAmount) || 0
                             : 0,
 
+                    vat_output:
+                        type === "sale"
+                            ? Number(vatAmount) || 0
+                            : 0,
+
                     vat_rate:
                         type === "expense"
                             ? Number(vatRate) || 0
-                            : type === "sale"
-                                ? Number(salesVatRate) || 0
-                                : 0,
-
-                    items:
-                        type === "expense"
-                            ? expenseItems
-                            : type === "sale"
-                                ? salesServices
-                                : undefined,
-
-                    discount:
-                        type === "expense"
-                            ? Number(discountAmount) || 0
-                            : type === "sale"
-                                ? Number(salesDiscountAmount) || 0
-                                : 0,
-
-                    discount_mode:
-                        type === "expense"
-                            ? discountMode
-                            : type === "sale"
-                                ? salesDiscountMode
-                                : null,
+                            : 0,
 
                     account_id:
                         type === "payment" ||
@@ -582,13 +917,8 @@ export default function Transactions() {
                             ? Number(accountId) || null
                             : null,
 
-                    expense_payment_status:
-                        type === "expense"
-                            ? "pending"
-                            : null,
-
-                    narration
-
+                    narration:
+                        narration?.trim() || ""
                 });
 
             }
@@ -603,6 +933,17 @@ export default function Transactions() {
                     savedBillNumber
                 );
 
+            }
+            if (type === "receipt") {
+
+                const savedReceiptNumber =
+                    response?.data?.receipt_number ||
+                    response?.receipt_number ||
+                    voucherNumber;
+
+                setVoucherNumber(
+                    savedReceiptNumber
+                );
             }
             if (type === "expense") {
 
@@ -739,17 +1080,27 @@ export default function Transactions() {
                         <ReceiptForm
                             date={date}
                             setDate={setDate}
+
                             party={party}
                             setParty={setParty}
-                            amount={amount}
-                            setAmount={setAmount}
+
+                            receiptBills={receiptBills}
+                            selectedReceiptBill={selectedReceiptBill}
+                            setSelectedReceiptBill={setSelectedReceiptBill}
+
+                            receiptAmount={receiptAmount}
+                            setReceiptAmount={setReceiptAmount}
+
                             accountId={accountId}
                             setAccountId={setAccountId}
+
                             narration={narration}
                             setNarration={setNarration}
+
                             error={error}
                             message={message}
                             saving={saving}
+
                             onSubmit={handleSubmit}
                         />
                     )}
@@ -824,7 +1175,32 @@ export default function Transactions() {
                             onSubmit={handleSubmit}
                         />
                     )}
+                    {type === "capital" && (
+                        <CapitalForm
+                            date={date}
+                            setDate={setDate}
 
+                            availableCapital={availableCapital}
+
+                            amount={capitalAmount}
+                            setAmount={setCapitalAmount}
+
+                            cashAmount={capitalCash}
+                            setCashAmount={setCapitalCash}
+
+                            bankAmount={capitalBank}
+                            setBankAmount={setCapitalBank}
+
+                            narration={narration}
+                            setNarration={setNarration}
+
+                            error={error}
+                            message={message}
+                            saving={saving}
+
+                            onSubmit={handleSubmit}
+                        />
+                    )}
 
                     {/* =====================================
                         BILL PREVIEW
@@ -873,60 +1249,82 @@ export default function Transactions() {
 
                             <div className={styles.billPreview}>
                                 <div className={styles.voucherPreviewScale}>
-                                    <PrintableVoucher
-                                        type={type}
-                                        date={date}
-                                        party={party}
+                                    {type === "capital" ? (
 
-                                        referenceNumber={
-                                            type === "sale"
-                                                ? referenceNumber
-                                                : referenceNumber
-                                        }
+                                        <PrintableCapitalVoucher
+                                            voucherNumber={voucherNumber}
+                                            date={date}
+                                            amount={capitalAmount}
+                                            cashAmount={capitalCash}
+                                            bankAmount={capitalBank}
+                                            narration={narration}
+                                        />
 
-                                        voucherNumber={voucherNumber}
+                                    ) : (
 
-                                        items={
-                                            type === "sale"
-                                                ? salesServices
-                                                : expenseItems
-                                        }
+                                        <PrintableVoucher
+                                            type={type}
+                                            date={date}
+                                            party={party}
 
-                                        amount={
-                                            type === "sale"
-                                                ? salesSubtotal
-                                                : amount
-                                        }
+                                            referenceNumber={referenceNumber}
 
-                                        discountAmount={
-                                            type === "sale"
-                                                ? salesDiscountAmount
-                                                : discountAmount
-                                        }
+                                            voucherNumber={voucherNumber}
 
-                                        vatRate={
-                                            type === "sale"
-                                                ? salesVatRate
-                                                : vatRate
-                                        }
+                                            items={
+                                                type === "sale"
+                                                    ? salesServices
+                                                    : type === "expense"
+                                                        ? expenseItems
+                                                        : []
+                                            }
 
-                                        vatAmount={
-                                            type === "sale"
-                                                ? salesVatAmount
-                                                : vatAmount
-                                        }
+                                            amount={
+                                                type === "sale"
+                                                    ? salesSubtotal
+                                                    : type === "receipt"
+                                                        ? receiptAmount
+                                                        : amount
+                                            }
 
-                                        totalAmount={
-                                            type === "sale"
-                                                ? salesTotalAmount
-                                                : totalAmount
-                                        }
+                                            discountAmount={
+                                                type === "sale"
+                                                    ? salesDiscountAmount
+                                                    : discountAmount
+                                            }
 
-                                        paymentAmount={paymentAmount}
-                                        paymentAccount={paymentAccount}
-                                        selectedPaymentBill={selectedPaymentBill}
-                                        narration={narration}
-                                    />
+                                            vatRate={
+                                                type === "sale"
+                                                    ? salesVatRate
+                                                    : vatRate
+                                            }
+
+                                            vatAmount={
+                                                type === "sale"
+                                                    ? salesVatAmount
+                                                    : vatAmount
+                                            }
+
+                                            totalAmount={
+                                                type === "sale"
+                                                    ? salesTotalAmount
+                                                    : type === "receipt"
+                                                        ? receiptAmount
+                                                        : totalAmount
+                                            }
+
+                                            paymentAmount={paymentAmount}
+                                            paymentAccount={paymentAccount}
+
+                                            selectedPaymentBill={selectedPaymentBill}
+
+                                            selectedReceiptBill={selectedReceiptBill}
+                                            receiptAmount={receiptAmount}
+
+                                            narration={narration}
+                                        />
+
+                                    )}
                                 </div>
                             </div>
 
@@ -953,59 +1351,95 @@ export default function Transactions() {
 
             {showSavedVoucher && (
 
-                <SavedVoucher
-                    type={type}
-                    currentType={currentType}
-                    date={date}
-                    party={party}
+                type === "capital" ? (
 
-                    referenceNumber={referenceNumber}
-                    voucherNumber={voucherNumber}
+                    <SavedCapitalVoucher
+                        voucherNumber={voucherNumber}
+                        date={date}
+                        amount={capitalAmount}
+                        cashAmount={capitalCash}
+                        bankAmount={capitalBank}
+                        narration={narration}
+                        closeSavedVoucher={closeSavedVoucher}
+                    />
 
-                    items={
-                        type === "sale"
-                            ? salesServices
-                            : expenseItems
-                    }
+                ) : (
 
-                    amount={
-                        type === "sale"
-                            ? salesSubtotal
-                            : amount
-                    }
+                    <SavedVoucher
+                        type={type}
+                        currentType={currentType}
+                        date={date}
+                        party={party}
 
-                    discountAmount={
-                        type === "sale"
-                            ? salesDiscountAmount
-                            : discountAmount
-                    }
+                        referenceNumber={referenceNumber}
+                        voucherNumber={voucherNumber}
 
-                    vatRate={
-                        type === "sale"
-                            ? salesVatRate
-                            : vatRate
-                    }
+                        items={
+                            type === "sale"
+                                ? salesServices
+                                : expenseItems
+                        }
 
-                    vatAmount={
-                        type === "sale"
-                            ? salesVatAmount
-                            : vatAmount
-                    }
+                        amount={
+                            type === "sale"
+                                ? salesSubtotal
+                                : amount
+                        }
 
-                    totalAmount={
-                        type === "sale"
-                            ? salesTotalAmount
-                            : totalAmount
-                    }
+                        discountAmount={
+                            type === "sale"
+                                ? salesDiscountAmount
+                                : discountAmount
+                        }
 
-                    paymentAmount={paymentAmount}
-                    paymentAccount={paymentAccount}
-                    selectedPaymentBill={selectedPaymentBill}
-                    narration={narration}
+                        vatRate={
+                            type === "sale"
+                                ? salesVatRate
+                                : vatRate
+                        }
 
-                    printVoucher={printVoucher}
-                    closeSavedVoucher={closeSavedVoucher}
-                />
+                        vatAmount={
+                            type === "sale"
+                                ? salesVatAmount
+                                : vatAmount
+                        }
+
+                        totalAmount={
+                            type === "sale"
+                                ? salesTotalAmount
+                                : totalAmount
+                        }
+
+                        paymentAmount={
+                            paymentAmount
+                        }
+
+                        paymentAccount={
+                            paymentAccount
+                        }
+
+                        selectedPaymentBill={
+                            selectedPaymentBill
+                        }
+
+                        selectedReceiptBill={
+                            selectedReceiptBill
+                        }
+
+                        receiptAmount={
+                            receiptAmount
+                        }
+
+                        narration={
+                            narration
+                        }
+
+                        printVoucher={printVoucher}
+                        closeSavedVoucher={closeSavedVoucher}
+                    />
+
+                )
+
             )}
 
         </AppLayout>

@@ -28,6 +28,9 @@ export default function SavedVoucher({
     paymentAccount,
 
     selectedPaymentBill,
+    selectedReceiptBill,
+
+    receiptAmount,
 
     narration,
 
@@ -179,7 +182,13 @@ export default function SavedVoucher({
                     selectedPaymentBill={
                         selectedPaymentBill
                     }
+                    selectedReceiptBill={
+                        selectedReceiptBill
+                    }
 
+                    receiptAmount={
+                        receiptAmount
+                    }
                     narration={
                         narration
                     }
