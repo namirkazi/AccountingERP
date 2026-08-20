@@ -6,14 +6,7 @@ export function getLedger(params = {}) {
     const query =
         new URLSearchParams();
 
-    if (params.type) {
 
-        query.set(
-            "type",
-            params.type
-        );
-
-    }
     if (params.search) {
 
         query.set(
@@ -88,6 +81,22 @@ export function getLedger(params = {}) {
         }`,
         {
             method: "GET"
+        }
+    );
+}
+export function getVoucher(voucherId) {
+    if (!voucherId) {
+        throw new Error(
+            "Voucher ID is required."
+        );
+    }
+
+    return apiRequest(
+        `accounting/view_voucher.php?id=${encodeURIComponent(
+            voucherId
+        )}`,
+        {
+            method: "GET",
         }
     );
 }

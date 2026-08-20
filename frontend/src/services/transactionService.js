@@ -1,11 +1,16 @@
 import { apiRequest } from "./api";
 
 export function createTransaction(data) {
+    const isFormData =
+        data instanceof FormData;
+
     return apiRequest(
         "accounting/transactions.php",
         {
             method: "POST",
-            body: JSON.stringify(data)
+            body: isFormData
+                ? data
+                : JSON.stringify(data)
         }
     );
 }

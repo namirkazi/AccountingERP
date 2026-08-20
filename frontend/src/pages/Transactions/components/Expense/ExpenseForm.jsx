@@ -6,6 +6,9 @@ import {
 import PartySelector
     from "../../../../components/accounting/PartySelector";
 
+import ExpenseSelector
+    from "../../../../components/accounting/ExpenseSelector";
+
 import ExpenseItems
     from "./ExpenseItems";
 
@@ -29,6 +32,12 @@ export default function ExpenseForm({
 
     referenceNumber,
     setReferenceNumber,
+
+    attachment,
+    setAttachment,
+
+    selectedExpense,
+    setSelectedExpense,
 
     items,
 
@@ -177,6 +186,30 @@ export default function ExpenseForm({
                         placeholder="e.g. RB-2026-0047"
                     />
 
+                </div>
+
+                <div className={styles.referenceField}>
+                    <label>
+                        Supplier Bill Attachment
+                        <span className={styles.optionalLabel}>
+                              -Optional · PDF or image
+                        </span>
+                    </label>
+
+                    <input
+                        type="file"
+                        accept="application/pdf,image/jpeg,image/png,image/webp"
+                        onChange={event => {
+                            const file = event.target.files?.[0] || null;
+                            setAttachment(file);
+                        }}
+                    />
+
+                    {attachment && (
+                        <span className={styles.fileName}>
+                            {attachment.name}
+                        </span>
+                    )}
                 </div>
 
             </div>

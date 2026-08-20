@@ -2,7 +2,7 @@ import {
     BookOpen,
     RefreshCw,
 } from "lucide-react";
-
+import PrintableVoucher from "../../components/accounting/PrintableVoucher";
 import {
     useSearchParams,
 } from "react-router-dom";
@@ -25,11 +25,13 @@ import styles
 import {
     useCallback,
     useEffect,
+    useRef,
     useState,
 } from "react";
 
 import {
-    getLedger
+    getLedger,
+    getVoucher,
 } from "../../services/ledgerService";
 
 
@@ -55,10 +57,12 @@ const VOUCHER_TYPES = [
 
 export default function Ledger() {
 
-    const [searchParams] =
-        useSearchParams();
+    const [
+        searchParams,
+        setSearchParams
+    ] = useSearchParams();
 
-
+    const voucherPrintRef = useRef(null);
     /*
      * Dashboard navigation type.
      *
@@ -126,6 +130,20 @@ export default function Ledger() {
     const [totalCredit, setTotalCredit] =
         useState(0);
 
+    const [
+        viewingVoucher,
+        setViewingVoucher
+    ] = useState(null);
+
+    const [
+        loadingVoucher,
+        setLoadingVoucher
+    ] = useState(false);
+
+    const [
+        voucherError,
+        setVoucherError
+    ] = useState("");
 
     /*
      * =====================================================
@@ -146,37 +164,42 @@ export default function Ledger() {
     useEffect(() => {
 
         const typeMap = {
-
             sales: ["SALE"],
-
             receipt: ["RECEIPT"],
-
             expense: ["EXPENSE"],
-
             payments: ["PAYMENT"],
-
         };
-
 
         const voucherType =
             typeMap[type];
 
-
-        /*
-         * If this is one of the voucher-based Dashboard
-         * types, select it in the existing Voucher Type
-         * filter.
-         */
-
-        if (voucherType) {
-
-            setSelectedVoucherTypes(
-                voucherType
-            );
-
+        if (!voucherType) {
+            return;
         }
 
-    }, [type]);
+        setSelectedVoucherTypes(
+            voucherType
+        );
+
+        const nextParams =
+            new URLSearchParams(
+                searchParams
+            );
+
+        nextParams.delete("type");
+
+        setSearchParams(
+            nextParams,
+            {
+                replace: true
+            }
+        );
+
+    }, [
+        type,
+        searchParams,
+        setSearchParams
+    ]);
 
 
     /*
@@ -220,29 +243,13 @@ export default function Ledger() {
 
                 const response =
                     await getLedger({
-
-                        /*
-                         * Keep the Dashboard type in the
-                         * request as well.
-                         */
-
-                        type,
-
+                        type: "",
                         search,
-
-                        accountIds:
-                            selectedAccounts,
-
-                        voucherTypes:
-                            selectedVoucherTypes,
-
-                        partyIds:
-                            selectedParties,
-
+                        accountIds: selectedAccounts,
+                        voucherTypes: selectedVoucherTypes,
+                        partyIds: selectedParties,
                         dateFrom,
-
                         dateTo,
-
                     });
 
 
@@ -389,23 +396,81 @@ export default function Ledger() {
      * VIEW VOUCHER
      * =====================================================
      */
+    const handlePrintViewedVoucher = () => {
+        if (!voucherPrintRef.current) {
+            return;
+        }
 
-    function handleViewVoucher(entry) {
+        window.print();
+    };
+    async function handleViewVoucher(entry) {
 
-        console.log(
-            "View voucher:",
-            entry
-        );
+        const voucherId =
+            Number(
+                entry?.voucher_id
+            );
 
 
-        /*
-         * Next step:
-         *
-         * fetch voucher by entry.voucher_id
-         * and pass it through the existing
-         * PrintableVoucher / PDF flow.
-         */
+        if (!voucherId) {
 
+            setVoucherError(
+                "This ledger entry does not have a valid voucher."
+            );
+
+            return;
+        }
+
+
+        try {
+
+            setVoucherError("");
+            setLoadingVoucher(true);
+
+
+            const response =
+                await getVoucher(
+                    voucherId
+                );
+
+
+            const voucher =
+                response?.data ||
+                response?.voucher ||
+                null;
+
+
+            if (!voucher) {
+
+                throw new Error(
+                    "Unable to load this voucher."
+                );
+            }
+
+
+            setViewingVoucher(
+                voucher
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                "Unable to view voucher:",
+                error
+            );
+
+
+            setVoucherError(
+                error.message ||
+                "Unable to load voucher."
+            );
+
+
+        } finally {
+
+            setLoadingVoucher(false);
+
+        }
     }
 
 
@@ -683,7 +748,176 @@ export default function Ledger() {
 
 
             </div>
+            {loadingVoucher && (
+                <div
+                    style={{
+                        position: "fixed",
+                        inset: 0,
+                        zIndex: 9999,
+                        background: "rgba(15, 23, 42, 0.65)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                    }}
+                >
+                    <div
+                        style={{
+                            background: "#ffffff",
+                            borderRadius: 12,
+                            padding: "24px 32px",
+                            fontWeight: 600,
+                            color: "#111827",
+                        }}
+                    >
+                        Loading bill...
+                    </div>
+                </div>
+            )}
 
+
+            {voucherError && (
+                <div
+                    style={{
+                        position: "fixed",
+                        right: 24,
+                        bottom: 24,
+                        zIndex: 10000,
+                        background: "#ffffff",
+                        border: "1px solid #fecaca",
+                        borderRadius: 10,
+                        padding: "14px 18px",
+                        color: "#b91c1c",
+                        boxShadow:
+                            "0 10px 30px rgba(0,0,0,0.15)",
+                    }}
+                >
+                    {voucherError}
+                </div>
+            )}
+
+
+            {viewingVoucher && (
+                <div
+                    style={{
+                        position: "fixed",
+                        inset: 0,
+                        zIndex: 9998,
+                        background:
+                            "rgba(15, 23, 42, 0.72)",
+                        overflowY: "auto",
+                        padding: "24px",
+                    }}
+                >
+
+                    <div
+                        style={{
+                            maxWidth: 980,
+                            margin: "0 auto",
+                        }}
+                    >
+
+                        <div
+                            style={{
+                                display: "flex",
+                                justifyContent: "flex-end",
+                                gap: 10,
+                                marginBottom: 14,
+                            }}
+                        >
+
+                            <button
+                                type="button"
+                                onClick={handlePrintViewedVoucher}
+                                style={{
+                                    border: "none",
+                                    borderRadius: 8,
+                                    padding: "10px 18px",
+                                    background: "#111827",
+                                    color: "#ffffff",
+                                    fontWeight: 600,
+                                    cursor: "pointer",
+                                }}
+                            >
+                                Print
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    setViewingVoucher(null)
+                                }
+                                style={{
+                                    border: "none",
+                                    borderRadius: 8,
+                                    padding: "10px 18px",
+                                    background: "#ffffff",
+                                    color: "#111827",
+                                    fontWeight: 600,
+                                    cursor: "pointer",
+                                }}
+                            >
+                                Close
+                            </button>
+                        </div>
+
+                        <div
+                            ref={voucherPrintRef}
+                            className={styles.ledgerVoucherPrintArea}
+                        >
+                            <PrintableVoucher
+                                type={viewingVoucher.type}
+                                date={viewingVoucher.date}
+                                party={viewingVoucher.party}
+                                company={viewingVoucher.company}
+                                referenceNumber={
+                                    viewingVoucher.referenceNumber
+                                }
+                                voucherNumber={
+                                    viewingVoucher.voucherNumber
+                                }
+                                items={
+                                    viewingVoucher.items
+                                }
+                                amount={
+                                    viewingVoucher.amount
+                                }
+                                discountAmount={
+                                    viewingVoucher.discountAmount
+                                }
+                                vatRate={
+                                    viewingVoucher.vatRate
+                                }
+                                vatAmount={
+                                    viewingVoucher.vatAmount
+                                }
+                                totalAmount={
+                                    viewingVoucher.totalAmount
+                                }
+                                paymentAmount={
+                                    viewingVoucher.paymentAmount
+                                }
+                                receiptAmount={
+                                    viewingVoucher.receiptAmount
+                                }
+                                paymentAccount={
+                                    viewingVoucher.paymentAccount
+                                }
+                                selectedPaymentBill={
+                                    viewingVoucher.selectedPaymentBill
+                                }
+                                selectedReceiptBill={
+                                    viewingVoucher.selectedReceiptBill
+                                }
+                                narration={
+                                    viewingVoucher.narration
+                                }
+                                documentStatus="COPY"
+                            />
+                        </div>
+                    </div>
+
+                </div>
+            )}
         </AppLayout>
 
     );

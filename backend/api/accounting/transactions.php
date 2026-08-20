@@ -36,16 +36,21 @@ try {
     // READ REQUEST
     // =====================================================
 
-    $data = json_decode(
-        file_get_contents('php://input'),
-        true
-    );
+    $contentType =
+        $_SERVER['CONTENT_TYPE'] ?? '';
 
+    if (stripos($contentType, 'multipart/form-data') === 0) {
+        $data = $_POST;
+    } else {
+        $data = json_decode(
+            file_get_contents('php://input'),
+            true
+        );
+    }
 
     if (!is_array($data)) {
-
         throw new Exception(
-            'Invalid JSON request.'
+            'Invalid transaction request.'
         );
     }
 
@@ -101,6 +106,26 @@ try {
     $referenceNumber = trim(
         $data['reference_number'] ?? ''
     );
+
+    // External supplier/customer bill reference.
+    // This is intentionally separate from our ERP voucher number.
+    $billReference = trim(
+        $data['bill_reference'] ?? ''
+    );
+
+    $expenseItems = [];
+
+    if ($type === 'expense' && isset($data['items'])) {
+        if (is_string($data['items'])) {
+            $expenseItems = json_decode($data['items'], true) ?? [];
+        } elseif (is_array($data['items'])) {
+            $expenseItems = $data['items'];
+        }
+
+        if (!is_array($expenseItems)) {
+            throw new Exception('Invalid expense items.');
+        }
+    }
 
     $sourceVoucherId = (int) (
         $data['source_voucher_id'] ?? 0
@@ -167,6 +192,29 @@ try {
         exit;
     }
 
+
+    if ($type === 'expense' && $billReference === '') {
+
+        http_response_code(422);
+
+        echo json_encode([
+            'success' => false,
+            'message' => 'Supplier bill/reference number is required.'
+        ]);
+
+        exit;
+    }
+
+    if ($type === 'expense' && count($expenseItems) === 0) {
+        http_response_code(422);
+
+        echo json_encode([
+            'success' => false,
+            'message' => 'At least one expense item is required.'
+        ]);
+
+        exit;
+    }
 
     if ($amount <= 0) {
 
@@ -1098,6 +1146,7 @@ try {
     voucher_type,
     voucher_date,
     reference_number,
+    bill_reference,
     party_id,
     amount,
     vat_input,
@@ -1111,6 +1160,7 @@ try {
         :voucher_type,
         :voucher_date,
         :reference_number,
+        :bill_reference,
         :party_id,
         :amount,
         :vat_input,
@@ -1137,8 +1187,15 @@ try {
 
 
         ':reference_number' =>
-        $referenceNumber !== ''
-            ? $referenceNumber
+        $type === 'expense'
+            ? null
+            : ($referenceNumber !== ''
+                ? $referenceNumber
+                : null),
+
+        ':bill_reference' =>
+        $type === 'expense' && $billReference !== ''
+            ? $billReference
             : null,
 
         ':source_voucher_id' =>
@@ -1184,6 +1241,86 @@ try {
         throw new Exception(
             'Failed to create voucher.'
         );
+    }
+
+
+    // Expense voucher numbers are generated internally.
+    // The supplier's number lives in bill_reference.
+    if ($type === 'expense') {
+        $expenseVoucherNumber =
+            'EXPENSE/'
+            . date('Y', strtotime($date))
+            . '/'
+            . str_pad(
+                (string) $voucherId,
+                5,
+                '0',
+                STR_PAD_LEFT
+            );
+
+        $updateExpenseNumber = $pdo->prepare("
+            UPDATE vouchers
+            SET reference_number = :reference_number
+            WHERE id = :id
+            AND company_id = :company_id
+        ");
+
+        $updateExpenseNumber->execute([
+            ':reference_number' => $expenseVoucherNumber,
+            ':id' => $voucherId,
+            ':company_id' => $companyId
+        ]);
+
+        $referenceNumber = $expenseVoucherNumber;
+    }
+
+
+    // =====================================================
+    // EXPENSE ITEMS
+    // =====================================================
+
+    if ($type === 'expense') {
+        $itemStmt = $pdo->prepare("
+            INSERT INTO voucher_items (
+                voucher_id,
+                supplier_item_id,
+                description,
+                unit,
+                quantity,
+                rate,
+                amount
+            ) VALUES (
+                :voucher_id,
+                :supplier_item_id,
+                :description,
+                :unit,
+                :quantity,
+                :rate,
+                :amount
+            )
+        ");
+
+        foreach ($expenseItems as $item) {
+            $description = trim((string) ($item['description'] ?? ''));
+            $quantity = (float) ($item['quantity'] ?? 0);
+            $rate = (float) ($item['rate'] ?? 0);
+
+            if ($description === '' || $quantity <= 0 || $rate < 0) {
+                throw new Exception('Every expense item must have a description, quantity, and valid rate.');
+            }
+
+            $itemStmt->execute([
+                ':voucher_id' => $voucherId,
+                ':supplier_item_id' => !empty($item['supplierItemId'])
+                    ? (int) $item['supplierItemId']
+                    : null,
+                ':description' => $description,
+                ':unit' => trim((string) ($item['unit'] ?? '')),
+                ':quantity' => $quantity,
+                ':rate' => $rate,
+                ':amount' => round($quantity * $rate, 2)
+            ]);
+        }
     }
 
 
@@ -1669,6 +1806,98 @@ try {
 
 
     // =====================================================
+    // SUPPLIER BILL ATTACHMENT
+    // =====================================================
+
+    if (
+        $type === 'expense' &&
+        isset($_FILES['bill_attachment']) &&
+        $_FILES['bill_attachment']['error'] !== UPLOAD_ERR_NO_FILE
+    ) {
+
+        $file = $_FILES['bill_attachment'];
+
+        if ($file['error'] !== UPLOAD_ERR_OK) {
+            throw new Exception('Supplier bill upload failed.');
+        }
+
+        if ((int) $file['size'] > 10 * 1024 * 1024) {
+            throw new Exception('Supplier bill attachment cannot exceed 10 MB.');
+        }
+
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
+        $mimeType = $finfo->file($file['tmp_name']);
+
+        $allowedMimeTypes = [
+            'application/pdf' => 'pdf',
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+            'image/webp' => 'webp'
+        ];
+
+        if (!isset($allowedMimeTypes[$mimeType])) {
+            throw new Exception('Supplier bill must be a PDF, JPG, PNG, or WEBP file.');
+        }
+
+        $uploadDirectory =
+            __DIR__
+            . '/../../uploads/accounting/vouchers/'
+            . $companyId;
+
+        if (!is_dir($uploadDirectory) && !mkdir($uploadDirectory, 0755, true)) {
+            throw new Exception('Unable to create the supplier bill upload directory.');
+        }
+
+        $storedName =
+            'voucher_'
+            . $voucherId
+            . '_'
+            . bin2hex(random_bytes(8))
+            . '.'
+            . $allowedMimeTypes[$mimeType];
+
+        $destination = $uploadDirectory . '/' . $storedName;
+
+        if (!move_uploaded_file($file['tmp_name'], $destination)) {
+            throw new Exception('Unable to store the supplier bill attachment.');
+        }
+
+        $relativePath =
+            'uploads/accounting/vouchers/'
+            . $companyId
+            . '/'
+            . $storedName;
+
+        $attachmentStmt = $pdo->prepare("
+            INSERT INTO voucher_attachments (
+                voucher_id,
+                original_name,
+                stored_name,
+                file_path,
+                mime_type,
+                file_size
+            ) VALUES (
+                :voucher_id,
+                :original_name,
+                :stored_name,
+                :file_path,
+                :mime_type,
+                :file_size
+            )
+        ");
+
+        $attachmentStmt->execute([
+            ':voucher_id' => $voucherId,
+            ':original_name' => basename($file['name']),
+            ':stored_name' => $storedName,
+            ':file_path' => $relativePath,
+            ':mime_type' => $mimeType,
+            ':file_size' => (int) $file['size']
+        ]);
+    }
+
+
+    // =====================================================
     // COMMIT
     // =====================================================
 
@@ -1740,6 +1969,14 @@ try {
                 $amount,
                 2
             ),
+
+            'reference_number' =>
+            $referenceNumber,
+
+            'bill_reference' =>
+            $billReference !== ''
+                ? $billReference
+                : null,
 
             'bill_number' =>
             $type === 'sale'

@@ -72,7 +72,7 @@ export const menuItems = [
   },
 
   {
-    title: "Administration",
+    title: "Settings",
     icon: Settings,
     path: "/settings",
     role: ["admin"],

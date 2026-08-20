@@ -457,7 +457,7 @@
 
     box-sizing: border-box;
 
-    text-align: right;
+    text-align: center;
 
     white-space: nowrap;
 }
@@ -842,7 +842,7 @@
 
         margin: 0 !important;
 
-        
+
 
         box-sizing: border-box;
 
@@ -883,8 +883,16 @@
     }
 
     .itemsTable {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+
+        table-layout: fixed !important;
+
         break-inside: auto;
         page-break-inside: auto;
+
+        box-sizing: border-box !important;
     }
 
     .itemsTable thead {

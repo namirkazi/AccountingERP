@@ -85,6 +85,7 @@ AND e.voucher_type = 'EXPENSE'
 AND (
     e.narration LIKE :search_narration
     OR e.reference_number LIKE :search_reference
+    OR e.bill_reference LIKE :search_bill_reference
     OR p.party_name LIKE :search_party
     OR CAST(e.id AS CHAR) LIKE :search_id
 )
@@ -113,6 +114,7 @@ AND e.amount > COALESCE(
         ':company_id' => $companyId,
         ':search_narration' => $searchValue,
         ':search_reference' => $searchValue,
+        ':search_bill_reference' => $searchValue,
         ':search_party' => $searchValue,
         ':search_id' => $searchValue
     ]);

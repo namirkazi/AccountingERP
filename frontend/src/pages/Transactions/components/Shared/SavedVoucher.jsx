@@ -6,13 +6,18 @@ import PrintableVoucher
 
 import styles
     from "../../Transactions.module.css";
-import { generateVoucherPDF } from "../../../../utils/generateVoucherPDF";
+
+import {
+    generateVoucherPDF
+} from "../../../../utils/generateVoucherPDF";
 
 
 export default function SavedVoucher({
     type,
     date,
     party,
+    company,
+
     referenceNumber,
     voucherNumber,
 
@@ -38,25 +43,12 @@ export default function SavedVoucher({
 }) {
 
     const voucherRef = useRef(null);
-    const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
-    const handleSavePdf = async () => {
-        if (!voucherRef.current || isGeneratingPdf) return;
+    const [
+        isGeneratingPdf,
+        setIsGeneratingPdf
+    ] = useState(false);
 
-        try {
-            setIsGeneratingPdf(true);
-
-            await generateVoucherPDF(voucherRef.current, {
-                fileName: `${String(voucherNumber || title)
-                    .replace(/[^a-z0-9/_-]+/gi, "-")
-                    .replace(/\//g, "-")}.pdf`
-            });
-        } catch (error) {
-            console.error("Failed to generate voucher PDF:", error);
-        } finally {
-            setIsGeneratingPdf(false);
-        }
-    };
 
     const title =
         type === "payment"
@@ -70,11 +62,71 @@ export default function SavedVoucher({
                         : "Transaction Voucher";
 
 
+    const handleSavePdf = async () => {
+
+        if (
+            !voucherRef.current ||
+            isGeneratingPdf
+        ) {
+            return;
+        }
+
+
+        try {
+
+            setIsGeneratingPdf(true);
+
+
+            await generateVoucherPDF(
+                voucherRef.current,
+                {
+                    fileName:
+                        `${String(
+                            voucherNumber ||
+                            title
+                        )
+                            .replace(
+                                /[^a-z0-9/_-]+/gi,
+                                "-"
+                            )
+                            .replace(
+                                /\//g,
+                                "-"
+                            )}.pdf`
+                }
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                "Failed to generate voucher PDF:",
+                error
+            );
+
+
+        } finally {
+
+            setIsGeneratingPdf(false);
+
+        }
+
+    };
+
+
     return (
 
-        <div className={styles.savedVoucherOverlay}>
+        <div
+            className={
+                styles.savedVoucherOverlay
+            }
+        >
 
-            <div className={styles.savedVoucherToolbar}>
+            <div
+                className={
+                    styles.savedVoucherToolbar
+                }
+            >
 
                 <div>
 
@@ -100,15 +152,23 @@ export default function SavedVoucher({
                         className={
                             styles.printVoucherButton
                         }
-                        onClick={handleSavePdf}
-                        disabled={isGeneratingPdf}
+                        onClick={
+                            handleSavePdf
+                        }
+                        disabled={
+                            isGeneratingPdf
+                        }
                     >
 
                         <FileText
                             size={17}
                         />
 
-                        {isGeneratingPdf ? "Generating PDF..." : "Print / Save PDF"}
+                        {
+                            isGeneratingPdf
+                                ? "Generating PDF..."
+                                : "Print / Save PDF"
+                        }
 
                     </button>
 
@@ -118,7 +178,9 @@ export default function SavedVoucher({
                         className={
                             styles.closeVoucherButton
                         }
-                        onClick={closeSavedVoucher}
+                        onClick={
+                            closeSavedVoucher
+                        }
                     >
 
                         Close
@@ -132,7 +194,9 @@ export default function SavedVoucher({
 
             <div
                 ref={voucherRef}
-                className={styles.printableVoucherPaper}
+                className={
+                    styles.printableVoucherPaper
+                }
             >
 
                 <PrintableVoucher
@@ -142,6 +206,13 @@ export default function SavedVoucher({
                     date={date}
 
                     party={party}
+
+                    /*
+                     * IMPORTANT:
+                     * Use the same company profile
+                     * as the live preview.
+                     */
+                    company={company}
 
                     referenceNumber={
                         referenceNumber
@@ -182,6 +253,7 @@ export default function SavedVoucher({
                     selectedPaymentBill={
                         selectedPaymentBill
                     }
+
                     selectedReceiptBill={
                         selectedReceiptBill
                     }
@@ -189,6 +261,7 @@ export default function SavedVoucher({
                     receiptAmount={
                         receiptAmount
                     }
+
                     narration={
                         narration
                     }
@@ -200,4 +273,5 @@ export default function SavedVoucher({
         </div>
 
     );
+
 }

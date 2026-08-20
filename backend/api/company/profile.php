@@ -22,7 +22,7 @@ try {
     $stmt = $pdo->prepare("
         SELECT
             id,
-            name,
+            company_name as name,
             logo,
             address,
             city,
@@ -47,13 +47,40 @@ try {
 
     $company = $stmt->fetch();
 
-
     if (!$company) {
 
         throw new Exception(
             'Company profile not found.'
         );
+    }
+    $logoData = null;
 
+    if (!empty($company['logo'])) {
+
+        $logoFilePath =
+            __DIR__ .
+            '/../../' .
+            ltrim($company['logo'], '/');
+
+        if (is_file($logoFilePath)) {
+
+            $mimeType =
+                mime_content_type($logoFilePath);
+
+            $logoContents =
+                file_get_contents($logoFilePath);
+
+            if ($logoContents !== false) {
+
+                $logoData =
+                    'data:' .
+                    $mimeType .
+                    ';base64,' .
+                    base64_encode(
+                        $logoContents
+                    );
+            }
+        }
     }
 
 
@@ -62,51 +89,52 @@ try {
 
         'company' => [
             'id' =>
-                (int) $company['id'],
+            (int) $company['id'],
 
             'name' =>
-                $company['name'],
+            $company['name'],
 
             'logo' =>
-                $company['logo'],
+            $company['logo'],
+
+            'logo_data' =>
+            $logoData,
 
             'address' =>
-                $company['address'],
+            $company['address'],
 
             'city' =>
-                $company['city'],
+            $company['city'],
 
             'country' =>
-                $company['country'],
+            $company['country'],
 
             'phone' =>
-                $company['phone'],
+            $company['phone'],
 
             'email' =>
-                $company['email'],
+            $company['email'],
 
             'website' =>
-                $company['website'],
+            $company['website'],
 
             'trn' =>
-                $company['trn'],
+            $company['trn'],
 
             'theme' => [
 
                 'primary' =>
-                    $company['primary_color'],
+                $company['primary_color'],
 
                 'secondary' =>
-                    $company['secondary_color'],
+                $company['secondary_color'],
 
                 'accent' =>
-                    $company['accent_color']
+                $company['accent_color']
 
             ]
         ]
     ]);
-
-
 } catch (Throwable $e) {
 
     http_response_code(500);
@@ -115,5 +143,4 @@ try {
         'success' => false,
         'message' => $e->getMessage()
     ]);
-
 }

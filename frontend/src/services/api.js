@@ -6,17 +6,21 @@ export async function apiRequest(
     options = {}
 ) {
 
+    const isFormData =
+        typeof FormData !== "undefined" &&
+        options.body instanceof FormData;
+
     const response = await fetch(
         `${API_BASE}${endpoint}`,
         {
             credentials: "include",
-
+            ...options,
             headers: {
-                "Content-Type": "application/json",
+                ...(isFormData
+                    ? {}
+                    : { "Content-Type": "application/json" }),
                 ...(options.headers || {})
-            },
-
-            ...options
+            }
         }
     );
 

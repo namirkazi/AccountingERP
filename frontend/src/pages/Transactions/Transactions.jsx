@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-
+import {
+    getCompanyProfile
+} from "../../services/companyService";
 import AppLayout from "../../components/layout/AppLayout";
 import CapitalForm
     from "./components/Capital/CapitalForm";
@@ -137,7 +139,8 @@ export default function Transactions() {
     const [availableCapital, setAvailableCapital] =
         useState(0);
     const [voucherNumber, setVoucherNumber] = useState("");
-
+    const [company, setCompany] = useState(null);
+    const [expenseAttachment, setExpenseAttachment] = useState(null);
 
     /* Receipt Number */
     useEffect(() => {
@@ -208,6 +211,58 @@ export default function Transactions() {
         };
 
     }, [type, date]);
+    /*
+ * =====================================================
+ * COMPANY PROFILE
+ * =====================================================
+ */
+
+    useEffect(() => {
+
+        let cancelled = false;
+
+        async function loadCompanyProfile() {
+
+            try {
+
+                const response =
+                    await getCompanyProfile();
+
+                if (cancelled) {
+                    return;
+                }
+
+                const profile =
+                    response?.company ||
+                    response?.data?.company ||
+                    response?.data ||
+                    null;
+
+                setCompany(profile);
+
+            } catch (error) {
+
+                if (cancelled) {
+                    return;
+                }
+
+                console.error(
+                    "Unable to load company profile:",
+                    error
+                );
+
+                setCompany(null);
+            }
+        }
+
+        loadCompanyProfile();
+
+        return () => {
+            cancelled = true;
+        };
+
+    }, []);
+
 
     /* Sale BIll NO */
     useEffect(() => {
@@ -498,6 +553,7 @@ export default function Transactions() {
         setType(newType);
         resetExpense();
         resetSales();
+        setExpenseAttachment(null);
         setVoucherNumber("");
         setParty(null);
         setAmount("");
@@ -525,6 +581,7 @@ export default function Transactions() {
         setPaymentAmount("");
         resetExpense();
         resetSales();
+        setExpenseAttachment(null);
         setVoucherNumber("");
         setNarration("");
         setAccountId("");
@@ -561,6 +618,16 @@ export default function Transactions() {
     }
 
     function getSavedVoucherNumber(response) {
+        const reference =
+            response?.data?.reference_number ||
+            response?.reference_number ||
+            response?.data?.voucher?.reference_number ||
+            "";
+
+        if (reference) {
+            return reference;
+        }
+
         const id =
             response?.data?.voucher_id ||
             response?.data?.voucher?.id ||
@@ -569,7 +636,7 @@ export default function Transactions() {
             response?.data?.id;
 
         if (id) {
-            return `EXP-${String(id).padStart(6, "0")}`;
+            return `EXPENSE/${new Date().getFullYear()}/${String(id).padStart(5, "0")}`;
         }
 
         return getNextLocalExpenseVoucherNumber();
@@ -814,6 +881,25 @@ export default function Transactions() {
             return;
         }
 
+        if (type === "expense" && expenseAttachment) {
+            const allowedTypes = [
+                "application/pdf",
+                "image/jpeg",
+                "image/png",
+                "image/webp"
+            ];
+
+            if (!allowedTypes.includes(expenseAttachment.type)) {
+                setError("Supplier bill must be a PDF, JPG, PNG, or WEBP file.");
+                return;
+            }
+
+            if (expenseAttachment.size > 10 * 1024 * 1024) {
+                setError("Supplier bill attachment cannot exceed 10 MB.");
+                return;
+            }
+        }
+
         setSaving(true);
 
         try {
@@ -864,62 +950,58 @@ export default function Transactions() {
 
             } else {
 
-                response = await createTransaction({
+                if (type === "expense") {
+                    const formData = new FormData();
 
-                    type,
+                    formData.append("type", type);
+                    formData.append("date", date);
+                    formData.append("party_id", String(party?.id || ""));
+                    formData.append("bill_reference", referenceNumber.trim());
+                    formData.append("amount", String(Number(totalAmount) || 0));
+                    formData.append("vat_input", String(Number(vatAmount) || 0));
+                    formData.append("vat_rate", String(Number(vatRate) || 0));
+                    formData.append("narration", narration?.trim() || "");
+                    formData.append("items", JSON.stringify(validExpenseItems));
 
-                    date,
+                    if (expenseAttachment) {
+                        formData.append("bill_attachment", expenseAttachment);
+                    }
 
-                    party_id:
-                        party?.id || null,
-
-                    reference_number:
-                        type === "expense"
-                            ? referenceNumber.trim()
-                            : type === "sale"
+                    response = await createTransaction(formData);
+                } else {
+                    response = await createTransaction({
+                        type,
+                        date,
+                        party_id: party?.id || null,
+                        reference_number:
+                            type === "sale"
                                 ? voucherNumber
                                 : type === "receipt"
                                     ? selectedReceiptBill?.invoice_number || null
                                     : null,
-
-                    source_voucher_id:
-                        type === "receipt"
-                            ? selectedReceiptBill?.id || null
-                            : null,
-
-                    amount:
-                        type === "expense"
-                            ? Number(totalAmount) || 0
-                            : type === "sale"
+                        source_voucher_id:
+                            type === "receipt"
+                                ? selectedReceiptBill?.id || null
+                                : null,
+                        amount:
+                            type === "sale"
                                 ? Number(salesTotalAmount) || 0
                                 : type === "receipt"
                                     ? Number(receiptAmount) || 0
                                     : Number(amount) || 0,
-
-                    vat_input:
-                        type === "expense"
-                            ? Number(vatAmount) || 0
-                            : 0,
-
-                    vat_output:
-                        type === "sale"
-                            ? Number(vatAmount) || 0
-                            : 0,
-
-                    vat_rate:
-                        type === "expense"
-                            ? Number(vatRate) || 0
-                            : 0,
-
-                    account_id:
-                        type === "payment" ||
-                            type === "receipt"
-                            ? Number(accountId) || null
-                            : null,
-
-                    narration:
-                        narration?.trim() || ""
-                });
+                        vat_input: 0,
+                        vat_output:
+                            type === "sale"
+                                ? Number(salesVatAmount) || 0
+                                : 0,
+                        vat_rate: 0,
+                        account_id:
+                            type === "payment" || type === "receipt"
+                                ? Number(accountId) || null
+                                : null,
+                        narration: narration?.trim() || ""
+                    });
+                }
 
             }
             if (type === "sale") {
@@ -1151,6 +1233,8 @@ export default function Transactions() {
                             setParty={setParty}
                             referenceNumber={referenceNumber}
                             setReferenceNumber={setReferenceNumber}
+                            attachment={expenseAttachment}
+                            setAttachment={setExpenseAttachment}
                             items={expenseItems}
                             addItem={addExpenseItem}
                             updateItem={updateExpenseItem}
@@ -1266,7 +1350,7 @@ export default function Transactions() {
                                             type={type}
                                             date={date}
                                             party={party}
-
+                                            company={company}
                                             referenceNumber={referenceNumber}
 
                                             voucherNumber={voucherNumber}
@@ -1370,7 +1454,7 @@ export default function Transactions() {
                         currentType={currentType}
                         date={date}
                         party={party}
-
+                        company={company}
                         referenceNumber={referenceNumber}
                         voucherNumber={voucherNumber}
 

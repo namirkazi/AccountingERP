@@ -94,8 +94,7 @@ export default function LedgerTable({
                         <th>Voucher</th>
                         <th>Account</th>
                         <th>Party</th>
-                        <th>Debit</th>
-                        <th>Credit</th>
+                        <th>Amount</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -132,6 +131,12 @@ export default function LedgerTable({
                                             entry.voucher_type
                                         )}
                                     </span>
+
+                                    {entry.bill_reference && (
+                                        <span>
+                                            Ref: {entry.bill_reference}
+                                        </span>
+                                    )}
                                 </div>
                             </td>
 
@@ -189,28 +194,9 @@ export default function LedgerTable({
                                     styles.debitCell
                                 }
                             >
-                                {Number(
-                                    entry.debit
-                                ) > 0
-                                    ? `AED ${formatAmount(
-                                          entry.debit
-                                      )}`
-                                    : "—"}
-                            </td>
-
-
-                            <td
-                                className={
-                                    styles.creditCell
-                                }
-                            >
-                                {Number(
-                                    entry.credit
-                                ) > 0
-                                    ? `AED ${formatAmount(
-                                          entry.credit
-                                      )}`
-                                    : "—"}
+                                AED {formatAmount(
+                                    entry.voucher_amount
+                                )}
                             </td>
 
 

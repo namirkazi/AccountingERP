@@ -1,5 +1,7 @@
 import React from "react";
+
 import styles from "./PrintableVoucher.module.css";
+
 
 /*
 |--------------------------------------------------------------------------
@@ -7,34 +9,79 @@ import styles from "./PrintableVoucher.module.css";
 |--------------------------------------------------------------------------
 */
 
-function formatAmount(value) {
-    const amount = Number(value || 0);
+function getCompanyLogoUrl(logo) {
 
-    return amount.toLocaleString("en-AE", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    });
+    if (!logo) {
+        return "";
+    }
+
+    const value = String(logo).trim();
+
+    if (!value) {
+        return "";
+    }
+
+    if (
+        value.startsWith("http://") ||
+        value.startsWith("https://") ||
+        value.startsWith("data:")
+    ) {
+        return value;
+    }
+
+    return `http://localhost/AccountingERP/backend/${value.replace(/^\/+/, "")}`;
 }
 
+
+function formatAmount(value) {
+
+    const amount =
+        Number(value || 0);
+
+
+    return amount.toLocaleString(
+        "en-AE",
+        {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        }
+    );
+}
+
+
 function formatDate(date) {
+
     if (!date) {
         return "—";
     }
 
-    const parsed = new Date(date);
 
-    if (Number.isNaN(parsed.getTime())) {
+    const parsed =
+        new Date(date);
+
+
+    if (
+        Number.isNaN(
+            parsed.getTime()
+        )
+    ) {
         return date;
     }
 
-    return parsed.toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-    });
+
+    return parsed.toLocaleDateString(
+        "en-GB",
+        {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+        }
+    );
 }
 
+
 function clean(value) {
+
     if (
         value === null ||
         value === undefined ||
@@ -42,6 +89,7 @@ function clean(value) {
     ) {
         return "";
     }
+
 
     return String(value).trim();
 }
@@ -54,6 +102,7 @@ function clean(value) {
 */
 
 function numberToWordsBelowThousand(number) {
+
     const ones = [
         "",
         "One",
@@ -77,6 +126,7 @@ function numberToWordsBelowThousand(number) {
         "Nineteen",
     ];
 
+
     const tens = [
         "",
         "",
@@ -90,107 +140,182 @@ function numberToWordsBelowThousand(number) {
         "Ninety",
     ];
 
+
     let result = "";
 
+
     if (number >= 100) {
+
         result +=
-            ones[Math.floor(number / 100)] +
+            ones[
+            Math.floor(
+                number / 100
+            )
+            ] +
             " Hundred";
 
+
         number %= 100;
+
 
         if (number > 0) {
             result += " ";
         }
+
     }
 
+
     if (number >= 20) {
-        result += tens[Math.floor(number / 10)];
+
+        result +=
+            tens[
+            Math.floor(
+                number / 10
+            )
+            ];
+
 
         number %= 10;
 
+
         if (number > 0) {
-            result += "-" + ones[number];
+
+            result +=
+                "-" +
+                ones[number];
+
         }
+
     } else if (number > 0) {
-        result += ones[number];
+
+        result +=
+            ones[number];
+
     }
+
 
     return result;
 }
 
+
 function numberToWords(value) {
-    const amount = Number(value || 0);
+
+    const amount =
+        Number(value || 0);
+
 
     if (amount === 0) {
         return "Zero Dirhams Only";
     }
 
-    const dirhams = Math.floor(amount);
 
-    let fils = Math.round(
-        (amount - dirhams) * 100
-    );
+    const dirhams =
+        Math.floor(amount);
+
+
+    let fils =
+        Math.round(
+            (amount - dirhams) * 100
+        );
+
 
     /*
      * Protect against rounding 99.999 -> 100 fils.
      */
-    let wholeDirhams = dirhams;
+
+    let wholeDirhams =
+        dirhams;
+
 
     if (fils === 100) {
+
         wholeDirhams += 1;
+
         fils = 0;
+
     }
 
-    let remaining = wholeDirhams;
+
+    let remaining =
+        wholeDirhams;
+
 
     let words = "";
 
+
     if (remaining >= 1000000) {
+
         const millions =
-            Math.floor(remaining / 1000000);
+            Math.floor(
+                remaining / 1000000
+            );
+
 
         words +=
-            numberToWordsBelowThousand(millions) +
+            numberToWordsBelowThousand(
+                millions
+            ) +
             " Million";
+
 
         remaining %= 1000000;
 
+
         if (remaining > 0) {
             words += " ";
         }
+
     }
 
+
     if (remaining >= 1000) {
+
         const thousands =
-            Math.floor(remaining / 1000);
+            Math.floor(
+                remaining / 1000
+            );
+
 
         words +=
-            numberToWordsBelowThousand(thousands) +
+            numberToWordsBelowThousand(
+                thousands
+            ) +
             " Thousand";
+
 
         remaining %= 1000;
 
+
         if (remaining > 0) {
             words += " ";
         }
+
     }
 
+
     if (remaining > 0) {
+
         words +=
             numberToWordsBelowThousand(
                 remaining
             );
+
     }
+
 
     words +=
         wholeDirhams === 1
             ? " Dirham"
             : " Dirhams";
 
+
     if (fils > 0) {
-        words += ` and ${fils} Fils`;
+
+        words +=
+            ` and ${fils} Fils`;
+
     }
+
 
     return `${words} Only`;
 }
@@ -202,56 +327,159 @@ function numberToWords(value) {
 |--------------------------------------------------------------------------
 */
 
-function getPartyName(party, selectedPaymentBill) {
+function getPartyName(
+    party,
+    selectedPaymentBill
+) {
+
     return (
-        clean(party?.party_name) ||
-        clean(party?.name) ||
-        clean(party?.company_name) ||
-        clean(party?.customer_name) ||
-        clean(party?.supplier_name) ||
-        clean(selectedPaymentBill?.party_name) ||
+
+        clean(
+            party?.party_name
+        ) ||
+
+        clean(
+            party?.name
+        ) ||
+
+        clean(
+            party?.company_name
+        ) ||
+
+        clean(
+            party?.customer_name
+        ) ||
+
+        clean(
+            party?.supplier_name
+        ) ||
+
+        clean(
+            selectedPaymentBill?.party_name
+        ) ||
+
         "—"
+
     );
 }
 
-function getPartyAddress(party, selectedPaymentBill) {
+
+function getPartyAddress(
+    party,
+    selectedPaymentBill
+) {
+
     return (
-        clean(party?.address) ||
-        clean(party?.full_address) ||
-        clean(party?.party_address) ||
-        clean(selectedPaymentBill?.address) ||
+
+        clean(
+            party?.address
+        ) ||
+
+        clean(
+            party?.full_address
+        ) ||
+
+        clean(
+            party?.party_address
+        ) ||
+
+        clean(
+            selectedPaymentBill?.address
+        ) ||
+
         ""
+
     );
 }
 
-function getPartyPhone(party, selectedPaymentBill) {
+
+function getPartyPhone(
+    party,
+    selectedPaymentBill
+) {
+
     return (
-        clean(party?.phone) ||
-        clean(party?.phone_number) ||
-        clean(party?.mobile) ||
-        clean(party?.mobile_number) ||
-        clean(selectedPaymentBill?.phone) ||
+
+        clean(
+            party?.phone
+        ) ||
+
+        clean(
+            party?.phone_number
+        ) ||
+
+        clean(
+            party?.mobile
+        ) ||
+
+        clean(
+            party?.mobile_number
+        ) ||
+
+        clean(
+            selectedPaymentBill?.phone
+        ) ||
+
         ""
+
     );
 }
 
-function getPartyEmail(party, selectedPaymentBill) {
+
+function getPartyEmail(
+    party,
+    selectedPaymentBill
+) {
+
     return (
-        clean(party?.email) ||
-        clean(party?.email_address) ||
-        clean(selectedPaymentBill?.email) ||
+
+        clean(
+            party?.email
+        ) ||
+
+        clean(
+            party?.email_address
+        ) ||
+
+        clean(
+            selectedPaymentBill?.email
+        ) ||
+
         ""
+
     );
 }
 
-function getPartyTrn(party, selectedPaymentBill) {
+
+function getPartyTrn(
+    party,
+    selectedPaymentBill
+) {
+
     return (
-        clean(party?.trn) ||
-        clean(party?.tax_registration_number) ||
-        clean(party?.vat_number) ||
-        clean(party?.tax_number) ||
-        clean(selectedPaymentBill?.trn) ||
+
+        clean(
+            party?.trn
+        ) ||
+
+        clean(
+            party?.tax_registration_number
+        ) ||
+
+        clean(
+            party?.vat_number
+        ) ||
+
+        clean(
+            party?.tax_number
+        ) ||
+
+        clean(
+            selectedPaymentBill?.trn
+        ) ||
+
         ""
+
     );
 }
 
@@ -263,32 +491,56 @@ function getPartyTrn(party, selectedPaymentBill) {
 */
 
 function normalizeItems(items) {
+
     if (!Array.isArray(items)) {
         return [];
     }
 
-    return items.filter((item) => {
-        const description =
-            clean(
-                item?.description ||
-                item?.item_name ||
-                item?.name
+
+    return items.filter(
+        (item) => {
+
+            const description =
+                clean(
+                    item?.description ||
+                    item?.item_name ||
+                    item?.name
+                );
+
+
+            return Boolean(
+                description
             );
 
-        return Boolean(description);
-    });
-}
-
-function getItemDescription(item) {
-    return (
-        clean(item?.description) ||
-        clean(item?.item_name) ||
-        clean(item?.name) ||
-        "Item"
+        }
     );
 }
 
+
+function getItemDescription(item) {
+
+    return (
+
+        clean(
+            item?.description
+        ) ||
+
+        clean(
+            item?.item_name
+        ) ||
+
+        clean(
+            item?.name
+        ) ||
+
+        "Item"
+
+    );
+}
+
+
 function getItemQuantity(item) {
+
     const quantity =
         Number(
             item?.quantity ??
@@ -296,10 +548,15 @@ function getItemQuantity(item) {
             1
         );
 
-    return quantity > 0 ? quantity : 1;
+
+    return quantity > 0
+        ? quantity
+        : 1;
 }
 
+
 function getItemRate(item) {
+
     return Number(
         item?.rate ??
         item?.unit_price ??
@@ -310,14 +567,23 @@ function getItemRate(item) {
     );
 }
 
+
 function getItemAmount(item) {
+
     if (
         item?.amount !== undefined &&
         item?.amount !== null &&
         item?.amount !== ""
     ) {
-        return Number(item.amount) || 0;
+
+        return (
+            Number(
+                item.amount
+            ) || 0
+        );
+
     }
+
 
     return (
         getItemQuantity(item) *
@@ -333,11 +599,17 @@ function getItemAmount(item) {
 */
 
 export default function PrintableVoucher({
+
     type,
+
     date,
+
     party,
+
     referenceNumber,
+
     voucherNumber,
+
     items = [],
 
     amount,
@@ -355,21 +627,22 @@ export default function PrintableVoucher({
     paymentAccount,
 
     selectedPaymentExpense,
+
     selectedPaymentBill,
+
     selectedReceiptBill,
+
     receiptAmount,
+
     narration,
 
     /*
-     * Optional company information.
-     *
-     * The current Transactions/SavedVoucher flow does not
-     * pass this yet, so sensible defaults are used.
-     *
-     * Later we can pass the actual company record here.
+     * Company profile supplied by Transactions.jsx.
      */
     company = {},
+
 }) {
+
 
     /*
     |--------------------------------------------------------------------------
@@ -380,11 +653,14 @@ export default function PrintableVoucher({
     const isExpense =
         type === "expense";
 
+
     const isPayment =
         type === "payment";
 
+
     const isReceipt =
         type === "receipt";
+
 
     const isSale =
         type === "sale";
@@ -396,22 +672,39 @@ export default function PrintableVoucher({
     |--------------------------------------------------------------------------
     */
 
-    let documentTitle = "TRANSACTION VOUCHER";
+    let documentTitle =
+        "TRANSACTION VOUCHER";
+
 
     if (isExpense) {
-        documentTitle = "EXPENSE VOUCHER";
+
+        documentTitle =
+            "EXPENSE VOUCHER";
+
     }
+
 
     if (isPayment) {
-        documentTitle = "PAYMENT VOUCHER";
+
+        documentTitle =
+            "PAYMENT VOUCHER";
+
     }
+
 
     if (isReceipt) {
-        documentTitle = "RECEIPT";
+
+        documentTitle =
+            "RECEIPT";
+
     }
 
+
     if (isSale) {
-        documentTitle = "SALES INVOICE";
+
+        documentTitle =
+            "SALES INVOICE";
+
     }
 
 
@@ -422,35 +715,89 @@ export default function PrintableVoucher({
     */
 
     const companyName =
-        clean(company?.name) ||
-        clean(company?.company_name) ||
-        "MOHINII GENERAL TRADING L.L.C";
+
+        clean(
+            company?.name
+        ) ||
+
+        clean(
+            company?.company_name
+        ) ||
+
+        "Company";
+
 
     const companyAddress =
-        clean(company?.address) ||
-        clean(company?.full_address) ||
-        "Dubai, United Arab Emirates";
+
+        clean(
+            company?.address
+        );
+
+
+    const companyCity =
+
+        clean(
+            company?.city
+        );
+
+
+    const companyCountry =
+
+        clean(
+            company?.country
+        );
+
 
     const companyPhone =
-        clean(company?.phone) ||
-        clean(company?.phone_number) ||
-        "";
+
+        clean(
+            company?.phone
+        ) ||
+
+        clean(
+            company?.phone_number
+        );
+
 
     const companyEmail =
-        clean(company?.email) ||
-        clean(company?.email_address) ||
-        "";
+
+        clean(
+            company?.email
+        ) ||
+
+        clean(
+            company?.email_address
+        );
+
+
+    const companyWebsite =
+
+        clean(
+            company?.website
+        );
+
 
     const companyTrn =
-        clean(company?.trn) ||
-        clean(company?.tax_registration_number) ||
-        clean(company?.vat_number) ||
-        "";
+
+        clean(
+            company?.trn
+        ) ||
+
+        clean(
+            company?.tax_registration_number
+        ) ||
+
+        clean(
+            company?.vat_number
+        );
+
 
     const companyLogo =
-        clean(company?.logo) ||
-        clean(company?.logo_url) ||
-        "";
+        clean(company?.logo_data) ||
+        getCompanyLogoUrl(
+            clean(company?.logo) ||
+            clean(company?.logo_url)
+        );
 
 
     /*
@@ -465,11 +812,13 @@ export default function PrintableVoucher({
             selectedPaymentBill
         );
 
+
     const partyAddress =
         getPartyAddress(
             party,
             selectedPaymentBill
         );
+
 
     const partyPhone =
         getPartyPhone(
@@ -477,11 +826,13 @@ export default function PrintableVoucher({
             selectedPaymentBill
         );
 
+
     const partyEmail =
         getPartyEmail(
             party,
             selectedPaymentBill
         );
+
 
     const partyTrn =
         getPartyTrn(
@@ -502,7 +853,10 @@ export default function PrintableVoucher({
     */
 
     const ourBillNumber =
-        clean(voucherNumber) ||
+
+        clean(
+            voucherNumber
+        ) ||
 
         clean(
             isReceipt
@@ -520,12 +874,15 @@ export default function PrintableVoucher({
 
         "—";
 
+
     const externalReference =
+
         clean(
             isPayment
                 ? selectedPaymentBill?.reference_number
                 : referenceNumber
         ) ||
+
         "—";
 
 
@@ -538,59 +895,94 @@ export default function PrintableVoucher({
     const expenseItems =
         normalizeItems(items);
 
+
     const calculatedItemSubtotal =
         expenseItems.reduce(
             (sum, item) =>
-                sum + getItemAmount(item),
+                sum +
+                getItemAmount(item),
             0
         );
 
+
     const subtotal =
         calculatedItemSubtotal > 0
+
             ? calculatedItemSubtotal
-            : Number(amount || 0);
+
+            : Number(
+                amount || 0
+            );
+
 
     const discount =
-        Number(discountAmount || 0);
+        Number(
+            discountAmount || 0
+        );
+
 
     const vat =
-        Number(vatAmount || 0);
+        Number(
+            vatAmount || 0
+        );
+
 
     const transactionAmount =
-        Number(amount || 0);
+        Number(
+            amount || 0
+        );
+
 
     const paymentTotal =
-        Number(paymentAmount || 0);
+        Number(
+            paymentAmount || 0
+        );
+
 
     const expenseTotal =
-        Number(totalAmount || 0);
+        Number(
+            totalAmount || 0
+        );
+
 
     let finalAmount = 0;
 
+
     if (isPayment) {
 
-        finalAmount = paymentTotal;
+        finalAmount =
+            paymentTotal;
 
     } else if (isReceipt) {
 
         finalAmount =
-            Number(receiptAmount || 0);
+            Number(
+                receiptAmount || 0
+            );
 
     } else if (isExpense) {
 
         finalAmount =
             expenseTotal ||
+
             Math.max(
                 0,
-                subtotal - discount + vat
+                subtotal -
+                discount +
+                vat
             );
 
     } else {
 
         finalAmount =
-            Number(totalAmount || 0) ||
+            Number(
+                totalAmount || 0
+            ) ||
+
             transactionAmount;
+
     }
+
 
     /*
     |--------------------------------------------------------------------------
@@ -606,17 +998,20 @@ export default function PrintableVoucher({
             0
         );
 
+
     const alreadyPaid =
         Number(
             selectedPaymentBill?.paid_amount ||
             0
         );
 
+
     const currentOutstanding =
         Number(
             selectedPaymentBill?.outstanding_amount ||
             0
         );
+
 
     const outstandingAfterPayment =
         Math.max(
@@ -625,10 +1020,21 @@ export default function PrintableVoucher({
             paymentTotal
         );
 
+
     const paymentMethod =
-        clean(paymentAccount?.account_name) ||
-        clean(paymentAccount?.name) ||
-        clean(paymentAccount) ||
+
+        clean(
+            paymentAccount?.account_name
+        ) ||
+
+        clean(
+            paymentAccount?.name
+        ) ||
+
+        clean(
+            paymentAccount
+        ) ||
+
         "—";
 
 
@@ -638,31 +1044,47 @@ export default function PrintableVoucher({
     |--------------------------------------------------------------------------
     */
 
-    let defaultDescription = "Transaction";
+    let defaultDescription =
+        "Transaction";
+
 
     if (isExpense) {
-        defaultDescription = "Purchase / Expense";
+
+        defaultDescription =
+            "Purchase / Expense";
+
     }
+
 
     if (isPayment) {
+
         defaultDescription =
-            externalReference !== "—"
-                ? `${partyName}`
-                : `${partyName}`;
+            partyName;
+
     }
+
 
     if (isReceipt) {
+
         defaultDescription =
             "Receipt from Customer";
+
     }
+
 
     if (isSale) {
+
         defaultDescription =
             "Sale";
+
     }
 
+
     const description =
-        clean(narration) ||
+        clean(
+            narration
+        ) ||
+
         defaultDescription;
 
 
@@ -673,31 +1095,52 @@ export default function PrintableVoucher({
     */
 
     return (
+
         <div className={styles.voucher}>
+
 
             {/* =====================================================
                 HEADER
             ===================================================== */}
 
-            <header className={styles.documentHeader}>
+            <header
+                className={
+                    styles.documentHeader
+                }
+            >
 
-                <div className={styles.companyIdentity}>
+
+                <div
+                    className={
+                        styles.companyIdentity
+                    }
+                >
+
 
                     {companyLogo ? (
+
                         <img
                             src={companyLogo}
                             alt={companyName}
-                            className={styles.companyLogo}
+                            className={
+                                styles.companyLogo
+                            }
                         />
+
                     ) : (
+
                         <div
                             className={
                                 styles.companyLogoPlaceholder
                             }
                         >
-                            M
+                            {companyName
+                                .charAt(0)
+                                .toUpperCase()}
                         </div>
+
                     )}
+
 
                     <div
                         className={
@@ -705,30 +1148,75 @@ export default function PrintableVoucher({
                         }
                     >
 
+
                         <h1>
                             {companyName}
                         </h1>
 
-                        <div>
-                            {companyAddress}
-                        </div>
+
+                        {companyAddress && (
+
+                            <div>
+                                {companyAddress}
+                            </div>
+
+                        )}
+
+
+                        {(companyCity ||
+                            companyCountry) && (
+
+                                <div>
+
+                                    {[
+                                        companyCity,
+                                        companyCountry
+                                    ]
+                                        .filter(
+                                            Boolean
+                                        )
+                                        .join(
+                                            ", "
+                                        )}
+
+                                </div>
+
+                            )}
+
 
                         {companyPhone && (
+
                             <div>
                                 Tel: {companyPhone}
                             </div>
+
                         )}
 
+
                         {companyEmail && (
+
                             <div>
                                 {companyEmail}
                             </div>
+
                         )}
 
+
+                        {companyWebsite && (
+
+                            <div>
+                                {companyWebsite}
+                            </div>
+
+                        )}
+
+
                         {companyTrn && (
+
                             <div>
                                 TRN: {companyTrn}
                             </div>
+
                         )}
 
                     </div>
@@ -740,45 +1228,64 @@ export default function PrintableVoucher({
                     PARTY / SUPPLIER
                 ================================================= */}
 
-                <div className={styles.partyInformation}>
+                <div
+                    className={
+                        styles.partyInformation
+                    }
+                >
+
 
                     <div
                         className={
                             styles.partyInformationLabel
                         }
                     >
+
                         {isSale || isReceipt
                             ? "CUSTOMER"
-                            : "SUPPLIER"
-                        }
+                            : "SUPPLIER"}
+
                     </div>
+
 
                     <strong>
                         {partyName}
                     </strong>
 
+
                     {partyAddress && (
+
                         <span>
                             {partyAddress}
                         </span>
+
                     )}
 
+
                     {partyPhone && (
+
                         <span>
                             Tel: {partyPhone}
                         </span>
+
                     )}
 
+
                     {partyEmail && (
+
                         <span>
                             {partyEmail}
                         </span>
+
                     )}
 
+
                     {partyTrn && (
+
                         <span>
                             TRN: {partyTrn}
                         </span>
+
                     )}
 
                 </div>
@@ -790,17 +1297,29 @@ export default function PrintableVoucher({
                 TITLE
             ===================================================== */}
 
-            <section className={styles.titleSection}>
+            <section
+                className={
+                    styles.titleSection
+                }
+            >
 
                 <div>
-                    <span className={styles.documentEyebrow}>
+
+                    <span
+                        className={
+                            styles.documentEyebrow
+                        }
+                    >
                         ACCOUNTING DOCUMENT
                     </span>
+
 
                     <h2>
                         {documentTitle}
                     </h2>
+
                 </div>
+
 
                 <div
                     className={
@@ -824,11 +1343,13 @@ export default function PrintableVoucher({
                     }`}
             >
 
+
                 <div>
 
                     <span>
                         DATE
                     </span>
+
 
                     <strong>
                         {formatDate(date)}
@@ -843,6 +1364,7 @@ export default function PrintableVoucher({
                         BILL NO.
                     </span>
 
+
                     <strong>
                         {ourBillNumber}
                     </strong>
@@ -850,30 +1372,40 @@ export default function PrintableVoucher({
                 </div>
 
 
-                {!isSale && !isReceipt && (
-                    <div>
-                        <span>
-                            REFERENCE NO.
-                        </span>
+                {!isSale &&
+                    !isReceipt && (
 
-                        <strong>
-                            {externalReference}
-                        </strong>
-                    </div>
-                )}
+                        <div>
+
+                            <span>
+                                REFERENCE NO.
+                            </span>
+
+
+                            <strong>
+                                {externalReference}
+                            </strong>
+
+                        </div>
+
+                    )}
+
 
                 {isPayment && (
+
                     <div>
 
                         <span>
                             PAYMENT METHOD
                         </span>
 
+
                         <strong>
                             {paymentMethod}
                         </strong>
 
                     </div>
+
                 )}
 
             </section>
@@ -883,7 +1415,11 @@ export default function PrintableVoucher({
                 ITEMS / PARTICULARS
             ===================================================== */}
 
-            <section className={styles.itemsSection}>
+            <section
+                className={
+                    styles.itemsSection
+                }
+            >
 
                 <table
                     className={
@@ -894,22 +1430,31 @@ export default function PrintableVoucher({
                 >
 
                     <thead>
+
                         <tr>
 
                             <th
-                                className={styles.serialColumn}
+                                className={
+                                    styles.serialColumn
+                                }
                             >
                                 #
                             </th>
 
+
                             <th>
+
                                 {isSale
                                     ? "SERVICE"
                                     : "PARTICULARS"}
+
                             </th>
 
+
                             {!isSale && (
+
                                 <>
+
                                     <th
                                         className={
                                             styles.quantityColumn
@@ -918,6 +1463,7 @@ export default function PrintableVoucher({
                                         QTY
                                     </th>
 
+
                                     <th
                                         className={
                                             styles.rateColumn
@@ -925,8 +1471,11 @@ export default function PrintableVoucher({
                                     >
                                         RATE
                                     </th>
+
                                 </>
+
                             )}
+
 
                             <th
                                 className={
@@ -937,60 +1486,117 @@ export default function PrintableVoucher({
                             </th>
 
                         </tr>
+
                     </thead>
 
 
                     <tbody>
 
+
                         {isReceipt ? (
+
                             <tr>
-                                <td className={styles.serialCell}>
+
+                                <td
+                                    className={
+                                        styles.serialCell
+                                    }
+                                >
                                     1
                                 </td>
 
+
                                 <td>
-                                    <div className={styles.itemDescription}>
-                                        Receipt against Sales Bill
+
+                                    <div
+                                        className={
+                                            styles.itemDescription
+                                        }
+                                    >
+                                        {partyName}
                                     </div>
 
+
                                     {selectedReceiptBill?.invoice_number && (
-                                        <div className={styles.itemSubtext}>
+
+                                        <div
+                                            className={
+                                                styles.itemSubtext
+                                            }
+                                        >
                                             Bill No:{" "}
-                                            {selectedReceiptBill.invoice_number}
+                                            {
+                                                selectedReceiptBill.invoice_number
+                                            }
                                         </div>
+
+                                    )}
+
+                                </td>
+
+
+                                <td
+                                    className={
+                                        styles.numberCell
+                                    }
+                                >
+                                    —
+                                </td>
+
+
+                                <td
+                                    className={
+                                        styles.numberCell
+                                    }
+                                >
+                                    —
+                                </td>
+
+
+                                <td
+                                    className={
+                                        styles.numberCell
+                                    }
+                                >
+                                    AED{" "}
+                                    {formatAmount(
+                                        finalAmount
                                     )}
                                 </td>
 
-                                <td className={styles.numberCell}>
-                                    —
-                                </td>
-
-                                <td className={styles.numberCell}>
-                                    —
-                                </td>
-
-                                <td className={styles.numberCell}>
-                                    AED{" "}
-                                    {formatAmount(finalAmount)}
-                                </td>
                             </tr>
 
                         ) : expenseItems.length > 0 ? (
 
                             expenseItems.map(
-                                (item, index) => {
+                                (
+                                    item,
+                                    index
+                                ) => {
 
                                     const quantity =
-                                        getItemQuantity(item);
+                                        getItemQuantity(
+                                            item
+                                        );
+
 
                                     const rate =
-                                        getItemRate(item);
+                                        getItemRate(
+                                            item
+                                        );
+
 
                                     const lineAmount =
-                                        getItemAmount(item) ||
-                                        (isSale && expenseItems.length === 1
-                                            ? finalAmount
-                                            : 0);
+                                        getItemAmount(
+                                            item
+                                        ) ||
+                                        (
+                                            isSale &&
+                                                expenseItems.length === 1
+                                                ? finalAmount
+                                                : 0
+                                        );
+
 
                                     return (
 
@@ -1010,6 +1616,7 @@ export default function PrintableVoucher({
                                                 {index + 1}
                                             </td>
 
+
                                             <td>
 
                                                 <div
@@ -1017,12 +1624,15 @@ export default function PrintableVoucher({
                                                         styles.itemDescription
                                                     }
                                                 >
+
                                                     {
                                                         getItemDescription(
                                                             item
                                                         )
                                                     }
+
                                                 </div>
+
 
                                                 {isPayment &&
                                                     externalReference !==
@@ -1043,13 +1653,20 @@ export default function PrintableVoucher({
 
                                             </td>
 
+
                                             {isSale ? (
-                                                <td className={styles.numberCell}>
+
+                                                <td
+                                                    className={
+                                                        styles.numberCell
+                                                    }
+                                                >
                                                     AED{" "}
                                                     {formatAmount(
                                                         lineAmount
                                                     )}
                                                 </td>
+
                                             ) : (
 
                                                 <>
@@ -1062,6 +1679,7 @@ export default function PrintableVoucher({
                                                         {quantity}
                                                     </td>
 
+
                                                     <td
                                                         className={
                                                             styles.numberCell
@@ -1072,6 +1690,7 @@ export default function PrintableVoucher({
                                                             rate
                                                         )}
                                                     </td>
+
 
                                                     <td
                                                         className={
@@ -1115,7 +1734,7 @@ export default function PrintableVoucher({
                                             styles.itemDescription
                                         }
                                     >
-                                        {description}
+                                        {isPayment ? partyName : description}
                                     </div>
 
 
@@ -1164,6 +1783,7 @@ export default function PrintableVoucher({
                                             —
                                         </td>
 
+
                                         <td
                                             className={
                                                 styles.numberCell
@@ -1171,6 +1791,7 @@ export default function PrintableVoucher({
                                         >
                                             —
                                         </td>
+
 
                                         <td
                                             className={
@@ -1210,11 +1831,16 @@ export default function PrintableVoucher({
                     }
                 >
 
-                    <div className={styles.totalRow}>
+                    <div
+                        className={
+                            styles.totalRow
+                        }
+                    >
 
                         <span>
                             Subtotal
                         </span>
+
 
                         <strong>
                             AED{" "}
@@ -1226,11 +1852,16 @@ export default function PrintableVoucher({
                     </div>
 
 
-                    <div className={styles.totalRow}>
+                    <div
+                        className={
+                            styles.totalRow
+                        }
+                    >
 
                         <span>
                             Discount
                         </span>
+
 
                         <strong>
                             - AED{" "}
@@ -1242,11 +1873,16 @@ export default function PrintableVoucher({
                     </div>
 
 
-                    <div className={styles.totalRow}>
+                    <div
+                        className={
+                            styles.totalRow
+                        }
+                    >
 
                         <span>
                             Taxable Amount
                         </span>
+
 
                         <strong>
                             AED{" "}
@@ -1262,11 +1898,20 @@ export default function PrintableVoucher({
                     </div>
 
 
-                    <div className={styles.totalRow}>
+                    <div
+                        className={
+                            styles.totalRow
+                        }
+                    >
 
                         <span>
-                            VAT ({Number(vatRate || 0)}%)
+                            VAT (
+                            {Number(
+                                vatRate || 0
+                            )}
+                            %)
                         </span>
+
 
                         <strong>
                             AED{" "}
@@ -1288,6 +1933,7 @@ export default function PrintableVoucher({
                             TOTAL
                         </span>
 
+
                         <strong>
                             AED{" "}
                             {formatAmount(
@@ -1303,22 +1949,27 @@ export default function PrintableVoucher({
 
 
             {/* =====================================================
-    SALE TOTALS
-===================================================== */}
+                SALE TOTALS
+            ===================================================== */}
 
             {isSale && (
 
                 <section
-                    className={styles.totalsSection}
+                    className={
+                        styles.totalsSection
+                    }
                 >
 
                     <div
-                        className={styles.totalRow}
+                        className={
+                            styles.totalRow
+                        }
                     >
 
                         <span>
                             Subtotal
                         </span>
+
 
                         <strong>
                             AED{" "}
@@ -1331,12 +1982,15 @@ export default function PrintableVoucher({
 
 
                     <div
-                        className={styles.totalRow}
+                        className={
+                            styles.totalRow
+                        }
                     >
 
                         <span>
                             Discount
                         </span>
+
 
                         <strong>
                             - AED{" "}
@@ -1349,12 +2003,15 @@ export default function PrintableVoucher({
 
 
                     <div
-                        className={styles.totalRow}
+                        className={
+                            styles.totalRow
+                        }
                     >
 
                         <span>
                             Taxable Amount
                         </span>
+
 
                         <strong>
                             AED{" "}
@@ -1371,12 +2028,19 @@ export default function PrintableVoucher({
 
 
                     <div
-                        className={styles.totalRow}
+                        className={
+                            styles.totalRow
+                        }
                     >
 
                         <span>
-                            VAT ({Number(vatRate || 0)}%)
+                            VAT (
+                            {Number(
+                                vatRate || 0
+                            )}
+                            %)
                         </span>
+
 
                         <strong>
                             AED{" "}
@@ -1398,6 +2062,7 @@ export default function PrintableVoucher({
                             TOTAL
                         </span>
 
+
                         <strong>
                             AED{" "}
                             {formatAmount(
@@ -1413,44 +2078,59 @@ export default function PrintableVoucher({
 
 
             {/* =====================================================
-    RECEIPT TOTAL
-===================================================== */}
+                RECEIPT TOTAL
+            ===================================================== */}
 
             {isReceipt && (
-                <section className={styles.paymentSummary}>
+
+                <section
+                    className={
+                        styles.paymentSummary
+                    }
+                >
 
                     <div>
+
                         <span>
                             Bill Amount
                         </span>
 
+
                         <strong>
                             AED{" "}
                             {formatAmount(
-                                selectedReceiptBill?.amount || 0
+                                selectedReceiptBill?.amount ||
+                                0
                             )}
                         </strong>
+
                     </div>
 
 
                     <div>
+
                         <span>
                             Previously Received
                         </span>
 
+
                         <strong>
                             AED{" "}
                             {formatAmount(
-                                selectedReceiptBill?.received_amount || 0
+                                selectedReceiptBill?.received_amount ||
+                                0
                             )}
                         </strong>
+
                     </div>
 
 
                     <div>
+
                         <span>
                             This Receipt
                         </span>
+
 
                         <strong>
                             AED{" "}
@@ -1458,14 +2138,20 @@ export default function PrintableVoucher({
                                 finalAmount
                             )}
                         </strong>
+
                     </div>
 
 
-                    <div className={styles.paymentBalance}>
+                    <div
+                        className={
+                            styles.paymentBalance
+                        }
+                    >
 
                         <span>
                             Balance Due
                         </span>
+
 
                         <strong>
                             AED{" "}
@@ -1473,8 +2159,10 @@ export default function PrintableVoucher({
                                 Math.max(
                                     0,
                                     Number(
-                                        selectedReceiptBill?.outstanding_amount || 0
-                                    ) - finalAmount
+                                        selectedReceiptBill?.outstanding_amount ||
+                                        0
+                                    ) -
+                                    finalAmount
                                 )
                             )}
                         </strong>
@@ -1482,11 +2170,16 @@ export default function PrintableVoucher({
                     </div>
 
 
-                    <div className={styles.paymentTotal}>
+                    <div
+                        className={
+                            styles.paymentTotal
+                        }
+                    >
 
                         <span>
                             TOTAL RECEIVED
                         </span>
+
 
                         <strong>
                             AED{" "}
@@ -1498,6 +2191,7 @@ export default function PrintableVoucher({
                     </div>
 
                 </section>
+
             )}
 
 
@@ -1519,6 +2213,7 @@ export default function PrintableVoucher({
                             Bill Amount
                         </span>
 
+
                         <strong>
                             AED{" "}
                             {formatAmount(
@@ -1535,6 +2230,7 @@ export default function PrintableVoucher({
                             Previously Paid
                         </span>
 
+
                         <strong>
                             AED{" "}
                             {formatAmount(
@@ -1550,6 +2246,7 @@ export default function PrintableVoucher({
                         <span>
                             This Payment
                         </span>
+
 
                         <strong>
                             AED{" "}
@@ -1571,6 +2268,7 @@ export default function PrintableVoucher({
                             Balance Due
                         </span>
 
+
                         <strong>
                             AED{" "}
                             {formatAmount(
@@ -1590,6 +2288,7 @@ export default function PrintableVoucher({
                         <span>
                             TOTAL PAID
                         </span>
+
 
                         <strong>
                             AED{" "}
@@ -1619,6 +2318,7 @@ export default function PrintableVoucher({
                     AMOUNT IN WORDS
                 </span>
 
+
                 <strong>
                     {numberToWords(
                         finalAmount
@@ -1643,6 +2343,7 @@ export default function PrintableVoucher({
                     <span>
                         NOTES
                     </span>
+
 
                     <p>
                         {narration}
@@ -1675,9 +2376,11 @@ export default function PrintableVoucher({
                         }
                     />
 
+
                     <strong>
                         Prepared By
                     </strong>
+
 
                     <span>
                         Name / Signature
@@ -1697,11 +2400,13 @@ export default function PrintableVoucher({
                             styles.signatureLine
                         }
                     />
+
 
                     <strong>
                         Checked By
                     </strong>
 
+
                     <span>
                         Name / Signature
                     </span>
@@ -1721,9 +2426,11 @@ export default function PrintableVoucher({
                         }
                     />
 
+
                     <strong>
                         Authorised Signatory
                     </strong>
+
 
                     <span>
                         Name / Signature
@@ -1748,12 +2455,16 @@ export default function PrintableVoucher({
                     {companyName}
                 </span>
 
+
                 <span>
                     This is a computer-generated document.
                 </span>
 
             </footer>
 
+
         </div>
+
     );
+
 }

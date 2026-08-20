@@ -42,6 +42,10 @@ try {
         $data['email'] ?? ''
     );
 
+    $address = trim(
+        $data['address'] ?? ''
+    );
+
     if ($name === '') {
 
         http_response_code(422);
@@ -64,6 +68,30 @@ try {
         $email !== '' ? $email : null
     );
 
+    /*
+     * Save the address after creating the customer.
+     *
+     * The current Party::create() method does not accept
+     * an address parameter, so update the newly-created
+     * party directly here.
+     */
+    if ($address !== '') {
+
+        $addressStmt = $pdo->prepare("
+            UPDATE parties
+            SET address = :address
+            WHERE id = :id
+            AND company_id = :company_id
+            LIMIT 1
+        ");
+
+        $addressStmt->execute([
+            ':address' => $address,
+            ':id' => $partyId,
+            ':company_id' => $companyId
+        ]);
+    }
+
     $party = $partyModel->find(
         $companyId,
         $partyId
@@ -81,7 +109,7 @@ try {
 
     error_log(
         'Customer creation error: ' .
-        $e->getMessage()
+            $e->getMessage()
     );
 
     http_response_code(500);

@@ -53,7 +53,8 @@ try {
             party_name,
             party_type,
             phone,
-            email
+            email,
+            address
         FROM parties
         WHERE company_id = :company_id
         AND party_type = 'supplier'

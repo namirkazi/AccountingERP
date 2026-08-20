@@ -53,6 +53,12 @@ try {
         );
 
 
+    $address =
+        trim(
+            $data['address'] ?? ''
+        );
+
+
     /*
     |--------------------------------------------------------------------------
     | VALIDATION
@@ -80,7 +86,8 @@ try {
                 party_name,
                 party_type,
                 phone,
-                email
+                email,
+                address
             FROM parties
             WHERE company_id = :company_id
             AND party_type = 'supplier'
@@ -127,28 +134,38 @@ try {
                 party_name,
                 party_type,
                 phone,
-                email
+                email,
+                address
             )
             VALUES (
                 :company_id,
                 :party_name,
                 'supplier',
                 :phone,
-                :email
+                :email,
+                :address
             )
         ");
 
 
     $stmt->execute([
         ':company_id' => $companyId,
+
         ':party_name' => $name,
+
         ':phone' =>
             $phone !== ''
                 ? $phone
                 : null,
+
         ':email' =>
             $email !== ''
                 ? $email
+                : null,
+
+        ':address' =>
+            $address !== ''
+                ? $address
                 : null
     ]);
 
@@ -170,7 +187,8 @@ try {
                 party_name,
                 party_type,
                 phone,
-                email
+                email,
+                address
             FROM parties
             WHERE id = :id
             AND company_id = :company_id
@@ -208,6 +226,7 @@ try {
 
 
     http_response_code(500);
+
 
     echo json_encode([
         'success' => false,

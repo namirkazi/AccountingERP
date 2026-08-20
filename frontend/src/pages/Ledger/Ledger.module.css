@@ -295,3 +295,29 @@
     color: #0f172a;
     font-weight: 600;
 }
+
+@media print {
+    body * {
+        visibility: hidden !important;
+    }
+
+    .ledgerVoucherPrintArea,
+    .ledgerVoucherPrintArea * {
+        visibility: visible !important;
+    }
+
+    .ledgerVoucherPrintArea {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+    }
+
+    @page {
+        size: A4 portrait;
+        margin: 0;
+    }
+}

@@ -13,6 +13,7 @@ import Customers from "../pages/Customers/Customers";
 import Openings from "../pages/Opening/Opening";
 import ProtectedRoute from "./ProtectedRoute";
 import Ledger from "../pages/Ledger/Ledger"
+import Settings from "../pages/Settings/Settings";
 
 export default function AppRouter() {
 
@@ -49,6 +50,11 @@ export default function AppRouter() {
                         path="/ledger"
                         element={<Ledger />}
                     />
+                    <Route
+                        path="/settings"
+                        element={<Settings />}
+                    />
+                    
                 </Route>
 
                 <Route
