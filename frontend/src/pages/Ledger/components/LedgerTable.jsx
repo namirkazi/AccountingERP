@@ -92,7 +92,7 @@ export default function LedgerTable({
                     <tr>
                         <th>Date</th>
                         <th>Voucher</th>
-                        <th>Account</th>
+                        <th>Particulars</th>
                         <th>Party</th>
                         <th>Amount</th>
                         <th></th>
@@ -149,16 +149,14 @@ export default function LedgerTable({
                                 >
                                     <strong>
                                         {
-                                            entry.account_name ||
+                                            entry.particulars ||
                                             "—"
                                         }
                                     </strong>
 
-                                    {entry.account_subtype && (
+                                    {entry.bill_reference && (
                                         <span>
-                                            {
-                                                entry.account_subtype
-                                            }
+                                            Ref: {entry.bill_reference}
                                         </span>
                                     )}
                                 </div>

@@ -533,56 +533,41 @@ try {
     ) {
 
         $selectedPaymentBill = [
-
             'id' =>
-            (int)
-            $sourceVoucher['id'],
+            (int) $sourceVoucher['id'],
 
             'voucher_id' =>
-            (int)
-            $sourceVoucher['id'],
+            (int) $sourceVoucher['id'],
 
-            'voucher_number' =>
+            'invoice_number' =>
             $sourceVoucher['reference_number'],
 
-            'voucher_no' =>
-            $sourceVoucher['bill_reference']
-                ?: $sourceVoucher['reference_number'],
-
             'reference_number' =>
-            $sourceVoucher['bill_reference']
-                ?: $sourceVoucher['reference_number'],
+            $sourceVoucher['reference_number'],
+
+            'bill_reference' =>
+            $sourceVoucher['bill_reference'] ?? null,
 
             'party_name' =>
-            $sourceVoucher['party_name'],
+            $sourceVoucher['party_name'] ?? '',
 
             'amount' =>
-            (float)
-            $sourceVoucher['amount'],
+            (float) $sourceVoucher['amount'],
 
             'total_amount' =>
-            (float)
-            $sourceVoucher['amount'],
-
-            'bill_amount' =>
-            (float)
-            $sourceVoucher['amount'],
-
-            'phone' =>
-            $party['phone']
-                ?? '',
-
-            'email' =>
-            $party['email']
-                ?? '',
+            (float) $sourceVoucher['amount'],
 
             'address' =>
-            $party['address']
-                ?? '',
+            $sourceVoucher['address'] ?? '',
+
+            'phone' =>
+            $sourceVoucher['phone'] ?? '',
+
+            'email' =>
+            $sourceVoucher['email'] ?? '',
 
             'trn' =>
-            $party['trn']
-                ?? ''
+            $sourceVoucher['trn'] ?? ''
         ];
     }
 
@@ -633,6 +618,9 @@ try {
             $party['address']
                 ?? '',
 
+            'bill_reference' =>
+            $sourceVoucher['bill_reference'] ?? null,
+            
             'phone' =>
             $party['phone']
                 ?? '',
@@ -752,14 +740,10 @@ try {
             $voucher['voucher_date'],
 
             'referenceNumber' =>
-            $voucherType === 'EXPENSE'
-                ? ($voucher['bill_reference'] ?? null)
-                : $voucher['reference_number'],
+            $voucher['reference_number'],
 
             'reference_number' =>
-            $voucherType === 'EXPENSE'
-                ? ($voucher['bill_reference'] ?? null)
-                : $voucher['reference_number'],
+            $voucher['reference_number'],
 
             'billReference' =>
             $voucher['bill_reference'] ?? null,

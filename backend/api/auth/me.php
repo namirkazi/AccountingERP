@@ -1,6 +1,10 @@
 <?php
 
 require_once __DIR__ . '/../../config/config.php';
+require_once __DIR__ . '/../../models/User.php';
+require_once __DIR__ . '/../../config/database.php';
+
+$userModel = new User($pdo);
 
 if (!isset($_SESSION['user_id'])) {
 
@@ -14,18 +18,54 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
+$userId = (int) $_SESSION['user_id'];
+
+$activeCompanyId =
+    (int) ($_SESSION['company_id'] ?? 0);
+
+$companies =
+    $userModel->getUserCompanies($userId);
+
+$activeCompany = null;
+
+foreach ($companies as $company) {
+
+    if (
+        (int) $company['company_id']
+        === $activeCompanyId
+    ) {
+        $activeCompany = $company;
+        break;
+    }
+}
+
 echo json_encode([
     'success' => true,
+
     'data' => [
+
         'user' => [
-            'id' => $_SESSION['user_id'],
-            'username' => $_SESSION['username'],
-            'full_name' => $_SESSION['full_name'],
-            'role' => $_SESSION['role'],
-            'company_id' => $_SESSION['company_id'],
-            'company_name' => $_SESSION['company_name'],
-            'company_code' => $_SESSION['company_code'],
-            'logo' => $_SESSION['logo']
-        ]
+            'id' =>
+            $_SESSION['user_id'],
+
+            'username' =>
+            $_SESSION['username'],
+
+            'full_name' =>
+            $_SESSION['full_name'],
+
+            'role' =>
+            $activeCompany['role']
+                ?? $_SESSION['role']
+        ],
+
+        'companies' =>
+        $companies,
+
+        'active_company_id' =>
+        $activeCompanyId,
+
+        'active_company' =>
+        $activeCompany
     ]
 ]);

@@ -19,7 +19,11 @@ $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 
 $allowedOrigins = [
     'http://localhost:5173',
-    'http://127.0.0.1:5173'
+    'http://127.0.0.1:5173',
+    'http://localhost:5174',
+    'http://127.0.0.1:5174',
+    'http://localhost:5175',
+    'http://127.0.0.1:5175',
 ];
 
 if (in_array($origin, $allowedOrigins, true)) {
@@ -131,7 +135,7 @@ if ($amount <= 0) {
     echo json_encode([
         'success' => false,
         'message' =>
-            'Capital amount must be greater than zero.'
+        'Capital amount must be greater than zero.'
     ]);
 
     exit;
@@ -224,28 +228,28 @@ try {
     $insertStmt->execute([
 
         ':company_id' =>
-            $companyId,
+        $companyId,
 
         ':investor_id' =>
-            $investorId,
+        $investorId,
 
         ':amount' =>
-            number_format(
-                $amount,
-                2,
-                '.',
-                ''
-            ),
+        number_format(
+            $amount,
+            2,
+            '.',
+            ''
+        ),
 
         ':transaction_date' =>
-            date('Y-m-d'),
+        date('Y-m-d'),
 
         ':narration' =>
-            'Capital contribution from '
+        'Capital contribution from '
             . $investor['investor_name'],
 
         ':created_by' =>
-            $userId
+        $userId
 
     ]);
 
@@ -268,45 +272,42 @@ try {
         'success' => true,
 
         'message' =>
-            'Capital added successfully.',
+        'Capital added successfully.',
 
         'data' => [
 
             'transaction_id' =>
-                $transactionId,
+            $transactionId,
 
             'investor_id' =>
-                $investorId,
+            $investorId,
 
             'investor_name' =>
-                $investor['investor_name'],
+            $investor['investor_name'],
 
             'amount' =>
-                $amount,
+            $amount,
 
             'transaction_type' =>
-                'CONTRIBUTION',
+            'CONTRIBUTION',
 
             'transaction_date' =>
-                date('Y-m-d')
+            date('Y-m-d')
 
         ]
 
     ]);
-
-
 } catch (Throwable $e) {
 
     if ($pdo->inTransaction()) {
 
         $pdo->rollBack();
-
     }
 
 
     error_log(
         'Capital contribution error: '
-        . $e->getMessage()
+            . $e->getMessage()
     );
 
 
@@ -317,8 +318,7 @@ try {
         'success' => false,
 
         'message' =>
-            $e->getMessage()
+        $e->getMessage()
 
     ]);
-
 }

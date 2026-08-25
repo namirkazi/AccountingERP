@@ -206,65 +206,32 @@ try {
             v.source_voucher_id,
             v.party_id,
 
-            COALESCE(
-                MAX(
                     CASE
-                        WHEN v.voucher_type = 'SALE'
-                             AND le.credit > 0
-                             AND LOWER(COALESCE(a.account_subtype, '')) IN ('sales', 'revenue')
-                        THEN a.account_name
+    WHEN v.voucher_type IN ('EXPENSE', 'SALE') THEN
+        (
+            SELECT GROUP_CONCAT(
+                vi.description
+                ORDER BY vi.id ASC
+                SEPARATOR ', '
+            )
+            FROM voucher_items vi
+            WHERE vi.voucher_id = v.id
+        )
 
-                        WHEN v.voucher_type = 'EXPENSE'
-                             AND le.debit > 0
-                             AND LOWER(COALESCE(a.account_type, '')) = 'expense'
-                        THEN a.account_name
+    WHEN v.voucher_type IN ('PAYMENT', 'RECEIPT') THEN
+        p.party_name
 
-                        WHEN v.voucher_type = 'PAYMENT'
-                             AND le.credit > 0
-                             AND LOWER(COALESCE(a.account_subtype, '')) IN ('cash', 'bank')
-                        THEN a.account_name
+    ELSE
+        v.narration
+END AS particulars,
 
-                        WHEN v.voucher_type = 'RECEIPT'
-                             AND le.debit > 0
-                             AND LOWER(COALESCE(a.account_subtype, '')) IN ('cash', 'bank')
-                        THEN a.account_name
+p.party_name,
+p.party_type,
+p.phone AS party_phone,
+p.email AS party_email,
 
-                        ELSE NULL
-                    END
-                ),
-                MAX(a.account_name)
-            ) AS account_name,
-
-            COALESCE(
-                MAX(
-                    CASE
-                        WHEN v.voucher_type = 'SALE'
-                             AND le.credit > 0
-                             AND LOWER(COALESCE(a.account_subtype, '')) IN ('sales', 'revenue')
-                        THEN a.account_subtype
-
-                        WHEN v.voucher_type = 'EXPENSE'
-                             AND le.debit > 0
-                             AND LOWER(COALESCE(a.account_type, '')) = 'expense'
-                        THEN a.account_subtype
-
-                        WHEN v.voucher_type IN ('PAYMENT', 'RECEIPT')
-                             AND LOWER(COALESCE(a.account_subtype, '')) IN ('cash', 'bank')
-                        THEN a.account_subtype
-
-                        ELSE NULL
-                    END
-                ),
-                MAX(a.account_subtype)
-            ) AS account_subtype,
-
-            p.party_name,
-            p.party_type,
-            p.phone AS party_phone,
-            p.email AS party_email,
-
-            COALESCE(SUM(le.debit), 0) AS debit,
-            COALESCE(SUM(le.credit), 0) AS credit
+COALESCE(SUM(le.debit), 0) AS debit,
+COALESCE(SUM(le.credit), 0) AS credit
 
         FROM vouchers v
 
@@ -328,7 +295,18 @@ try {
         $entry['voucher_number'] = $entry['reference_number'];
         $entry['referenceNumber'] = $entry['reference_number'];
         $entry['billReference'] = $entry['bill_reference'];
+        $entry['particulars'] =
+            trim(
+                (string) (
+                    $entry['particulars'] ?? ''
+                )
+            );
 
+        if ($entry['particulars'] === '') {
+            $entry['particulars'] =
+                $entry['narration'] ??
+                '—';
+        }
         $totalDebit += $entry['debit'];
         $totalCredit += $entry['credit'];
     }
@@ -377,7 +355,6 @@ try {
             ]
         ]
     ]);
-
 } catch (Throwable $e) {
     error_log('Ledger API error: ' . $e->getMessage());
     http_response_code(500);

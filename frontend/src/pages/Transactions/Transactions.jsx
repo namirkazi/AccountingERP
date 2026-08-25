@@ -653,19 +653,9 @@ export default function Transactions() {
             "Supplier";
 
         const reference =
-            type === "payment"
-                ? (
-                    voucherNumber ||
-                    selectedPaymentBill?.reference_number ||
-                    referenceNumber ||
-                    "Voucher"
-                )
-                : (
-                    voucherNumber ||
-                    referenceNumber ||
-                    "Voucher"
-                );
-
+            voucherNumber ||
+            referenceNumber ||
+            "Voucher";
         const cleanSupplier = supplierName.replace(/[<>:"/\\|?*]/g, "").trim();
         const cleanReference = reference.replace(/[<>:"/\\|?*]/g, "").trim();
 
@@ -969,37 +959,80 @@ export default function Transactions() {
 
                     response = await createTransaction(formData);
                 } else {
+                    const salesItems =
+                        type === "sale"
+                            ? salesServices
+                                .filter(
+                                    (service) =>
+                                        service.description?.trim() &&
+                                        Number(service.amount) > 0
+                                )
+                                .map((service) => ({
+                                    customerServiceId:
+                                        service.customerServiceId ||
+                                        service.customer_service_id ||
+                                        null,
+
+                                    description:
+                                        service.description.trim(),
+
+                                    unit: "Service",
+
+                                    quantity: 1,
+
+                                    rate:
+                                        Number(service.amount) || 0,
+
+                                    amount:
+                                        Number(service.amount) || 0
+                                }))
+                            : [];
                     response = await createTransaction({
                         type,
                         date,
                         party_id: party?.id || null,
-                        reference_number:
-                            type === "sale"
-                                ? voucherNumber
-                                : type === "receipt"
-                                    ? selectedReceiptBill?.invoice_number || null
-                                    : null,
+
+                        reference_number: null,
+
+                        bill_reference:
+                            type === "receipt"
+                                ? selectedReceiptBill?.invoice_number || null
+                                : null,
+
                         source_voucher_id:
                             type === "receipt"
                                 ? selectedReceiptBill?.id || null
                                 : null,
+
+                        items:
+                            type === "sale"
+                                ? JSON.stringify(salesItems)
+                                : undefined,
+
                         amount:
                             type === "sale"
                                 ? Number(salesTotalAmount) || 0
                                 : type === "receipt"
                                     ? Number(receiptAmount) || 0
                                     : Number(amount) || 0,
+
                         vat_input: 0,
+
                         vat_output:
                             type === "sale"
                                 ? Number(salesVatAmount) || 0
                                 : 0,
+
                         vat_rate: 0,
+
                         account_id:
-                            type === "payment" || type === "receipt"
+                            type === "payment" ||
+                                type === "receipt"
                                 ? Number(accountId) || null
                                 : null,
-                        narration: narration?.trim() || ""
+
+                        narration:
+                            narration?.trim() || ""
                     });
                 }
 
@@ -1007,6 +1040,8 @@ export default function Transactions() {
             if (type === "sale") {
 
                 const savedBillNumber =
+                    response?.data?.reference_number ||
+                    response?.reference_number ||
                     response?.data?.bill_number ||
                     response?.bill_number ||
                     voucherNumber;
@@ -1019,6 +1054,8 @@ export default function Transactions() {
             if (type === "receipt") {
 
                 const savedReceiptNumber =
+                    response?.data?.reference_number ||
+                    response?.reference_number ||
                     response?.data?.receipt_number ||
                     response?.receipt_number ||
                     voucherNumber;
@@ -1037,21 +1074,20 @@ export default function Transactions() {
 
             if (type === "payment") {
 
-                const paymentVoucherId =
-                    response?.data?.payment_voucher_id;
+                const savedPaymentNumber =
+                    response?.data?.reference_number ||
+                    response?.reference_number ||
+                    "";
 
-                if (paymentVoucherId) {
+                if (savedPaymentNumber) {
 
                     setVoucherNumber(
-                        `PAY-${String(
-                            paymentVoucherId
-                        ).padStart(6, "0")}`
+                        savedPaymentNumber
                     );
 
                 }
 
             }
-
             setMessage(response.message || `${currentType.label} saved successfully.`);
             setShowSavedVoucher(true);
 
@@ -1352,7 +1388,11 @@ export default function Transactions() {
                                             party={party}
                                             company={company}
                                             referenceNumber={referenceNumber}
-
+                                            billReference={
+                                                type === "expense"
+                                                    ? referenceNumber
+                                                    : ""
+                                            }
                                             voucherNumber={voucherNumber}
 
                                             items={
@@ -1456,6 +1496,11 @@ export default function Transactions() {
                         party={party}
                         company={company}
                         referenceNumber={referenceNumber}
+                        billReference={
+                            type === "expense"
+                                ? referenceNumber
+                                : ""
+                        }
                         voucherNumber={voucherNumber}
 
                         items={

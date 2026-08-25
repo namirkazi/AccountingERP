@@ -13,6 +13,7 @@ import {
   CircleDollarSign,
   Calculator,
   BookOpen,
+  CirclePlus,
 } from "lucide-react";
 
 export const menuItems = [
@@ -58,7 +59,7 @@ export const menuItems = [
   {
     title: "Accounting",
     icon: Calculator,
-    path: "/transactions"
+    path: "/transactions",
   },
   {
     title: "Ledger",
@@ -71,6 +72,11 @@ export const menuItems = [
     path: "/reports",
   },
 
+  {
+    title: "Add Company",
+    icon: CirclePlus,
+    path: "/companies/add",
+  },
   {
     title: "Settings",
     icon: Settings,

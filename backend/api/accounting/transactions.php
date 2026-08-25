@@ -113,20 +113,29 @@ try {
         $data['bill_reference'] ?? ''
     );
 
-    $expenseItems = [];
+    $transactionItems = [];
 
-    if ($type === 'expense' && isset($data['items'])) {
+    if (
+        ($type === 'expense' || $type === 'sale') &&
+        isset($data['items'])
+    ) {
         if (is_string($data['items'])) {
-            $expenseItems = json_decode($data['items'], true) ?? [];
+            $transactionItems =
+                json_decode(
+                    $data['items'],
+                    true
+                ) ?? [];
         } elseif (is_array($data['items'])) {
-            $expenseItems = $data['items'];
+            $transactionItems =
+                $data['items'];
         }
 
-        if (!is_array($expenseItems)) {
-            throw new Exception('Invalid expense items.');
+        if (!is_array($transactionItems)) {
+            throw new Exception(
+                'Invalid transaction items.'
+            );
         }
     }
-
     $sourceVoucherId = (int) (
         $data['source_voucher_id'] ?? 0
     );
@@ -205,7 +214,7 @@ try {
         exit;
     }
 
-    if ($type === 'expense' && count($expenseItems) === 0) {
+    if ($type === 'expense' && count($transactionItems) === 0) {
         http_response_code(422);
 
         echo json_encode([
@@ -1194,10 +1203,22 @@ try {
                 : null),
 
         ':bill_reference' =>
-        $type === 'expense' && $billReference !== ''
-            ? $billReference
-            : null,
-
+        $type === 'expense'
+            ? (
+                $billReference !== ''
+                ? $billReference
+                : null
+            )
+            : (
+                $type === 'receipt' &&
+                $sourceVoucherId > 0
+                ? (
+                    $billReference !== ''
+                    ? $billReference
+                    : null
+                )
+                : null
+            ),
         ':source_voucher_id' =>
         $type === 'receipt' && $sourceVoucherId > 0
             ? $sourceVoucherId
@@ -1276,49 +1297,113 @@ try {
 
 
     // =====================================================
-    // EXPENSE ITEMS
+    // TRANSACTION ITEMS
     // =====================================================
 
-    if ($type === 'expense') {
+    if (
+        $type === 'expense' ||
+        $type === 'sale'
+    ) {
+
         $itemStmt = $pdo->prepare("
-            INSERT INTO voucher_items (
-                voucher_id,
-                supplier_item_id,
-                description,
-                unit,
-                quantity,
-                rate,
-                amount
-            ) VALUES (
-                :voucher_id,
-                :supplier_item_id,
-                :description,
-                :unit,
-                :quantity,
-                :rate,
-                :amount
-            )
-        ");
+        INSERT INTO voucher_items (
+            voucher_id,
+            customer_service_id,
+            supplier_item_id,
+            description,
+            unit,
+            quantity,
+            rate,
+            amount
+        ) VALUES (
+            :voucher_id,
+            :customer_service_id,
+            :supplier_item_id,
+            :description,
+            :unit,
+            :quantity,
+            :rate,
+            :amount
+        )
+    ");
 
-        foreach ($expenseItems as $item) {
-            $description = trim((string) ($item['description'] ?? ''));
-            $quantity = (float) ($item['quantity'] ?? 0);
-            $rate = (float) ($item['rate'] ?? 0);
+        foreach (
+            $transactionItems
+            as $item
+        ) {
 
-            if ($description === '' || $quantity <= 0 || $rate < 0) {
-                throw new Exception('Every expense item must have a description, quantity, and valid rate.');
+            $description =
+                trim(
+                    (string)
+                    ($item['description'] ?? '')
+                );
+
+            $quantity =
+                (float)
+                ($item['quantity'] ?? 1);
+
+            $rate =
+                (float)
+                ($item['rate'] ?? 0);
+
+            $itemAmount = round(
+                $quantity * $rate,
+                2
+            );
+
+            if (
+                $description === '' ||
+                $quantity <= 0 ||
+                $rate < 0
+            ) {
+
+                throw new Exception(
+                    'Every transaction item must have a description, quantity, and valid rate.'
+                );
             }
 
             $itemStmt->execute([
-                ':voucher_id' => $voucherId,
-                ':supplier_item_id' => !empty($item['supplierItemId'])
-                    ? (int) $item['supplierItemId']
+
+                ':voucher_id' =>
+                $voucherId,
+
+                ':customer_service_id' =>
+                $type === 'sale' &&
+                    !empty($item['customerServiceId'])
+                    ? (int)
+                    $item['customerServiceId']
                     : null,
-                ':description' => $description,
-                ':unit' => trim((string) ($item['unit'] ?? '')),
-                ':quantity' => $quantity,
-                ':rate' => $rate,
-                ':amount' => round($quantity * $rate, 2)
+
+                ':supplier_item_id' =>
+                $type === 'expense' &&
+                    !empty($item['supplierItemId'])
+                    ? (int)
+                    $item['supplierItemId']
+                    : null,
+
+                ':description' =>
+                $description,
+
+                ':unit' =>
+                trim(
+                    (string)
+                    (
+                        $item['unit']
+                        ?? ''
+                    )
+                ),
+
+                ':quantity' =>
+                $quantity,
+
+                ':rate' =>
+                $rate,
+
+                ':amount' =>
+                round(
+                    $itemAmount,
+                    2
+                )
             ]);
         }
     }

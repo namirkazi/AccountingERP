@@ -1,7 +1,4 @@
-import {
-    apiRequest
-} from "./api";
-
+import { apiRequest } from "./api";
 
 /*
  * =========================================================
@@ -10,16 +7,10 @@ import {
  */
 
 export function getCompanyProfile() {
-
-    return apiRequest(
-        "company/profile.php",
-        {
-            method: "GET",
-        }
-    );
-
+  return apiRequest("company/profile.php", {
+    method: "GET",
+  });
 }
-
 
 /*
  * =========================================================
@@ -27,16 +18,15 @@ export function getCompanyProfile() {
  * =========================================================
  */
 
-export function updateCompanyProfile(
-    formData
-) {
-
-    return apiRequest(
-        "company/update_profile.php",
-        {
-            method: "POST",
-            body: formData,
-        }
-    );
-
+export function updateCompanyProfile(formData) {
+  return apiRequest("company/update_profile.php", {
+    method: "POST",
+    body: formData,
+  });
+}
+export function createCompany(formData) {
+  return apiRequest("company/create.php", {
+    method: "POST",
+    body: formData,
+  });
 }

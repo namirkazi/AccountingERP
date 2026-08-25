@@ -22,27 +22,72 @@ class AuthService
         if (!password_verify($password, $user['password'])) {
             throw new Exception('Invalid username or password.');
         }
+        $companies = $this->userModel->getUserCompanies((int) $user['id']);
+        if (empty($companies)) {
+            throw new Exception(
+                'No company access is assigned to this user.'
+            );
+        }
+        $activeCompany = $companies[0];
 
+        foreach ($companies as $company) {
+            if ((int) $company['is_default'] === 1) {
+                $activeCompany = $company;
+                break;
+            }
+        }
         session_regenerate_id(true);
 
-        $_SESSION['user_id'] = (int) $user['id'];
-        $_SESSION['company_id'] = (int) $user['company_id'];
-        $_SESSION['company_name'] = $user['company_name'];
-        $_SESSION['company_code'] = $user['company_code'];
-        $_SESSION['username'] = $user['username'];
-        $_SESSION['role'] = $user['role'];
-        $_SESSION['full_name'] = $user['full_name'];
-        $_SESSION['logo'] = $user['logo'];
+        $_SESSION['user_id'] =
+            (int) $user['id'];
+
+        $_SESSION['company_id'] =
+            (int) $activeCompany['company_id'];
+
+        $_SESSION['company_name'] =
+            $activeCompany['company_name'];
+
+        $_SESSION['company_code'] =
+            $activeCompany['company_code'];
+
+        $_SESSION['username'] =
+            $user['username'];
+
+        $_SESSION['role'] =
+            $activeCompany['role'];
+
+        $_SESSION['full_name'] =
+            $user['full_name'];
+
+        $_SESSION['logo'] =
+            $activeCompany['logo'];
+
+        $_SESSION['company_role'] =
+            $activeCompany['role'];
 
         return [
-            'id' => (int) $user['id'],
-            'username' => $user['username'],
-            'full_name' => $user['full_name'],
-            'role' => $user['role'],
-            'company_id' => (int) $user['company_id'],
-            'company_name' => $user['company_name'],
-            'company_code' => $user['company_code'],
-            'logo' => $user['logo']
+            'user' => [
+                'id' =>
+                (int) $user['id'],
+
+                'username' =>
+                $user['username'],
+
+                'full_name' =>
+                $user['full_name'],
+
+                'role' =>
+                $activeCompany['role']
+            ],
+
+            'companies' =>
+            $companies,
+
+            'active_company_id' =>
+            (int) $activeCompany['company_id'],
+
+            'active_company' =>
+            $activeCompany
         ];
     }
 

@@ -608,6 +608,8 @@ export default function PrintableVoucher({
 
     referenceNumber,
 
+    billReference,
+
     voucherNumber,
 
     items = [],
@@ -876,15 +878,17 @@ export default function PrintableVoucher({
 
 
     const externalReference =
-
         clean(
-            isPayment
-                ? selectedPaymentBill?.reference_number
-                : referenceNumber
+            isExpense
+                ? billReference
+                : isPayment
+                    ? selectedPaymentBill?.bill_reference
+                    : isReceipt
+                        ? selectedReceiptBill?.bill_reference ||
+                        selectedReceiptBill?.reference_number
+                        : referenceNumber
         ) ||
-
         "—";
-
 
     /*
     |--------------------------------------------------------------------------

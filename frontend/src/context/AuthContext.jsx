@@ -1,84 +1,103 @@
-import {
-    createContext,
-    useContext,
-    useEffect,
-    useState
-} from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 
 import {
-    login as loginRequest,
-    logout as logoutRequest,
-    getCurrentUser
+  login as loginRequest,
+  logout as logoutRequest,
+  getCurrentUser,
+  switchCompany as switchCompanyService,
 } from "../services/authService";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [companies, setCompanies] = useState([]);
+  const [activeCompany, setActiveCompany] = useState(null);
 
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    checkAuthentication();
+  }, []);
 
-    useEffect(() => {
+  async function checkAuthentication() {
+    try {
+      const response = await getCurrentUser();
 
-        checkAuthentication();
+      if (response?.success) {
+        const data = response.data;
 
-    }, []);
+        setUser(data.user);
 
-    async function checkAuthentication() {
+        setCompanies(Array.isArray(data.companies) ? data.companies : []);
 
-        try {
+        setActiveCompany(data.active_company || null);
+      }
+    } catch {
+      setUser(null);
+      setCompanies([]);
+      setActiveCompany(null);
+    } finally {
+      setLoading(false);
+    }
+  }
 
-            const response = await getCurrentUser();
+  async function login(username, password) {
+    const response = await loginRequest(username, password);
 
-            if (response.success) {
-                setUser(response.data.user);
-            }
+    const data = response.data;
 
-        } catch {
+    setUser(data.user);
 
-            setUser(null);
+    setCompanies(Array.isArray(data.companies) ? data.companies : []);
 
-        } finally {
+    setActiveCompany(data.active_company || null);
 
-            setLoading(false);
+    return response;
+  }
 
-        }
+  async function logout() {
+    await logoutRequest();
+
+    setUser(null);
+    setCompanies([]);
+    setActiveCompany(null);
+  }
+
+  async function switchCompany(companyId) {
+    const response = await switchCompanyService(companyId);
+
+    if (!response?.success) {
+      throw new Error(response?.message || "Unable to switch company.");
     }
 
-    async function login(username, password) {
+    const data = response.data;
 
-        const response =
-            await loginRequest(username, password);
+    setActiveCompany(data.active_company || null);
 
-        setUser(response.data.user);
+    return response;
+  }
 
-        return response;
-    }
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        login,
+        logout,
+        isAuthenticated: !!user,
 
-    async function logout() {
+        companies,
+        activeCompany,
+        activeCompanyId: activeCompany?.company_id || null,
 
-        await logoutRequest();
-
-        setUser(null);
-    }
-
-    return (
-        <AuthContext.Provider
-            value={{
-                user,
-                loading,
-                login,
-                logout,
-                isAuthenticated: !!user
-            }}
-        >
-            {children}
-        </AuthContext.Provider>
-    );
+        switchCompany,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {
-
-    return useContext(AuthContext);
-
+  return useContext(AuthContext);
 }

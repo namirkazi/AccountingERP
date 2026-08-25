@@ -1,33 +1,27 @@
-.layout{
+.layout {
+  display: flex;
 
-    display:flex;
+  width: 100vw;
 
-    width:100vw;
+  height: 100vh;
 
-    height:100vh;
-
-    background:#F5F7FA;
-
+  background: #f5f7fa;
 }
 
-.content{
+.content {
+  flex: 1;
 
-    flex:1;
+  display: flex;
 
-    display:flex;
+  flex-direction: column;
 
-    flex-direction:column;
-
-    overflow:hidden;
-
+  overflow: hidden;
 }
 
-.main{
+.main {
+  flex: 1;
 
-    flex:1;
+  padding: 30px;
 
-    padding:30px;
-
-    overflow:auto;
-
+  overflow: auto;
 }

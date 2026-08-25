@@ -103,7 +103,8 @@ try {
             party_id,
             amount,
             narration,
-            reference_number
+            reference_number,
+            bill_reference
         FROM vouchers
 
         WHERE id = :id
@@ -226,7 +227,78 @@ try {
         );
     }
 
+    $paymentYear = (int) date(
+        'Y',
+        strtotime($date)
+    );
 
+    $lockName =
+        'accounting_payment_' .
+        $companyId;
+
+    $lockStmt = $pdo->prepare(
+        "SELECT GET_LOCK(:lock_name, 10)"
+    );
+
+    $lockStmt->execute([
+        ':lock_name' => $lockName
+    ]);
+
+    if ((int) $lockStmt->fetchColumn() !== 1) {
+        throw new Exception(
+            'Unable to lock Payment numbering. Please try again.'
+        );
+    }
+
+    $sequenceStmt = $pdo->prepare("
+    SELECT reference_number
+    FROM vouchers
+    WHERE company_id = :company_id
+      AND voucher_type = 'PAYMENT'
+      AND voucher_date >= :year_start
+      AND voucher_date < :next_year_start
+      AND reference_number LIKE :pattern
+    ORDER BY id DESC
+");
+
+    $sequenceStmt->execute([
+        ':company_id' => $companyId,
+        ':year_start' => $paymentYear . '-01-01',
+        ':next_year_start' => ($paymentYear + 1) . '-01-01',
+        ':pattern' => 'PAYMENT/' . $paymentYear . '/%'
+    ]);
+
+    $highestSequence = 0;
+
+    while ($row = $sequenceStmt->fetch()) {
+        $number = trim(
+            (string) $row['reference_number']
+        );
+
+        if (preg_match(
+            '#^PAYMENT/' .
+                $paymentYear .
+                '/([0-9]+)$#',
+            $number,
+            $matches
+        )) {
+            $highestSequence = max(
+                $highestSequence,
+                (int) $matches[1]
+            );
+        }
+    }
+
+    $paymentReferenceNumber =
+        'PAYMENT/' .
+        $paymentYear .
+        '/' .
+        str_pad(
+            (string) ($highestSequence + 1),
+            5,
+            '0',
+            STR_PAD_LEFT
+        );
     // =====================================================
     // CREATE PAYMENT VOUCHER
     // =====================================================
@@ -237,6 +309,7 @@ try {
         voucher_type,
         voucher_date,
         reference_number,
+        bill_reference,
         party_id,
         amount,
         narration,
@@ -249,6 +322,7 @@ try {
         'PAYMENT',
         :voucher_date,
         :reference_number,
+        :bill_reference,
         :party_id,
         :amount,
         :narration,
@@ -258,7 +332,6 @@ try {
 ");
 
     $voucherStmt->execute([
-
         ':company_id' =>
         $companyId,
 
@@ -266,7 +339,10 @@ try {
         $date,
 
         ':reference_number' =>
-        $expense['reference_number'],
+        $paymentReferenceNumber,
+
+        ':bill_reference' =>
+        $expense['bill_reference'] ?? null,
 
         ':party_id' =>
         $expense['party_id'],
@@ -416,6 +492,12 @@ try {
 
             'expense_id' =>
             $expenseId,
+
+            'reference_number' =>
+            $paymentReferenceNumber,
+
+            'bill_reference' =>
+            $expense['bill_reference'] ?? null,
 
             'amount' =>
             $amount,
