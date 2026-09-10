@@ -21,9 +21,9 @@
 
 $host = getenv('MYSQLHOST') ?: 'localhost';
 $port = getenv('MYSQLPORT') ?: '3306';
-$db   = getenv('MYSQLDATABASE') ?: 'accounting_erp';
+$db   = getenv('MYSQL_DATABASE') ?: 'accounting_erp';
 $user = getenv('MYSQLUSER') ?: 'root';
-$pass = getenv('MYSQLPASSWORD') ?: '';
+$pass = getenv('MYSQL_ROOT_PASSWORD') ?: '';
 
 $charset = 'utf8mb4';
 
