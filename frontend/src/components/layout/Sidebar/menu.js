@@ -24,36 +24,9 @@ export const menuItems = [
   },
 
   {
-    title: "Masters",
-    icon: FolderOpen,
-    children: [
-      {
-        title: "Customers",
-        icon: Users,
-        path: "/customers",
-      },
-      {
-        title: "Suppliers",
-        icon: Building2,
-        path: "/suppliers",
-      },
-      {
-        title: "Assets",
-        icon: Package,
-        path: "/assets",
-      },
-    ],
-  },
-  {
-    title: "Opening",
+    title: "Capital & Balances",
     icon: CircleDollarSign,
-    children: [
-      {
-        title: "Capital & Balances",
-        icon: CircleDollarSign,
-        path: "/opening",
-      },
-    ],
+    path: "/opening",
   },
 
   {
@@ -65,11 +38,6 @@ export const menuItems = [
     title: "Ledger",
     icon: BookOpen,
     path: "/ledger",
-  },
-  {
-    title: "Reports",
-    icon: ChartColumn,
-    path: "/reports",
   },
 
   {

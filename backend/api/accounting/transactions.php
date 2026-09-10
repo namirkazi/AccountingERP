@@ -314,23 +314,23 @@ try {
 
     if (
         $type === 'expense' &&
-        $vatInput > $amount
+        $vatOutput > $amount
     ) {
 
         http_response_code(422);
 
         echo json_encode([
             'success' => false,
-            'message' => 'VAT cannot be greater than the expense total.'
+            'message' => 'VAT Output cannot be greater than the expense total.'
         ]);
 
         exit;
     }
-    if ($type !== 'sale') {
+    if ($type !== 'expense') {
         $vatOutput = 0;
     }
 
-    if ($type !== 'expense') {
+    if ($type !== 'sale') {
         $vatInput = 0;
     }
 
@@ -811,7 +811,6 @@ try {
                 'receivable',
                 'sales'
             ];
-
             break;
 
 
@@ -860,12 +859,6 @@ try {
             $requiredAccounts = [
                 'payable'
             ];
-
-            if ($vatInput > 0) {
-
-                $requiredAccounts[] =
-                    'vat_input';
-            }
 
             break;
 
@@ -1060,70 +1053,6 @@ try {
             );
         }
     }
-
-
-    // =====================================================
-    // EXPENSE ACCOUNT
-    // =====================================================
-
-    /*
-     * Expense does NOT receive an account from the frontend.
-     *
-     * Instead, automatically use an existing account whose
-     * account_type is "expense".
-     *
-     * This keeps Expense Voucher entry simple while still
-     * producing a balanced accounting entry.
-     *
-     * If the company has several expense accounts, the
-     * first one by ID is used for now.
-     *
-     * Later, when expense categories/accounting rules are
-     * introduced, this can be replaced with item-level
-     * expense classification.
-     */
-
-    $expenseAccountId = 0;
-
-
-    if ($type === 'expense') {
-
-        $expenseAccountStmt = $pdo->prepare("
-            SELECT
-                id,
-                account_name,
-                account_type,
-                account_subtype
-            FROM accounts
-            WHERE company_id = :company_id
-            AND LOWER(account_type) = 'expense'
-            ORDER BY id ASC
-            LIMIT 1
-        ");
-
-
-        $expenseAccountStmt->execute([
-            ':company_id' =>
-            $companyId
-        ]);
-
-
-        $expenseAccount =
-            $expenseAccountStmt->fetch();
-
-
-        if (!$expenseAccount) {
-
-            throw new Exception(
-                'No expense account is configured for this company.'
-            );
-        }
-
-
-        $expenseAccountId =
-            (int) $expenseAccount['id'];
-    }
-
 
     // =====================================================
     // CREATE VOUCHER
@@ -1544,16 +1473,9 @@ try {
 
         $salesAmount =
             round(
-                $amount - $vatOutput,
+                $amount,
                 2
             );
-
-        if ($salesAmount < 0) {
-            throw new Exception(
-                'Sales amount cannot be less than VAT Output.'
-            );
-        }
-
         // Dr Accounts Receivable
         $addEntry(
             $accountMap['receivable'],
@@ -1569,25 +1491,6 @@ try {
             0,
             $salesAmount
         );
-
-        // Cr VAT Output
-        if ($vatOutput > 0) {
-
-            if (!isset(
-                $accountMap['vat_output']
-            )) {
-                throw new Exception(
-                    'VAT Output account is missing.'
-                );
-            }
-
-            $addEntry(
-                $accountMap['vat_output'],
-                null,
-                0,
-                $vatOutput
-            );
-        }
     }
 
     // =====================================================
@@ -1704,81 +1607,29 @@ try {
 
     if ($type === 'expense') {
 
-        $expenseBaseAmount =
-            round(
-                $amount - $vatInput,
-                2
-            );
-
-
-        if ($expenseBaseAmount < 0) {
-
-            throw new Exception(
-                'Expense amount cannot be less than VAT.'
-            );
-        }
-
-
         /*
-         * Debit Expense
-         */
+     * Expense Bill
+     *
+     * The supplier bill is stored as a voucher
+     * together with its items and VAT.
+     *
+     * VAT is not a ledger account.
+     *
+     * The bill creates the supplier payable.
+     * The actual debit/credit movement happens
+     * when the payment is made.
+     */
 
-        $addEntry(
-
-            $expenseAccountId,
-
-            null,
-
-            $expenseBaseAmount,
-
-            0
-
+        $payableAmount = round(
+            $amount,
+            2
         );
 
-
-        /*
-         * Debit Input VAT
-         */
-
-        if ($vatInput > 0) {
-
-            $addEntry(
-
-                $accountMap['vat_input'],
-
-                null,
-
-                $vatInput,
-
-                0
-
-            );
-        }
-
-
-        /*
-         * Credit Supplier Payable
-         *
-         * The payable is the final bill total.
-         */
-
-        $payableAmount =
-            round(
-                $amount,
-                2
-            );
-
-
         $addEntry(
-
             $accountMap['payable'],
-
             $partyId,
-
             0,
-
             $payableAmount
-
         );
     }
 
@@ -1829,7 +1680,9 @@ try {
     // VERIFY LEDGER BALANCE
     // =====================================================
 
-    $balanceStmt = $pdo->prepare("
+    if ($type !== 'expense') {
+
+        $balanceStmt = $pdo->prepare("
         SELECT
             COALESCE(
                 SUM(debit),
@@ -1846,47 +1699,35 @@ try {
         WHERE voucher_id = :voucher_id
     ");
 
+        $balanceStmt->execute([
+            ':voucher_id' => $voucherId
+        ]);
 
-    $balanceStmt->execute([
-        ':voucher_id' =>
-        $voucherId
-    ]);
+        $balance = $balanceStmt->fetch();
 
-
-    $balance =
-        $balanceStmt->fetch();
-
-
-    $totalDebit =
-        round(
+        $totalDebit = round(
             (float) (
-                $balance['debit']
-                ?? 0
+                $balance['debit'] ?? 0
             ),
             2
         );
 
-
-    $totalCredit =
-        round(
+        $totalCredit = round(
             (float) (
-                $balance['credit']
-                ?? 0
+                $balance['credit'] ?? 0
             ),
             2
         );
 
-
-    if (
-        abs(
-            $totalDebit -
-                $totalCredit
-        ) > 0.001
-    ) {
-
-        throw new Exception(
-            'Transaction is not balanced.'
-        );
+        if (
+            abs(
+                $totalDebit - $totalCredit
+            ) > 0.001
+        ) {
+            throw new Exception(
+                'Transaction is not balanced.'
+            );
+        }
     }
 
 

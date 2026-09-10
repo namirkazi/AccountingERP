@@ -620,7 +620,7 @@ try {
 
             'bill_reference' =>
             $sourceVoucher['bill_reference'] ?? null,
-            
+
             'phone' =>
             $party['phone']
                 ?? '',
@@ -746,9 +746,6 @@ try {
             $voucher['reference_number'],
 
             'billReference' =>
-            $voucher['bill_reference'] ?? null,
-
-            'bill_reference' =>
             $voucher['bill_reference'] ?? null,
 
             'voucherNumber' =>

@@ -165,15 +165,41 @@ try {
 
                 break;
         }
-
-
-        if (
-            $account['account_type'] === 'expense'
-        ) {
-
-            $expenses += $balance;
-        }
     }
+
+    /*
+     * =========================================================
+     * EXPENSE TOTAL
+     * =========================================================
+     *
+     * Expense bills are stored as EXPENSE vouchers.
+     * There is no longer an expense account/head that should
+     * be used to calculate the Dashboard expense total.
+     *
+     * The amount of each EXPENSE voucher is therefore the
+     * authoritative expense amount for the company.
+     */
+    $expenseStmt = $pdo->prepare("
+        SELECT
+            COALESCE(
+                SUM(amount),
+                0
+            ) AS total_expenses
+        FROM vouchers
+        WHERE company_id = :company_id
+          AND voucher_type = 'EXPENSE'
+    ");
+
+    $expenseStmt->execute([
+        ':company_id' => $companyId
+    ]);
+
+    $expenses = round(
+        (float) (
+            $expenseStmt->fetchColumn() ?? 0
+        ),
+        2
+    );
     $voucherStmt = $pdo->prepare("
     SELECT
         voucher_type,

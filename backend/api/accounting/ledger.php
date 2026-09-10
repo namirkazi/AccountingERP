@@ -70,6 +70,16 @@ try {
         'v.company_id = :company_id'
     ];
 
+    /*
+     * The Ledger table is a voucher register, so expense bills remain
+     * visible there. Expense bills are not included in the debit/credit
+     * summary because the actual double-entry settlement happens through
+     * the later PAYMENT voucher.
+     */
+    $totalsWhere = [
+        'v.company_id = :company_id'
+    ];
+
     $params = [
         ':company_id' => $companyId
     ];
@@ -83,7 +93,11 @@ try {
             $params[$key] = $type;
         }
 
-        $where[] = 'v.voucher_type IN (' . implode(',', $placeholders) . ')';
+        $voucherTypeFilter =
+            'v.voucher_type IN (' . implode(',', $placeholders) . ')';
+
+        $where[] = $voucherTypeFilter;
+        $totalsWhere[] = $voucherTypeFilter;
     }
 
     if (count($partyIds) > 0) {
@@ -95,7 +109,11 @@ try {
             $params[$key] = $partyId;
         }
 
-        $where[] = 'v.party_id IN (' . implode(',', $placeholders) . ')';
+        $partyFilter =
+            'v.party_id IN (' . implode(',', $placeholders) . ')';
+
+        $where[] = $partyFilter;
+        $totalsWhere[] = $partyFilter;
     }
 
     if (count($accountIds) > 0) {
@@ -107,6 +125,16 @@ try {
             $params[$key] = $accountId;
         }
 
+        $accountFilter = '
+            EXISTS (
+                SELECT 1
+                FROM ledger_entries totals_filter_le
+                WHERE totals_filter_le.voucher_id = v.id
+                  AND totals_filter_le.company_id = v.company_id
+                  AND totals_filter_le.account_id IN (' . implode(',', $placeholders) . ')
+            )
+        ';
+
         $where[] = '
             EXISTS (
                 SELECT 1
@@ -116,15 +144,19 @@ try {
                   AND filter_le.account_id IN (' . implode(',', $placeholders) . ')
             )
         ';
+
+        $totalsWhere[] = $accountFilter;
     }
 
     if ($dateFrom !== '') {
         $where[] = 'v.voucher_date >= :date_from';
+        $totalsWhere[] = 'v.voucher_date >= :date_from';
         $params[':date_from'] = $dateFrom;
     }
 
     if ($dateTo !== '') {
         $where[] = 'v.voucher_date <= :date_to';
+        $totalsWhere[] = 'v.voucher_date <= :date_to';
         $params[':date_to'] = $dateTo;
     }
 
@@ -186,10 +218,15 @@ try {
             $searchConditions[] = 'v.amount = :search_amount';
         }
 
-        $where[] = '(' . implode(' OR ', $searchConditions) . ')';
+        $searchSql =
+            '(' . implode(' OR ', $searchConditions) . ')';
+
+        $where[] = $searchSql;
+        $totalsWhere[] = $searchSql;
     }
 
     $whereSql = implode(' AND ', $where);
+    $totalsWhereSql = implode(' AND ', $totalsWhere);
 
     $sql = "
         SELECT
@@ -276,9 +313,6 @@ COALESCE(SUM(le.credit), 0) AS credit
     $stmt->execute($params);
     $entries = $stmt->fetchAll();
 
-    $totalDebit = 0;
-    $totalCredit = 0;
-
     foreach ($entries as &$entry) {
         $entry['id'] = (int) $entry['voucher_id'];
         $entry['voucher_id'] = (int) $entry['voucher_id'];
@@ -307,10 +341,92 @@ COALESCE(SUM(le.credit), 0) AS credit
                 $entry['narration'] ??
                 '—';
         }
-        $totalDebit += $entry['debit'];
-        $totalCredit += $entry['credit'];
     }
     unset($entry);
+
+    /*
+     * =========================================================
+     * BUSINESS ACTIVITY TOTALS
+     * =========================================================
+     *
+     * The Ledger table contains every voucher, including RECEIPT
+     * and PAYMENT settlement vouchers.
+     *
+     * Summary totals count originating business activity only:
+     * SALE -> Sales
+     * EXPENSE -> Expenses
+     * CAPITAL -> Capital movement
+     *
+     * RECEIPT and PAYMENT settle existing balances and therefore
+     * are not counted again as new sales or expenses.
+     */
+    $totalsSql = "
+        SELECT
+            COALESCE(
+                SUM(
+                    CASE
+                        WHEN v.voucher_type = 'SALE'
+                        THEN v.amount
+                        ELSE 0
+                    END
+                ),
+                0
+            ) AS sales,
+
+            COALESCE(
+                SUM(
+                    CASE
+                        WHEN v.voucher_type = 'EXPENSE'
+                        THEN v.amount
+                        ELSE 0
+                    END
+                ),
+                0
+            ) AS expenses,
+
+            COALESCE(
+                SUM(
+                    CASE
+                        WHEN v.voucher_type = 'CAPITAL'
+                        THEN v.amount
+                        ELSE 0
+                    END
+                ),
+                0
+            ) AS capital
+
+        FROM vouchers v
+
+        LEFT JOIN parties p
+            ON p.id = v.party_id
+            AND p.company_id = v.company_id
+
+        WHERE {$totalsWhereSql}
+    ";
+
+    $totalsStmt = $pdo->prepare($totalsSql);
+    $totalsStmt->execute($params);
+    $totals = $totalsStmt->fetch();
+
+    $totalSales = round(
+        (float) ($totals['sales'] ?? 0),
+        2
+    );
+
+    $totalExpenses = round(
+        (float) ($totals['expenses'] ?? 0),
+        2
+    );
+
+    $totalCapital = round(
+        (float) ($totals['capital'] ?? 0),
+        2
+    );
+
+    $netActivity = round(
+        $totalSales - $totalExpenses,
+        2
+    );
 
     /* Filter options */
     $accountStmt = $pdo->prepare("
@@ -346,8 +462,10 @@ COALESCE(SUM(le.credit), 0) AS credit
         'data' => [
             'entries' => $entries,
             'totals' => [
-                'debit' => round($totalDebit, 2),
-                'credit' => round($totalCredit, 2)
+                'sales' => $totalSales,
+                'expenses' => $totalExpenses,
+                'capital' => $totalCapital,
+                'net_activity' => $netActivity
             ],
             'filters' => [
                 'accounts' => $accounts,
