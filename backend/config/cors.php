@@ -25,6 +25,9 @@ $allowedOrigins = [
 
     'http://localhost:5175',
     'http://127.0.0.1:5175',
+
+    'https://accounting-frontend-production-b94e.up.railway.app/',
+    'https://accounting-backend-production-8ca9.up.railway.app/',
 ];
 
 $frontendUrl = trim(
