@@ -248,14 +248,6 @@ try {
         $capitalTransferred;
 
 
-    if (
-        $availableCapital < 0
-    ) {
-
-        $availableCapital = 0;
-    }
-
-
     /*
     |--------------------------------------------------------------------------
     | RESPONSE

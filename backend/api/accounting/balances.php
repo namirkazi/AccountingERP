@@ -462,13 +462,15 @@ try {
         i.investor_name
 
     HAVING
+    ABS(
         SUM(
             CASE
                 WHEN ict.transaction_type = 'CONTRIBUTION'
                 THEN ict.amount
                 ELSE 0
             END
-        ) > 0.005
+        )
+    ) > 0.005
 
     ORDER BY
         balance DESC,
@@ -608,13 +610,6 @@ try {
     $availableCapital =
         $investorCapitalTotal -
         $capitalTransferred;
-
-
-    if ($availableCapital < 0) {
-
-        $availableCapital = 0;
-    }
-
 
     /*
  * ---------------------------------------------------------
