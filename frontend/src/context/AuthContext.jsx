@@ -31,6 +31,10 @@ export function AuthProvider({ children }) {
         setCompanies(Array.isArray(data.companies) ? data.companies : []);
 
         setActiveCompany(data.active_company || null);
+      } else {
+        setUser(null);
+        setCompanies([]);
+        setActiveCompany(null);
       }
     } catch {
       setUser(null);
@@ -42,9 +46,20 @@ export function AuthProvider({ children }) {
   }
 
   async function login(username, password) {
-    const response = await loginRequest(username, password);
+    // First establish the PHP session.
+    await loginRequest(username, password);
 
-    const data = response.data;
+    // Then fetch the canonical authenticated state.
+    // /me.php determines the role from the active company.
+    const currentUserResponse = await getCurrentUser();
+
+    if (!currentUserResponse?.success) {
+      throw new Error(
+        currentUserResponse?.message || "Unable to load authenticated user.",
+      );
+    }
+
+    const data = currentUserResponse.data;
 
     setUser(data.user);
 
@@ -52,7 +67,7 @@ export function AuthProvider({ children }) {
 
     setActiveCompany(data.active_company || null);
 
-    return response;
+    return currentUserResponse;
   }
 
   async function logout() {
@@ -72,7 +87,24 @@ export function AuthProvider({ children }) {
 
     const data = response.data;
 
+    // Update the active company immediately.
     setActiveCompany(data.active_company || null);
+
+    // Re-fetch the complete user state so the
+    // company-specific role is also updated.
+    const currentUserResponse = await getCurrentUser();
+
+    if (currentUserResponse?.success) {
+      const currentData = currentUserResponse.data;
+
+      setUser(currentData.user);
+
+      setCompanies(
+        Array.isArray(currentData.companies) ? currentData.companies : [],
+      );
+
+      setActiveCompany(currentData.active_company || null);
+    }
 
     return response;
   }
