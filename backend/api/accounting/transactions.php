@@ -1765,10 +1765,16 @@ try {
             throw new Exception('Supplier bill must be a PDF, JPG, PNG, or WEBP file.');
         }
 
+        $storagePath = rtrim(
+            getenv('STORAGE_PATH')
+                ?: (__DIR__ . '/../../storage'),
+            '/\\'
+        );
+
         $uploadDirectory =
-            __DIR__
-            . '/../../uploads/accounting/vouchers/'
-            . $companyId;
+            $storagePath .
+            '/uploads/accounting/vouchers/' .
+            $companyId;
 
         if (!is_dir($uploadDirectory) && !mkdir($uploadDirectory, 0755, true)) {
             throw new Exception('Unable to create the supplier bill upload directory.');

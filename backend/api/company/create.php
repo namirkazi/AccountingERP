@@ -431,9 +431,15 @@ try {
             $extensionMap[$mimeType];
 
 
+        $storagePath = rtrim(
+            getenv('STORAGE_PATH')
+                ?: (__DIR__ . '/../../storage'),
+            '/\\'
+        );
+
         $uploadDirectory =
-            __DIR__ .
-            '/../../uploads/company/' .
+            $storagePath .
+            '/uploads/company/' .
             $newCompanyId;
 
 

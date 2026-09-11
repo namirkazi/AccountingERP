@@ -217,11 +217,16 @@ try {
          * overwrite another company's logo.
          */
 
-        $uploadDirectory =
-            __DIR__ .
-            '/../../uploads/company/' .
-            $companyId;
+        $storagePath = rtrim(
+            getenv('STORAGE_PATH')
+                ?: (__DIR__ . '/../../storage'),
+            '/\\'
+        );
 
+        $uploadDirectory =
+            $storagePath .
+            '/uploads/company/' .
+            $companyId;
 
         if (
             !is_dir(
@@ -472,9 +477,15 @@ try {
 
     if (!empty($company['logo'])) {
 
+        $storagePath = rtrim(
+            getenv('STORAGE_PATH')
+                ?: (__DIR__ . '/../../storage'),
+            '/\\'
+        );
+
         $logoFilePath =
-            __DIR__ .
-            '/../../' .
+            $storagePath .
+            '/' .
             ltrim($company['logo'], '/');
 
         if (is_file($logoFilePath)) {
