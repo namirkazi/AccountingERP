@@ -5,6 +5,51 @@ import { menuItems } from "./menu";
 import styles from "./Sidebar.module.css";
 import { useNavigate } from "react-router-dom";
 
+/*
+|--------------------------------------------------------------------------
+| Company Logo URL
+|--------------------------------------------------------------------------
+|
+| Database stores paths like:
+|
+| uploads/company/1/logo_xxx.png
+|
+| The files are served by the backend, not the frontend.
+|
+*/
+
+const BACKEND_URL = (
+  import.meta.env.VITE_API_URL || "http://localhost/AccountingERP/backend"
+).replace(/\/+$/, "");
+
+function getCompanyLogoUrl(logo) {
+  if (!logo) {
+    return "";
+  }
+
+  /*
+   * Already a complete URL.
+   */
+  if (
+    logo.startsWith("http://") ||
+    logo.startsWith("https://") ||
+    logo.startsWith("data:")
+  ) {
+    return logo;
+  }
+
+  /*
+   * Convert:
+   *
+   * uploads/company/1/logo_xxx.png
+   *
+   * into:
+   *
+   * https://accounting-backend-production-8ca9.up.railway.app/uploads/company/1/logo_xxx.png
+   */
+  return `${BACKEND_URL}/${logo.replace(/^\/+/, "")}`;
+}
+
 export default function Sidebar({ collapsed }) {
   const [openMenus, setOpenMenus] = useState({
     Masters: true,
@@ -45,6 +90,7 @@ export default function Sidebar({ collapsed }) {
   return (
     <aside className={`${styles.sidebar} ${collapsed ? styles.collapsed : ""}`}>
       {/* APP HEADER */}
+
       {/* COMPANY SWITCHER */}
 
       {!collapsed && (
@@ -57,9 +103,12 @@ export default function Sidebar({ collapsed }) {
             <div className={styles.companyInfo}>
               {activeCompany?.logo ? (
                 <img
-                  src={activeCompany.logo}
+                  src={getCompanyLogoUrl(activeCompany.logo)}
                   alt=""
                   className={styles.companyLogo}
+                  onError={(event) => {
+                    event.currentTarget.style.display = "none";
+                  }}
                 />
               ) : (
                 <div className={styles.companyLogoPlaceholder}>
@@ -111,9 +160,12 @@ export default function Sidebar({ collapsed }) {
                       >
                         {company.logo ? (
                           <img
-                            src={company.logo}
+                            src={getCompanyLogoUrl(company.logo)}
                             alt=""
                             className={styles.companyOptionLogo}
+                            onError={(event) => {
+                              event.currentTarget.style.display = "none";
+                            }}
                           />
                         ) : (
                           <div className={styles.companyOptionLogoPlaceholder}>
