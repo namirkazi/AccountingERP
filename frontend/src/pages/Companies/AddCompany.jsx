@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Building2, Upload, Save } from "lucide-react";
+import { Building2, Upload, Save, MoveLeft } from "lucide-react";
 
 import { createCompany } from "../../services/companyService";
 import styles from "./AddCompany.module.css";
@@ -121,6 +121,15 @@ export default function AddCompany() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
+        <button
+          type="button"
+          className={styles.cancelButton}
+          onClick={() => navigate(-1)}
+          disabled={saving}
+        >
+          <MoveLeft size={22} />
+          Back
+        </button>
         <div className={styles.headerIcon}>
           <Building2 size={22} />
         </div>
