@@ -128,14 +128,14 @@ if ($investorId <= 0) {
 }
 
 
-if ($amount <= 0) {
+if (!is_finite($amount) || $amount == 0) {
 
     http_response_code(422);
 
     echo json_encode([
         'success' => false,
         'message' =>
-        'Capital amount must be greater than zero.'
+        'Opening balance cannot be zero.'
     ]);
 
     exit;
