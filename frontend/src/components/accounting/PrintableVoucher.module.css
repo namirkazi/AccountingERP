@@ -3,349 +3,341 @@
    ========================================================= */
 
 .voucher {
-    width: 210mm;
-    min-height: 297mm;
-    margin: 0 auto;
-    padding: 18mm 16mm 14mm;
+  width: 210mm;
+  min-height: 297mm;
+  margin: 0 auto;
+  padding: 18mm 16mm 14mm;
 
-    box-sizing: border-box;
+  box-sizing: border-box;
 
-    background: #ffffff;
-    color: #111827;
+  background: #ffffff;
+  color: #111827;
 
-    font-family:
-        Arial,
-        Helvetica,
-        sans-serif;
+  font-family: Arial, Helvetica, sans-serif;
 
-    font-size: 12px;
-    line-height: 1.45;
+  font-size: 12px;
+  line-height: 1.45;
 
-    position: relative;
+  position: relative;
 
-    overflow: visible;
+  overflow: visible;
 }
-
 
 /* =========================================================
    HEADER
    ========================================================= */
 
 .documentHeader {
-    display: grid;
-    grid-template-columns: 1fr 0.85fr;
+  display: grid;
+  grid-template-columns: 1fr 0.85fr;
 
-    gap: 28px;
+  gap: 28px;
 
-    padding-bottom: 18px;
+  padding-bottom: 18px;
 
-    border-bottom: 2px solid #111827;
+  border-bottom: 2px solid #111827;
 }
 
 .companyIdentity {
-    display: flex;
-    align-items: flex-start;
+  display: flex;
+  align-items: flex-start;
 
-    gap: 14px;
+  gap: 14px;
 
-    min-width: 0;
+  min-width: 0;
 }
 
 .companyLogo {
-    width: 62px;
-    height: 62px;
+  width: 62px;
+  height: 62px;
 
-    object-fit: contain;
+  object-fit: contain;
 
-    flex: 0 0 62px;
+  flex: 0 0 62px;
 }
 
 .companyLogoPlaceholder {
-    width: 62px;
-    height: 62px;
+  width: 62px;
+  height: 62px;
 
-    flex: 0 0 62px;
+  flex: 0 0 62px;
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-    background: #111827;
-    color: #ffffff;
+  background: #f3f4f6;
+  color: #111827;
 
-    font-size: 30px;
-    font-weight: 800;
+  border: 1px solid #d1d5db;
 
-    border-radius: 4px;
+  font-size: 30px;
+  font-weight: 800;
+
+  border-radius: 4px;
 }
 
 .companyInformation {
-    min-width: 0;
+  min-width: 0;
 
-    display: flex;
-    flex-direction: column;
+  display: flex;
+  flex-direction: column;
 
-    gap: 2px;
+  gap: 2px;
 
-    color: #374151;
+  color: #374151;
 
-    font-size: 10.5px;
+  font-size: 10.5px;
 }
 
 .companyInformation h1 {
-    margin: 0 0 4px;
+  margin: 0 0 4px;
 
-    color: #111827;
+  color: #111827;
 
-    font-size: 18px;
-    line-height: 1.15;
+  font-size: 18px;
+  line-height: 1.15;
 
-    font-weight: 800;
+  font-weight: 800;
 
-    text-transform: uppercase;
+  text-transform: uppercase;
 }
 
 .partyInformation {
-    min-width: 0;
+  min-width: 0;
 
-    padding-left: 18px;
+  padding-left: 18px;
 
-    border-left: 1px solid #d1d5db;
+  border-left: 1px solid #d1d5db;
 
-    display: flex;
-    flex-direction: column;
+  display: flex;
+  flex-direction: column;
 
-    gap: 2px;
+  gap: 2px;
 
-    color: #374151;
+  color: #374151;
 
-    font-size: 10.5px;
+  font-size: 10.5px;
 }
 
 .partyInformationLabel {
-    margin-bottom: 4px;
+  margin-bottom: 4px;
 
-    color: #6b7280;
+  color: #6b7280;
 
-    font-size: 9px;
-    font-weight: 700;
+  font-size: 9px;
+  font-weight: 700;
 
-    letter-spacing: 0.12em;
+  letter-spacing: 0.12em;
 
-    text-transform: uppercase;
+  text-transform: uppercase;
 }
 
 .partyInformation strong {
-    color: #111827;
+  color: #111827;
 
-    font-size: 13px;
-    font-weight: 700;
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .partyInformation span {
-    overflow-wrap: anywhere;
+  overflow-wrap: anywhere;
 }
-
 
 /* =========================================================
    TITLE
    ========================================================= */
 
 .titleSection {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
 
-    gap: 20px;
+  gap: 20px;
 
-    padding: 20px 0 15px;
+  padding: 20px 0 15px;
 }
 
 .documentEyebrow {
-    display: block;
+  display: block;
 
-    margin-bottom: 4px;
+  margin-bottom: 4px;
 
-    color: #6b7280;
+  color: #6b7280;
 
-    font-size: 8.5px;
-    font-weight: 700;
+  font-size: 8.5px;
+  font-weight: 700;
 
-    letter-spacing: 0.16em;
+  letter-spacing: 0.16em;
 
-    text-transform: uppercase;
+  text-transform: uppercase;
 }
 
 .titleSection h2 {
-    margin: 0;
+  margin: 0;
 
-    color: #111827;
+  color: #111827;
 
-    font-size: 22px;
-    line-height: 1.1;
+  font-size: 22px;
+  line-height: 1.1;
 
-    font-weight: 800;
+  font-weight: 800;
 
-    letter-spacing: 0.01em;
+  letter-spacing: 0.01em;
 }
 
 .documentStatus {
-    padding: 5px 10px;
+  padding: 5px 10px;
 
-    border: 1px solid #9ca3af;
-    border-radius: 3px;
+  border: 1px solid #9ca3af;
+  border-radius: 3px;
 
-    color: #374151;
+  color: #374151;
 
-    font-size: 8px;
-    font-weight: 700;
+  font-size: 8px;
+  font-weight: 700;
 
-    letter-spacing: 0.12em;
+  letter-spacing: 0.12em;
 
-    white-space: nowrap;
+  white-space: nowrap;
 }
-
 
 /* =========================================================
    DOCUMENT DETAILS
    ========================================================= */
 
 .documentDetails {
-    display: grid;
+  display: grid;
 
-    grid-template-columns:
-        repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 
-    gap: 0;
+  gap: 0;
 
-    margin-bottom: 18px;
+  margin-bottom: 18px;
 
-    border: 1px solid #d1d5db;
+  border: 1px solid #d1d5db;
 }
 
-.documentDetails>div {
-    min-width: 0;
+.documentDetails > div {
+  min-width: 0;
 
-    padding: 9px 11px;
+  padding: 9px 11px;
 
-    border-right: 1px solid #d1d5db;
+  border-right: 1px solid #d1d5db;
 }
 
-.documentDetails>div:last-child {
-    border-right: none;
+.documentDetails > div:last-child {
+  border-right: none;
 }
 
 .documentDetails span {
-    display: block;
+  display: block;
 
-    margin-bottom: 3px;
+  margin-bottom: 3px;
 
-    color: #6b7280;
+  color: #6b7280;
 
-    font-size: 8px;
-    font-weight: 700;
+  font-size: 8px;
+  font-weight: 700;
 
-    letter-spacing: 0.1em;
+  letter-spacing: 0.1em;
 
-    text-transform: uppercase;
+  text-transform: uppercase;
 }
 
 .documentDetails strong {
-    display: block;
+  display: block;
 
-    color: #111827;
+  color: #111827;
 
-    font-size: 11px;
-    font-weight: 700;
+  font-size: 11px;
+  font-weight: 700;
 
-    overflow-wrap: anywhere;
+  overflow-wrap: anywhere;
 }
 
 .paymentDocumentDetails {
-    grid-template-columns:
-        repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
-
 
 /* =========================================================
    ITEMS SECTION
    ========================================================= */
 
 .itemsSection {
-    width: 100%;
+  width: 100%;
 
-    margin-top: 4px;
+  margin-top: 4px;
 
-    page-break-inside: avoid;
+  page-break-inside: avoid;
 }
 
 .itemsTable {
-    width: 100%;
-    max-width: 100%;
+  width: 100%;
+  max-width: 100%;
 
-    border-collapse: collapse;
+  border-collapse: collapse;
 
-    table-layout: fixed;
+  table-layout: fixed;
 
-    border: 1px solid #111827;
+  border: 1px solid #111827;
 
-    font-size: 10.5px;
+  font-size: 10.5px;
 }
 
 .itemsTable thead {
-    display: table-header-group;
+  display: table-header-group;
 }
 
 .itemsTable th {
-    padding: 8px 8px;
+  padding: 8px 8px;
 
-    background: #111827;
-    color: #ffffff;
+  background: #f3f4f6;
+  color: #111827;
 
-    border-right: 1px solid #374151;
-    border-bottom: 1px solid #111827;
+  border-right: 1px solid #d1d5db;
+  border-bottom: 1px solid #9ca3af;
 
-    font-size: 8.5px;
-    font-weight: 700;
+  font-size: 8.5px;
+  font-weight: 700;
 
-    letter-spacing: 0.08em;
+  letter-spacing: 0.08em;
 
-    text-align: left;
+  text-align: left;
 
-    text-transform: uppercase;
+  text-transform: uppercase;
 
-    box-sizing: border-box;
+  box-sizing: border-box;
 
-    min-width: 0;
+  min-width: 0;
 }
 
 .itemsTable th:last-child {
-    border-right: none;
+  border-right: none;
 }
 
 .itemsTable td {
-    padding: 8px 8px;
+  padding: 8px 8px;
 
-    border-right: 1px solid #d1d5db;
-    border-bottom: 1px solid #d1d5db;
+  border-right: 1px solid #d1d5db;
+  border-bottom: 1px solid #d1d5db;
 
-    vertical-align: top;
+  vertical-align: top;
 
-    color: #1f2937;
+  color: #1f2937;
 
-    box-sizing: border-box;
+  box-sizing: border-box;
 
-    min-width: 0;
+  min-width: 0;
 }
 
 .itemsTable td:last-child {
-    border-right: none;
+  border-right: none;
 }
 
 .itemsTable tbody tr:last-child td {
-    border-bottom: none;
+  border-bottom: none;
 }
-
 
 /* =========================================================
    TABLE COLUMNS
@@ -353,698 +345,681 @@
 
 .itemsTable:not(.salesItemsTable) th:nth-child(1),
 .itemsTable:not(.salesItemsTable) td:nth-child(1) {
-    width: 9%;
+  width: 9%;
 }
 
 .itemsTable:not(.salesItemsTable) th:nth-child(3),
 .itemsTable:not(.salesItemsTable) td:nth-child(3) {
-    width: 12%;
+  width: 12%;
 }
 
 .itemsTable:not(.salesItemsTable) th:nth-child(4),
 .itemsTable:not(.salesItemsTable) td:nth-child(4) {
-    width: 17%;
+  width: 17%;
 }
 
 .itemsTable:not(.salesItemsTable) th:nth-child(5),
 .itemsTable:not(.salesItemsTable) td:nth-child(5) {
-    width: 21%;
+  width: 21%;
 }
 
 .serialColumn {
-    width: 34px;
+  width: 34px;
 
-    text-align: center;
+  text-align: center;
 }
 
 .quantityColumn {
-    width: 52px;
+  width: 52px;
 
-    text-align: center;
+  text-align: center;
 }
 
 .rateColumn {
-    width: 92px;
+  width: 92px;
 
-    text-align: right;
+  text-align: right;
 }
 
 .amountColumn {
-    width: 110px;
+  width: 110px;
 
-    text-align: right;
+  text-align: right;
 }
 
 .serialCell {
-    width: 34px;
+  width: 34px;
 
-    text-align: center;
+  text-align: center;
 
-    color: #6b7280 !important;
+  color: #6b7280 !important;
 
-    font-weight: 600;
+  font-weight: 600;
 }
 
 .numberCell {
-    text-align: right;
+  text-align: right;
 
-    white-space: nowrap;
+  white-space: nowrap;
 
-    font-variant-numeric: tabular-nums;
+  font-variant-numeric: tabular-nums;
 
-    padding-right: 12mm !important;
-    box-sizing: border-box;
+  padding-right: 12mm !important;
+  box-sizing: border-box;
 }
-
 
 /* =========================================================
    SALES TABLE
    ========================================================= */
 
 .salesItemsTable {
-    width: 100%;
-    max-width: 100%;
+  width: 100%;
+  max-width: 100%;
 
-    table-layout: fixed;
+  table-layout: fixed;
 }
 
 .salesItemsTable .serialColumn {
-    width: 9%;
+  width: 9%;
 }
 
 .salesItemsTable .amountColumn {
-    width: 25%;
+  width: 25%;
 }
 
 .salesItemsTable th:first-child,
 .salesItemsTable td:first-child {
-    width: 9%;
+  width: 9%;
 
-    text-align: center;
+  text-align: center;
 }
 
 .salesItemsTable th:nth-child(2),
 .salesItemsTable td:nth-child(2) {
-    width: 66%;
+  width: 66%;
 }
 
 .salesItemsTable th:last-child,
 .salesItemsTable td:last-child {
-    width: 25%;
+  width: 25%;
 
-    padding-left: 2mm;
-    padding-right: 2mm;
+  padding-left: 2mm;
+  padding-right: 2mm;
 
-    box-sizing: border-box;
+  box-sizing: border-box;
 
-    text-align: center;
+  text-align: center;
 
-    white-space: nowrap;
+  white-space: nowrap;
 }
 
 .salesItemsTable tbody td {
-    min-height: 34px;
+  min-height: 34px;
 }
-
 
 /* =========================================================
    ITEM DESCRIPTION
    ========================================================= */
 
 .itemDescription {
-    color: #111827;
+  color: #111827;
 
-    font-size: 10.5px;
-    font-weight: 600;
+  font-size: 10.5px;
+  font-weight: 600;
 
-    line-height: 1.4;
+  line-height: 1.4;
 
-    overflow-wrap: anywhere;
+  overflow-wrap: anywhere;
 }
 
 .itemSubtext {
-    margin-top: 3px;
+  margin-top: 3px;
 
-    color: #6b7280;
+  color: #6b7280;
 
-    font-size: 8.5px;
-    line-height: 1.35;
+  font-size: 8.5px;
+  line-height: 1.35;
 
-    overflow-wrap: anywhere;
+  overflow-wrap: anywhere;
 }
-
 
 /* =========================================================
    TOTALS
    ========================================================= */
 
 .totalsSection {
-    width: 100%;
-    max-width: 360px;
+  width: 100%;
+  max-width: 360px;
 
-    margin-top: 14px;
-    margin-left: auto;
+  margin-top: 14px;
+  margin-left: auto;
 
-    border-top: 1px solid #111827;
+  border-top: 1px solid #111827;
 }
 
 .totalRow {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 
-    gap: 20px;
+  gap: 20px;
 
-    padding: 6px 0;
+  padding: 6px 0;
 
-    border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e5e7eb;
 
-    color: #374151;
+  color: #374151;
 
-    font-size: 10px;
+  font-size: 10px;
 }
 
 .totalRow span {
-    min-width: 0;
+  min-width: 0;
 }
 
 .totalRow strong {
-    flex-shrink: 0;
+  flex-shrink: 0;
 
-    color: #111827;
+  color: #111827;
 
-    font-weight: 700;
+  font-weight: 700;
 
-    text-align: right;
+  text-align: right;
 
-    font-variant-numeric: tabular-nums;
+  font-variant-numeric: tabular-nums;
 }
 
 .grandTotalRow {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 
-    gap: 20px;
+  gap: 20px;
 
-    margin-top: 2px;
-    padding: 9px 0;
+  margin-top: 2px;
+  padding: 9px 0;
 
-    border-bottom: 2px solid #111827;
+  border-bottom: 2px solid #111827;
 
-    color: #111827;
+  color: #111827;
 
-    font-size: 12px;
-    font-weight: 800;
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .grandTotalRow span {
-    font-weight: 800;
+  font-weight: 800;
 
-    letter-spacing: 0.04em;
+  letter-spacing: 0.04em;
 }
 
 .grandTotalRow strong {
-    flex-shrink: 0;
+  flex-shrink: 0;
 
-    font-size: 13px;
-    font-weight: 800;
+  font-size: 13px;
+  font-weight: 800;
 
-    text-align: right;
+  text-align: right;
 
-    font-variant-numeric: tabular-nums;
+  font-variant-numeric: tabular-nums;
 }
 
 .singleTotalSection {
-    width: 100%;
-    max-width: 360px;
+  width: 100%;
+  max-width: 360px;
 
-    margin-top: 14px;
-    margin-left: auto;
+  margin-top: 14px;
+  margin-left: auto;
 }
-
 
 /* =========================================================
    PAYMENT SUMMARY
    ========================================================= */
 
 .paymentSummary {
-    width: 100%;
-    max-width: 430px;
+  width: 100%;
+  max-width: 430px;
 
-    margin-top: 16px;
-    margin-left: auto;
+  margin-top: 16px;
+  margin-left: auto;
 
-    border: 1px solid #d1d5db;
+  border: 1px solid #d1d5db;
 }
 
-.paymentSummary>div {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+.paymentSummary > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 
-    gap: 20px;
+  gap: 20px;
 
-    padding: 7px 10px;
+  padding: 7px 10px;
 
-    border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e5e7eb;
 
-    font-size: 10px;
+  font-size: 10px;
 }
 
-.paymentSummary>div:last-child {
-    border-bottom: none;
+.paymentSummary > div:last-child {
+  border-bottom: none;
 }
 
 .paymentSummary span {
-    color: #4b5563;
+  color: #4b5563;
 }
 
 .paymentSummary strong {
-    color: #111827;
+  color: #111827;
 
-    font-weight: 700;
+  font-weight: 700;
 
-    white-space: nowrap;
+  white-space: nowrap;
 
-    font-variant-numeric: tabular-nums;
+  font-variant-numeric: tabular-nums;
 }
 
 .paymentBalance {
-    background: #f9fafb;
+  background: #f9fafb;
 }
 
 .paymentBalance span,
 .paymentBalance strong {
-    font-weight: 700;
+  font-weight: 700;
 }
 
 .paymentTotal {
-    background: #111827;
+  background: #f3f4f6;
+  color: #111827;
 
-    color: #ffffff !important;
-
-    padding-top: 9px !important;
-    padding-bottom: 9px !important;
+  padding-top: 9px !important;
+  padding-bottom: 9px !important;
 }
 
 .paymentTotal span,
 .paymentTotal strong {
-    color: #ffffff;
+  color: #111827;
 }
 
 .paymentTotal span {
-    font-weight: 800;
+  font-weight: 800;
 
-    letter-spacing: 0.06em;
+  letter-spacing: 0.06em;
 }
 
 .paymentTotal strong {
-    font-size: 12px;
+  font-size: 12px;
 }
-
 
 /* =========================================================
    AMOUNT IN WORDS
    ========================================================= */
 
 .amountWordsSection {
-    margin-top: 20px;
+  margin-top: 20px;
 
-    padding: 10px 12px;
+  padding: 10px 12px;
 
-    border: 1px solid #d1d5db;
+  border: 1px solid #d1d5db;
 
-    display: flex;
-    flex-direction: column;
+  display: flex;
+  flex-direction: column;
 
-    gap: 4px;
+  gap: 4px;
 }
 
 .amountWordsSection span {
-    color: #6b7280;
+  color: #6b7280;
 
-    font-size: 8px;
-    font-weight: 700;
+  font-size: 8px;
+  font-weight: 700;
 
-    letter-spacing: 0.12em;
+  letter-spacing: 0.12em;
 
-    text-transform: uppercase;
+  text-transform: uppercase;
 }
 
 .amountWordsSection strong {
-    color: #111827;
+  color: #111827;
 
-    font-size: 10px;
-    font-weight: 600;
+  font-size: 10px;
+  font-weight: 600;
 
-    line-height: 1.45;
+  line-height: 1.45;
 }
-
 
 /* =========================================================
    NOTES
    ========================================================= */
 
 .notesSection {
-    margin-top: 14px;
+  margin-top: 14px;
 
-    padding: 10px 12px;
+  padding: 10px 12px;
 
-    border-left: 3px solid #111827;
+  border-left: 3px solid #111827;
 
-    background: #f9fafb;
+  background: #f9fafb;
 }
 
-.notesSection>span {
-    display: block;
+.notesSection > span {
+  display: block;
 
-    margin-bottom: 4px;
+  margin-bottom: 4px;
 
-    color: #6b7280;
+  color: #6b7280;
 
-    font-size: 8px;
-    font-weight: 700;
+  font-size: 8px;
+  font-weight: 700;
 
-    letter-spacing: 0.12em;
+  letter-spacing: 0.12em;
 
-    text-transform: uppercase;
+  text-transform: uppercase;
 }
 
 .notesSection p {
-    margin: 0;
+  margin: 0;
 
-    color: #374151;
+  color: #374151;
 
-    font-size: 9.5px;
-    line-height: 1.5;
+  font-size: 9.5px;
+  line-height: 1.5;
 
-    white-space: pre-wrap;
-    overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
-
 
 /* =========================================================
    SIGNATURES
    ========================================================= */
 
 .signatureSection {
-    display: grid;
+  display: grid;
 
-    grid-template-columns:
-        repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 
-    gap: 28px;
+  gap: 28px;
 
-    margin-top: 42px;
+  margin-top: 42px;
 
-    page-break-inside: avoid;
+  page-break-inside: avoid;
 }
 
 .signatureBox {
-    min-width: 0;
+  min-width: 0;
 
-    display: flex;
-    flex-direction: column;
+  display: flex;
+  flex-direction: column;
 
-    align-items: center;
+  align-items: center;
 
-    text-align: center;
+  text-align: center;
 }
 
 .signatureLine {
-    width: 100%;
-    height: 1px;
+  width: 100%;
+  height: 1px;
 
-    margin-bottom: 7px;
+  margin-bottom: 7px;
 
-    background: #111827;
+  background: #111827;
 }
 
 .signatureBox strong {
-    color: #111827;
+  color: #111827;
 
-    font-size: 9px;
-    font-weight: 700;
+  font-size: 9px;
+  font-weight: 700;
 }
 
 .signatureBox span {
-    margin-top: 2px;
+  margin-top: 2px;
 
-    color: #6b7280;
+  color: #6b7280;
 
-    font-size: 8px;
+  font-size: 8px;
 }
-
 
 /* =========================================================
    FOOTER
    ========================================================= */
 
 .documentFooter {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 
-    gap: 20px;
+  gap: 20px;
 
-    margin-top: 28px;
-    padding-top: 10px;
+  margin-top: 28px;
+  padding-top: 10px;
 
-    border-top: 1px solid #d1d5db;
+  border-top: 1px solid #d1d5db;
 
-    color: #6b7280;
+  color: #6b7280;
 
-    font-size: 7.5px;
+  font-size: 7.5px;
 
-    page-break-inside: avoid;
+  page-break-inside: avoid;
 }
 
 .documentFooter span:last-child {
-    text-align: right;
+  text-align: right;
 }
-
 
 /* =========================================================
    PRINT
    ========================================================= */
 
 @page {
-    size: A4 portrait;
-    margin: 0;
+  size: A4 portrait;
+  margin: 0;
 }
 
 @media print {
+  .voucher {
+    width: 210mm;
+    min-height: 297mm;
 
-    .voucher {
-        width: 210mm;
-        min-height: 297mm;
+    margin: 0 !important;
 
-        margin: 0 !important;
+    box-sizing: border-box;
 
+    overflow: visible !important;
 
+    box-shadow: none;
 
-        box-sizing: border-box;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
 
-        overflow: visible !important;
+  .documentHeader {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
 
-        box-shadow: none;
+  .titleSection {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
 
-        print-color-adjust: exact;
-        -webkit-print-color-adjust: exact;
-    }
+  .documentDetails {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
 
-    .documentHeader {
-        break-inside: avoid;
-        page-break-inside: avoid;
-    }
+  .itemsSection {
+    width: 100%;
+    max-width: 100%;
 
-    .titleSection {
-        break-inside: avoid;
-        page-break-inside: avoid;
-    }
+    margin-top: 4px;
+    margin-left: 0;
+    margin-right: 0;
 
-    .documentDetails {
-        break-inside: avoid;
-        page-break-inside: avoid;
-    }
+    page-break-inside: avoid;
 
-    .itemsSection {
-        width: 100%;
-        max-width: 100%;
+    box-sizing: border-box;
+  }
 
-        margin-top: 4px;
-        margin-left: 0;
-        margin-right: 0;
+  .itemsTable {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
 
-        page-break-inside: avoid;
+    table-layout: fixed !important;
 
-        box-sizing: border-box;
-    }
+    break-inside: auto;
+    page-break-inside: auto;
 
-    .itemsTable {
-        width: 100% !important;
-        max-width: 100% !important;
-        min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
 
-        table-layout: fixed !important;
+  .itemsTable thead {
+    display: table-header-group;
+  }
 
-        break-inside: auto;
-        page-break-inside: auto;
+  .itemsTable tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
 
-        box-sizing: border-box !important;
-    }
+  .totalsSection,
+  .singleTotalSection,
+  .paymentSummary,
+  .amountWordsSection,
+  .notesSection,
+  .signatureSection,
+  .documentFooter {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
 
-    .itemsTable thead {
-        display: table-header-group;
-    }
-
-    .itemsTable tr {
-        break-inside: avoid;
-        page-break-inside: avoid;
-    }
-
-    .totalsSection,
-    .singleTotalSection,
-    .paymentSummary,
-    .amountWordsSection,
-    .notesSection,
-    .signatureSection,
-    .documentFooter {
-        break-inside: avoid;
-        page-break-inside: avoid;
-    }
-
-    .numberCell {
-
-        box-sizing: border-box !important;
-        text-align: right !important;
-        white-space: nowrap !important;
-    }
+  .numberCell {
+    box-sizing: border-box !important;
+    text-align: right !important;
+    white-space: nowrap !important;
+  }
 }
-
 
 /* =========================================================
    RESPONSIVE
    ========================================================= */
 
 @media screen and (max-width: 900px) {
-    .voucher {
-        width: 100%;
-        min-height: auto;
+  .voucher {
+    width: 100%;
+    min-height: auto;
 
-        padding: 24px;
-    }
+    padding: 24px;
+  }
 
-    .documentHeader {
-        grid-template-columns: 1fr;
-    }
+  .documentHeader {
+    grid-template-columns: 1fr;
+  }
 
-    .partyInformation {
-        padding-top: 14px;
-        padding-left: 0;
+  .partyInformation {
+    padding-top: 14px;
+    padding-left: 0;
 
-        border-top: 1px solid #d1d5db;
-        border-left: none;
-    }
+    border-top: 1px solid #d1d5db;
+    border-left: none;
+  }
 
-    .documentDetails,
-    .paymentDocumentDetails {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
+  .documentDetails,
+  .paymentDocumentDetails {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 
-    .documentDetails>div:nth-child(2) {
-        border-right: none;
-    }
+  .documentDetails > div:nth-child(2) {
+    border-right: none;
+  }
 
-    .documentDetails>div:nth-child(3) {
-        border-top: 1px solid #d1d5db;
-    }
+  .documentDetails > div:nth-child(3) {
+    border-top: 1px solid #d1d5db;
+  }
 
-    .paymentDocumentDetails>div:nth-child(3),
-    .paymentDocumentDetails>div:nth-child(4) {
-        border-top: 1px solid #d1d5db;
-    }
+  .paymentDocumentDetails > div:nth-child(3),
+  .paymentDocumentDetails > div:nth-child(4) {
+    border-top: 1px solid #d1d5db;
+  }
 
-    .signatureSection {
-        gap: 16px;
-    }
+  .signatureSection {
+    gap: 16px;
+  }
 }
 
-
 @media screen and (max-width: 600px) {
-    .voucher {
-        padding: 18px;
-    }
+  .voucher {
+    padding: 18px;
+  }
 
-    .titleSection {
-        align-items: flex-start;
+  .titleSection {
+    align-items: flex-start;
 
-        flex-direction: column;
-    }
+    flex-direction: column;
+  }
 
-    .documentDetails,
-    .paymentDocumentDetails {
-        grid-template-columns: 1fr;
-    }
+  .documentDetails,
+  .paymentDocumentDetails {
+    grid-template-columns: 1fr;
+  }
 
-    .documentDetails>div,
-    .documentDetails>div:nth-child(2),
-    .documentDetails>div:nth-child(3),
-    .paymentDocumentDetails>div,
-    .paymentDocumentDetails>div:nth-child(3),
-    .paymentDocumentDetails>div:nth-child(4) {
-        border-right: none;
-        border-top: 1px solid #d1d5db;
-    }
+  .documentDetails > div,
+  .documentDetails > div:nth-child(2),
+  .documentDetails > div:nth-child(3),
+  .paymentDocumentDetails > div,
+  .paymentDocumentDetails > div:nth-child(3),
+  .paymentDocumentDetails > div:nth-child(4) {
+    border-right: none;
+    border-top: 1px solid #d1d5db;
+  }
 
-    .documentDetails>div:first-child {
-        border-top: none;
-    }
+  .documentDetails > div:first-child {
+    border-top: none;
+  }
 
-    .itemsTable {
-        font-size: 9px;
-    }
+  .itemsTable {
+    font-size: 9px;
+  }
 
-    .itemsTable th,
-    .itemsTable td {
-        padding: 6px 5px;
-    }
+  .itemsTable th,
+  .itemsTable td {
+    padding: 6px 5px;
+  }
 
-    .quantityColumn {
-        width: 42px;
-    }
+  .quantityColumn {
+    width: 42px;
+  }
 
-    .rateColumn {
-        width: 72px;
-    }
+  .rateColumn {
+    width: 72px;
+  }
 
-    .amountColumn {
-        width: 88px;
-    }
+  .amountColumn {
+    width: 88px;
+  }
 
-    .signatureSection {
-        grid-template-columns: 1fr;
+  .signatureSection {
+    grid-template-columns: 1fr;
 
-        gap: 30px;
+    gap: 30px;
 
-        margin-top: 30px;
-    }
+    margin-top: 30px;
+  }
 
-    .signatureBox {
-        width: 70%;
-        margin: 0 auto;
-    }
+  .signatureBox {
+    width: 70%;
+    margin: 0 auto;
+  }
 
-    .documentFooter {
-        align-items: flex-start;
+  .documentFooter {
+    align-items: flex-start;
 
-        flex-direction: column;
+    flex-direction: column;
 
-        gap: 4px;
-    }
+    gap: 4px;
+  }
 
-    .documentFooter span:last-child {
-        text-align: left;
-    }
+  .documentFooter span:last-child {
+    text-align: left;
+  }
 }

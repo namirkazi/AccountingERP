@@ -1,380 +1,362 @@
 .voucher {
-    width: 210mm;
-    min-height: 297mm;
+  width: 210mm;
+  min-height: 297mm;
 
-    box-sizing: border-box;
+  box-sizing: border-box;
 
-    padding: 12mm;
+  padding: 12mm;
 
-    background: #ffffff;
-    color: #111111;
+  background: #ffffff;
+  color: #111111;
 
-    font-family:
-        Arial,
-        Helvetica,
-        sans-serif;
+  font-family: Arial, Helvetica, sans-serif;
 
-    font-size: 12px;
+  font-size: 12px;
 
-    overflow: hidden;
+  overflow: hidden;
 }
 
-
+.companyDetail {
+  margin-top: 1px;
+  font-size: 11px;
+}
 /* =========================================================
    COMPANY HEADER
 ========================================================= */
 
 .companyHeader {
-    text-align: center;
+  text-align: center;
 
-    margin-top: 1mm;
+  margin-top: 1mm;
 
-    line-height: 1.25;
+  line-height: 1.25;
 }
 
 .companyName {
-    font-size: 17px;
-    font-weight: 700;
-    letter-spacing: 0.01em;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
 }
 
-.companyLocation {
-    margin-top: 1px;
-
-    font-size: 14px;
+.companyDetail {
+  margin-top: 1px;
+  font-size: 11px;
+  color: #333333;
 }
-
-.companyEmirate {
-    margin-top: 1px;
-
-    font-size: 13px;
-}
-
 
 /* =========================================================
    TITLE
 ========================================================= */
 
 .voucherTitle {
-    margin-top: 7mm;
+  margin-top: 7mm;
 
-    padding-bottom: 3mm;
+  padding-bottom: 3mm;
 
-    border-bottom: 1px solid #222222;
+  border-bottom: 1px solid #222222;
 
-    text-align: center;
+  text-align: center;
 
-    font-size: 15px;
-    font-weight: 700;
+  font-size: 15px;
+  font-weight: 700;
 }
-
 
 /* =========================================================
    NUMBER / DATE
 ========================================================= */
 
 .topDetails {
-    display: flex;
+  display: flex;
 
-    align-items: flex-start;
-    justify-content: space-between;
+  align-items: flex-start;
+  justify-content: space-between;
 
-    margin-top: 9mm;
+  margin-top: 9mm;
 
-    font-size: 12px;
+  font-size: 12px;
 }
 
 .detailBlock {
-    display: flex;
+  display: flex;
 
-    align-items: baseline;
+  align-items: baseline;
 
-    gap: 6px;
+  gap: 6px;
 }
 
 .detailBlock strong {
-    font-weight: 700;
+  font-weight: 700;
 }
-
 
 /* =========================================================
    INVESTOR
 ========================================================= */
 
 .investorSection {
-    margin-top: 8mm;
+  margin-top: 8mm;
 
-    padding: 4mm 0;
+  padding: 4mm 0;
 
-    border-top: 1px solid #777777;
-    border-bottom: 1px solid #777777;
+  border-top: 1px solid #777777;
+  border-bottom: 1px solid #777777;
 }
 
 .sectionLabel {
-    margin-bottom: 3mm;
+  margin-bottom: 3mm;
 
-    font-size: 11px;
-    font-weight: 700;
+  font-size: 11px;
+  font-weight: 700;
 
-    letter-spacing: 0.05em;
+  letter-spacing: 0.05em;
 }
 
 .investorDetails {
-    display: flex;
+  display: flex;
 
-    flex-direction: column;
+  flex-direction: column;
 
-    gap: 1.2mm;
+  gap: 1.2mm;
 
-    padding-left: 6mm;
+  padding-left: 6mm;
 }
 
 .investorDetails strong {
-    font-size: 13px;
-    font-weight: 700;
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .investorDetails span {
-    font-size: 11px;
+  font-size: 11px;
 }
-
 
 /* =========================================================
    PARTICULARS
 ========================================================= */
 
 .particularsTable {
-    width: 100%;
+  width: 100%;
 
-    margin-top: 8mm;
+  margin-top: 8mm;
 
-    border-collapse: collapse;
+  border-collapse: collapse;
 
-    table-layout: fixed;
+  table-layout: fixed;
 }
 
 .particularsTable th,
 .particularsTable td {
-    box-sizing: border-box;
+  box-sizing: border-box;
 
-    padding: 3.5mm 4mm;
+  padding: 3.5mm 4mm;
 
-    border: 1px solid #777777;
+  border: 1px solid #777777;
 
-    vertical-align: top;
+  vertical-align: top;
 }
 
 .particularsTable th {
-    background: #f3f3f3;
+  background: #f3f3f3;
 
-    font-size: 11px;
-    font-weight: 700;
+  font-size: 11px;
+  font-weight: 700;
 
-    text-align: left;
+  text-align: left;
 }
 
 .particularsTable th:first-child {
-    width: 75%;
+  width: 75%;
 }
 
 .particularsTable th:last-child {
-    width: 25%;
+  width: 25%;
 }
 
 .particularsTable td {
-    min-height: 18mm;
+  min-height: 18mm;
 
-    font-size: 12px;
+  font-size: 12px;
 }
 
 .amountColumn {
-    text-align: right !important;
+  text-align: right !important;
 
-    white-space: nowrap;
+  white-space: nowrap;
 }
 
 .particularsTable td strong {
-    display: block;
+  display: block;
 
-    font-weight: 600;
+  font-weight: 600;
 }
 
 .description {
-    display: block;
+  display: block;
 
-    margin-top: 2mm;
+  margin-top: 2mm;
 
-    color: #444444;
+  color: #444444;
 
-    font-size: 10.5px;
+  font-size: 10.5px;
 }
 
 .totalRow td {
-    min-height: auto;
+  min-height: auto;
 
-    background: #f3f3f3;
+  background: #f3f3f3;
 
-    font-weight: 700;
+  font-weight: 700;
 }
-
 
 /* =========================================================
    AMOUNT IN WORDS
 ========================================================= */
 
 .wordsSection {
-    display: flex;
+  display: flex;
 
-    align-items: flex-start;
+  align-items: flex-start;
 
-    gap: 5px;
+  gap: 5px;
 
-    margin-top: 6mm;
+  margin-top: 6mm;
 
-    padding: 4mm;
+  padding: 4mm;
 
-    border: 1px solid #777777;
+  border: 1px solid #777777;
 }
 
 .wordsSection span {
-    flex: 0 0 auto;
+  flex: 0 0 auto;
 
-    font-weight: 700;
+  font-weight: 700;
 }
 
 .wordsSection strong {
-    font-weight: 600;
+  font-weight: 600;
 
-    line-height: 1.45;
+  line-height: 1.45;
 }
-
 
 /* =========================================================
    ACCOUNTING DETAILS
 ========================================================= */
 
 .accountingSection {
-    margin-top: 7mm;
+  margin-top: 7mm;
 
-    border-top: 1px solid #777777;
-    border-bottom: 1px solid #777777;
+  border-top: 1px solid #777777;
+  border-bottom: 1px solid #777777;
 }
 
 .accountingRow {
-    display: flex;
+  display: flex;
 
-    align-items: center;
-    justify-content: space-between;
+  align-items: center;
+  justify-content: space-between;
 
-    gap: 20px;
+  gap: 20px;
 
-    padding: 3mm 4mm;
+  padding: 3mm 4mm;
 
-    border-bottom: 1px solid #dddddd;
+  border-bottom: 1px solid #dddddd;
 }
 
 .accountingRow:last-child {
-    border-bottom: none;
+  border-bottom: none;
 }
 
 .accountingRow span {
-    color: #333333;
+  color: #333333;
 }
 
 .accountingRow strong {
-    font-weight: 600;
+  font-weight: 600;
 }
-
 
 /* =========================================================
    SIGNATURES
 ========================================================= */
 
 .signatures {
-    display: grid;
+  display: grid;
 
-    grid-template-columns:
-        repeat(3, 1fr);
+  grid-template-columns: repeat(3, 1fr);
 
-    gap: 12mm;
+  gap: 12mm;
 
-    margin-top: 38mm;
+  margin-top: 38mm;
 }
 
 .signatureBox {
-    display: flex;
+  display: flex;
 
-    flex-direction: column;
+  flex-direction: column;
 
-    min-height: 22mm;
+  min-height: 22mm;
 }
 
 .signatureLine {
-    width: 100%;
+  width: 100%;
 
-    height: 1px;
+  height: 1px;
 
-    margin-bottom: 2.5mm;
+  margin-bottom: 2.5mm;
 
-    background: #222222;
+  background: #222222;
 }
 
 .signatureBox strong {
-    font-size: 10.5px;
+  font-size: 10.5px;
 
-    font-weight: 700;
+  font-weight: 700;
 }
 
 .signatureBox span {
-    min-height: 5mm;
+  min-height: 5mm;
 
-    margin-top: 1mm;
+  margin-top: 1mm;
 
-    font-size: 10px;
+  font-size: 10px;
 }
-
 
 /* =========================================================
    FOOTER
 ========================================================= */
 
 .footer {
-    margin-top: 12mm;
+  margin-top: 12mm;
 
-    padding-top: 3mm;
+  padding-top: 3mm;
 
-    border-top: 1px solid #cccccc;
+  border-top: 1px solid #cccccc;
 
-    color: #555555;
+  color: #555555;
 
-    font-size: 9px;
+  font-size: 9px;
 
-    line-height: 1.4;
+  line-height: 1.4;
 
-    text-align: center;
+  text-align: center;
 }
-
 
 /* =========================================================
    PRINT
 ========================================================= */
 
 @media print {
+  @page {
+    size: A4;
+    margin: 0;
+  }
 
-    @page {
-        size: A4;
-        margin: 0;
-    }
+  .voucher {
+    width: 210mm;
+    min-height: 297mm;
 
-    .voucher {
-        width: 210mm;
-        min-height: 297mm;
+    margin: 0;
 
-        margin: 0;
+    padding: 12mm;
 
-        padding: 12mm;
-
-        box-shadow: none;
-    }
-
+    box-shadow: none;
+  }
 }

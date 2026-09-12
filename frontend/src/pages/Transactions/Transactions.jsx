@@ -1077,6 +1077,7 @@ export default function Transactions() {
                       cashAmount={capitalCash}
                       bankAmount={capitalBank}
                       narration={narration}
+                      company={company}
                     />
                   ) : (
                     <PrintableVoucher
@@ -1151,7 +1152,9 @@ export default function Transactions() {
             cashAmount={capitalCash}
             bankAmount={capitalBank}
             narration={narration}
+            company={company}
             closeSavedVoucher={closeSavedVoucher}
+            company={company}
           />
         ) : (
           <SavedVoucher
