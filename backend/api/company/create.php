@@ -309,12 +309,18 @@ try {
         account_subtype,
         is_system_account
     )
-    VALUES (
+    SELECT
         :company_id,
         :account_name,
         :account_type,
         :account_subtype,
         1
+    WHERE NOT EXISTS (
+        SELECT 1
+        FROM accounts
+        WHERE company_id = :check_company_id
+          AND account_subtype = :check_subtype
+          AND is_system_account = 1
     )
 ");
 
@@ -331,6 +337,12 @@ try {
             $account['type'],
 
             ':account_subtype' =>
+            $account['subtype'],
+
+            ':check_company_id' =>
+            $newCompanyId,
+
+            ':check_subtype' =>
             $account['subtype']
         ]);
     }

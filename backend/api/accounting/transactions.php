@@ -225,7 +225,10 @@ try {
         exit;
     }
 
-    if ($amount <= 0) {
+    if (
+        $type !== 'capital' &&
+        $amount <= 0
+    ) {
 
         http_response_code(422);
 
@@ -237,17 +240,47 @@ try {
         exit;
     }
 
+    if (
+        $type === 'capital' &&
+        abs($amount) < 0.001
+    ) {
 
-    // Capital transfers must be completely allocated between Cash and Bank.
+        http_response_code(422);
+
+        echo json_encode([
+            'success' => false,
+            'message' => 'Capital amount cannot be zero.'
+        ]);
+
+        exit;
+    }
+
+
+    // =====================================================
+    // CAPITAL TRANSFER VALIDATION
+    //
+    // Capital may be positive or negative.
+    //
+    // Positive:
+    //   Dr Cash / Bank
+    //   Cr Capital
+    //
+    // Negative:
+    //   Dr Capital
+    //   Cr Cash / Bank
+    //
+    // Cash + Bank must equal the Capital amount.
+    // =====================================================
+
     if ($type === 'capital') {
 
-        if ($cashAmount < 0 || $bankAmount < 0) {
+        if (abs($amount) < 0.001) {
 
             http_response_code(422);
 
             echo json_encode([
                 'success' => false,
-                'message' => 'Cash and Bank amounts cannot be negative.'
+                'message' => 'Capital amount cannot be zero.'
             ]);
 
             exit;
@@ -258,7 +291,12 @@ try {
             2
         );
 
-        if (abs($allocationTotal - round($amount, 2)) > 0.001) {
+        if (
+            abs(
+                $allocationTotal -
+                    round($amount, 2)
+            ) > 0.001
+        ) {
 
             http_response_code(422);
 
@@ -270,7 +308,10 @@ try {
             exit;
         }
 
-        if ($cashAmount <= 0 && $bankAmount <= 0) {
+        if (
+            abs($cashAmount) < 0.001 &&
+            abs($bankAmount) < 0.001
+        ) {
 
             http_response_code(422);
 
@@ -282,6 +323,7 @@ try {
             exit;
         }
     }
+
 
 
     if ($vatInput < 0) {
@@ -1647,6 +1689,21 @@ try {
 
     if ($type === 'capital') {
 
+        /*
+     * Positive capital movement:
+     *
+     * Dr Cash / Bank
+     * Cr Capital
+     *
+     * Negative capital movement:
+     *
+     * Dr Capital
+     * Cr Cash / Bank
+     *
+     * Ledger debit/credit values themselves
+     * always remain positive.
+     */
+
         if ($cashAmount > 0) {
 
             $addEntry(
@@ -1655,7 +1712,16 @@ try {
                 $cashAmount,
                 0
             );
+        } elseif ($cashAmount < 0) {
+
+            $addEntry(
+                $accountMap['cash'],
+                null,
+                0,
+                abs($cashAmount)
+            );
         }
+
 
         if ($bankAmount > 0) {
 
@@ -1665,14 +1731,34 @@ try {
                 $bankAmount,
                 0
             );
+        } elseif ($bankAmount < 0) {
+
+            $addEntry(
+                $accountMap['bank'],
+                null,
+                0,
+                abs($bankAmount)
+            );
         }
 
-        $addEntry(
-            $accountMap['capital'],
-            null,
-            0,
-            $amount
-        );
+
+        if ($amount > 0) {
+
+            $addEntry(
+                $accountMap['capital'],
+                null,
+                0,
+                $amount
+            );
+        } else {
+
+            $addEntry(
+                $accountMap['capital'],
+                null,
+                abs($amount),
+                0
+            );
+        }
     }
 
 

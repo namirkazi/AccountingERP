@@ -621,7 +621,12 @@ export default function Transactions() {
                 ? Number(capitalAmount)
                 : Number(amount);
 
-    if (!currentAmount || currentAmount <= 0) {
+    if (type === "capital") {
+      if (!Number.isFinite(currentAmount) || Math.abs(currentAmount) < 0.001) {
+        setError("Please enter a valid Capital amount.");
+        return;
+      }
+    } else if (!currentAmount || currentAmount <= 0) {
       setError(
         type === "payment"
           ? "Please enter a valid payment amount."
@@ -638,27 +643,13 @@ export default function Transactions() {
 
       const allocated = cash + bank;
 
-      if (transferAmount <= 0) {
-        setError("Please enter the amount to move from Capital.");
-
-        return;
-      }
-
-      if (transferAmount > Number(availableCapital)) {
-        setError("Capital amount cannot exceed the available capital.");
-
-        return;
-      }
-
-      if (cash < 0 || bank < 0) {
-        setError("Cash and Bank cannot be negative.");
-
+      if (Math.abs(transferAmount) < 0.001) {
+        setError("Please enter a non-zero Capital amount.");
         return;
       }
 
       if (Math.abs(allocated - transferAmount) > 0.001) {
-        setError("Cash and Bank must equal the amount being moved.");
-
+        setError("Cash and Bank must equal the Capital amount.");
         return;
       }
     }

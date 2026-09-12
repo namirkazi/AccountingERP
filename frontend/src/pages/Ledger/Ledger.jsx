@@ -50,7 +50,18 @@ export default function Ledger() {
    * /ledger?type=payments
    *
    */
+  const [editingVoucher, setEditingVoucher] = useState(null);
+  const [savingVoucher, setSavingVoucher] = useState(false);
 
+  const [editDate, setEditDate] = useState("");
+  const [editParty, setEditParty] = useState(null);
+  const [editReferenceNumber, setEditReferenceNumber] = useState("");
+  const [editItems, setEditItems] = useState([]);
+  const [editDiscount, setEditDiscount] = useState("");
+  const [editDiscountMode, setEditDiscountMode] = useState("after_tax");
+  const [editVatRate, setEditVatRate] = useState("");
+  const [editNarration, setEditNarration] = useState("");
+  const [editAttachment, setEditAttachment] = useState(null);
   const type = searchParams.get("type") || "";
 
   const [search, setSearch] = useState("");
@@ -148,12 +159,44 @@ export default function Ledger() {
     setDateTo("");
   }
 
+  function startEditVoucher(voucher) {
+    if (!voucher || voucher.type !== "expense") {
+      return;
+    }
+
+    setEditDate(voucher.date || voucher.voucher_date || "");
+
+    setEditParty(voucher.party || null);
+    setEditReferenceNumber(voucher.billReference || "");
+
+    setEditItems(
+      Array.isArray(voucher.items)
+        ? voucher.items.map((item) => ({
+            ...item,
+            quantity: Number(item.quantity || 1),
+            rate: Number(item.rate || 0),
+            amount: Number(item.quantity || 1) * Number(item.rate || 0),
+          }))
+        : [],
+    );
+
+    setEditDiscount(voucher.discountAmount ?? "");
+
+    setEditDiscountMode(voucher.discountMode || "after_tax");
+
+    setEditVatRate(String(voucher.vatRate ?? 0));
+
+    setEditNarration(voucher.narration || "");
+
+    setEditAttachment(null);
+
+    setEditingVoucher(voucher);
+  }
   /*
    * =====================================================
    * LOAD LEDGER
    * =====================================================
    */
-
   const loadLedger = useCallback(async () => {
     setLoading(true);
 
@@ -476,6 +519,22 @@ export default function Ledger() {
             >
               <button
                 type="button"
+                onClick={() => startEditVoucher(viewingVoucher)}
+                style={{
+                  border: "none",
+                  borderRadius: 8,
+                  padding: "10px 18px",
+                  background: "#2563eb",
+                  color: "#ffffff",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                Edit
+              </button>
+
+              <button
+                type="button"
                 onClick={handlePrintViewedVoucher}
                 style={{
                   border: "none",
@@ -519,7 +578,7 @@ export default function Ledger() {
                 referenceNumber={viewingVoucher.referenceNumber}
                 billReference={
                   viewingVoucher.type === "expense"
-                    ? viewingVoucher.referenceNumber
+                    ? viewingVoucher.billReference || ""
                     : viewingVoucher.type === "payment"
                       ? viewingVoucher.selectedPaymentBill?.voucher_number ||
                         viewingVoucher.selectedPaymentBill?.voucher_no ||
