@@ -36,10 +36,7 @@ class AuthService
                 break;
             }
         }
-        session_regenerate_id(true);
-
-        $_SESSION['user_id'] =
-            (int) $user['id'];
+        $_SESSION['user_id'] = (int) $user['id'];
 
         $_SESSION['company_id'] =
             (int) $activeCompany['company_id'];
