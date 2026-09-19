@@ -1,9 +1,9 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
 import {
+  getCurrentUser,
   login as loginRequest,
   logout as logoutRequest,
-  getCurrentUser,
   switchCompany as switchCompanyService,
 } from "../services/authService";
 
@@ -46,11 +46,20 @@ export function AuthProvider({ children }) {
   }
 
   async function login(username, password) {
-    // First establish the PHP session.
+    /*
+     * Wait for the initial authentication check to finish.
+     *
+     * This prevents the initial /me.php request from racing
+     * against the login request and overwriting the PHP session.
+     */
+    while (loading) {
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    }
+
+    // Establish the PHP session.
     await loginRequest(username, password);
 
-    // Then fetch the canonical authenticated state.
-    // /me.php determines the role from the active company.
+    // Fetch the canonical authenticated state.
     const currentUserResponse = await getCurrentUser();
 
     if (!currentUserResponse?.success) {
