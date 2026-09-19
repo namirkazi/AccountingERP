@@ -14,11 +14,16 @@ if (!isset($_SESSION['user_id'])) {
     http_response_code(401);
 
     echo json_encode([
-        'success' => false,
-        'message' => 'Not authenticated.'
-    ]);
+    'success' => true,
+    'debug' => [
+        'session_id' => session_id(),
+        'session_name' => session_name(),
+        'session_cookie' => $_COOKIE[session_name()] ?? null,
+        'session_data' => $_SESSION,
+    ]
+]);
 
-    exit;
+exit;
 }
 
 $userId = (int) $_SESSION['user_id'];

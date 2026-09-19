@@ -42,12 +42,18 @@ try {
     $user = $authService->login($username, $password);
 
     echo json_encode([
-        'success' => true,
-        'message' => 'Login successful.',
-        'data' => [
-            'user' => $user
-        ]
-    ]);
+    'success' => true,
+    'message' => 'Login successful.',
+    'data' => [
+        'user' => $user
+    ],
+    'debug' => [
+        'session_id' => session_id(),
+        'session_name' => session_name(),
+        'session_cookie' => $_COOKIE[session_name()] ?? null,
+        'session_data' => $_SESSION
+    ]
+]);
 } catch (Exception $e) {
 
     http_response_code(401);
