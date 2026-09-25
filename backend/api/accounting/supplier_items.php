@@ -39,118 +39,75 @@ try {
         $_SERVER['REQUEST_METHOD'];
 
 
+/*
+ * ====================================================
+ * GET
+ * ====================================================
+ *
+ * Returns company-wide items.
+ *
+ * Supplier is NOT used to filter the item search.
+ *
+ * Example:
+ * supplier_items.php?q=cement
+ */
+
+if ($method === 'GET') {
+
+    $search =
+        trim(
+            $_GET['q'] ?? ''
+        );
+
     /*
-     * ====================================================
-     * GET
-     * ====================================================
-     *
-     * GET:
-     * supplier_items.php?supplier_id=5
-     *
-     * Returns all active items belonging to
-     * that supplier.
+     * Search is optional.
+     * If no search is provided, return all active
+     * items belonging to the current company.
      */
 
-    if ($method === 'GET') {
+    $stmt =
+        $pdo->prepare("
+            SELECT
+                id,
+                supplier_id,
+                item_name,
+                unit,
+                default_rate,
+                is_active,
+                created_at,
+                updated_at
+            FROM supplier_items
+            WHERE company_id = ?
+              AND is_active = 1
+              AND (
+                    ? = ''
+                    OR item_name LIKE ?
+                  )
+            ORDER BY item_name ASC
+            LIMIT 50
+        ");
 
-        $supplierId =
-            isset($_GET['supplier_id'])
-                ? (int) $_GET['supplier_id']
-                : 0;
+    $searchValue =
+        '%' . $search . '%';
 
+    $stmt->execute([
+        $companyId,
+        $search,
+        $searchValue
+    ]);
 
-        if ($supplierId <= 0) {
+    $items =
+        $stmt->fetchAll(
+            PDO::FETCH_ASSOC
+        );
 
-            http_response_code(400);
+    echo json_encode([
+        'success' => true,
+        'items' => $items
+    ]);
 
-            echo json_encode([
-                'success' => false,
-                'message' => 'Supplier ID is required.'
-            ]);
-
-            exit;
-        }
-
-
-        /*
-         * Make absolutely sure the supplier belongs
-         * to the current company and is actually
-         * a supplier.
-         */
-
-        $supplierStmt =
-            $pdo->prepare("
-                SELECT id
-                FROM parties
-                WHERE id = ?
-                  AND company_id = ?
-                  AND party_type = 'supplier'
-                LIMIT 1
-            ");
-
-
-        $supplierStmt->execute([
-            $supplierId,
-            $companyId
-        ]);
-
-
-        if (!$supplierStmt->fetch()) {
-
-            http_response_code(404);
-
-            echo json_encode([
-                'success' => false,
-                'message' => 'Supplier not found.'
-            ]);
-
-            exit;
-        }
-
-
-        /*
-         * Get supplier items.
-         */
-
-        $stmt =
-            $pdo->prepare("
-                SELECT
-                    id,
-                    supplier_id,
-                    item_name,
-                    unit,
-                    default_rate,
-                    is_active,
-                    created_at,
-                    updated_at
-                FROM supplier_items
-                WHERE company_id = ?
-                  AND supplier_id = ?
-                  AND is_active = 1
-                ORDER BY item_name ASC
-            ");
-
-
-        $stmt->execute([
-            $companyId,
-            $supplierId
-        ]);
-
-
-        $items =
-            $stmt->fetchAll(
-                PDO::FETCH_ASSOC
-            );
-
-
-        echo json_encode([
-            'success' => true,
-            'items' => $items
-        ]);
-
-        exit;
-    }
-
+    exit;
+}
 
     /*
      * ====================================================
