@@ -27,108 +27,66 @@ try {
 
     $method = $_SERVER['REQUEST_METHOD'];
 
+/*
+ * ====================================================
+ * GET
+ * ====================================================
+ *
+ * Returns company-wide services.
+ *
+ * Customer is NOT used to filter the search.
+ *
+ * Example:
+ * customer_services.php?q=installation
+ */
 
-    /*
-     * ====================================================
-     * GET
-     * ====================================================
-     *
-     * customer_services.php?customer_id=5
-     */
+if ($method === 'GET') {
 
-    if ($method === 'GET') {
-
-        $customerId =
-            isset($_GET['customer_id'])
-                ? (int) $_GET['customer_id']
-                : 0;
-
-
-        if ($customerId <= 0) {
-
-            http_response_code(400);
-
-            echo json_encode([
-                'success' => false,
-                'message' => 'Customer ID is required.'
-            ]);
-
-            exit;
-        }
-
-
-        /*
-         * Verify customer belongs to this company
-         * and is actually a customer.
-         */
-
-        $customerStmt = $pdo->prepare("
-            SELECT id
-            FROM parties
-            WHERE id = ?
-              AND company_id = ?
-              AND party_type = 'customer'
-            LIMIT 1
-        ");
-
-        $customerStmt->execute([
-            $customerId,
-            $companyId
-        ]);
-
-
-        if (!$customerStmt->fetch()) {
-
-            http_response_code(404);
-
-            echo json_encode([
-                'success' => false,
-                'message' => 'Customer not found.'
-            ]);
-
-            exit;
-        }
-
-
-        /*
-         * Get customer's active services.
-         */
-
-        $stmt = $pdo->prepare("
-            SELECT
-                id,
-                customer_id,
-                service_name,
-                default_amount,
-                is_active,
-                created_at,
-                updated_at
-            FROM customer_services
-            WHERE company_id = ?
-              AND customer_id = ?
-              AND is_active = 1
-            ORDER BY service_name ASC
-        ");
-
-        $stmt->execute([
-            $companyId,
-            $customerId
-        ]);
-
-
-        $services = $stmt->fetchAll(
-            PDO::FETCH_ASSOC
+    $search =
+        trim(
+            $_GET['q'] ?? ''
         );
 
+    $stmt = $pdo->prepare("
+        SELECT
+            id,
+            customer_id,
+            service_name,
+            default_amount,
+            is_active,
+            created_at,
+            updated_at
+        FROM customer_services
+        WHERE company_id = ?
+          AND is_active = 1
+          AND (
+                ? = ''
+                OR service_name LIKE ?
+              )
+        ORDER BY service_name ASC
+        LIMIT 50
+    ");
 
-        echo json_encode([
-            'success' => true,
-            'services' => $services
-        ]);
+    $searchValue =
+        '%' . $search . '%';
 
-        exit;
-    }
+    $stmt->execute([
+        $companyId,
+        $search,
+        $searchValue
+    ]);
 
+    $services = $stmt->fetchAll(
+        PDO::FETCH_ASSOC
+    );
+
+    echo json_encode([
+        'success' => true,
+        'services' => $services
+    ]);
+
+    exit;
+}
 
     /*
      * ====================================================
