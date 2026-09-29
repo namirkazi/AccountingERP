@@ -331,10 +331,10 @@ export default function PartySelector({
               </div>
 
               <div className={styles.modalField}>
-                <label>Email</label>
+                <label>TRN</label>
 
                 <input
-                  type="email"
+                  type="text"
                   value={newEmail}
                   onChange={(event) => setNewEmail(event.target.value)}
                   placeholder="Optional"
