@@ -57,9 +57,15 @@ try {
 
     if (!empty($company['logo'])) {
 
+        $storagePath = rtrim(
+            getenv('STORAGE_PATH')
+                ?: (__DIR__ . '/../../storage'),
+            '/\\'
+        );
+
         $logoFilePath =
-            __DIR__ .
-            '/../../' .
+            $storagePath .
+            '/' .
             ltrim($company['logo'], '/');
 
         if (is_file($logoFilePath)) {
