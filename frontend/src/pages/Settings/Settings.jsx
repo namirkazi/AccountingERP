@@ -137,7 +137,7 @@ export default function Settings() {
           accent_color: company.theme?.accent || "",
         });
 
-        setLogoPreview(company.logo || "");
+        setLogoPreview(company.logo_data || "");
       } catch (requestError) {
         console.error("Company profile error:", requestError);
 
@@ -280,7 +280,7 @@ export default function Settings() {
       const company = response?.company || response?.data?.company || null;
 
       if (company) {
-        setLogoPreview(company.logo || logoPreview);
+        setLogoPreview(company.logo_data || logoPreview);
       }
 
       setLogoFile(null);
