@@ -34,17 +34,18 @@ try {
         );
 
 
-    if ($search === '') {
-
-        echo json_encode([
-            'success' => true,
-            'data' => [
-                'parties' => []
-            ]
-        ]);
-
-        exit;
-    }
+    /*
+    |--------------------------------------------------------------------------
+    | SUPPLIER SEARCH
+    |--------------------------------------------------------------------------
+    |
+    | Empty search:
+    |     Return all suppliers.
+    |
+    | Typed search:
+    |     Return matching suppliers.
+    |
+    */
 
 
     $stmt = $pdo->prepare("
@@ -58,9 +59,12 @@ try {
         FROM parties
         WHERE company_id = :company_id
         AND party_type = 'supplier'
-        AND party_name LIKE :search
+        AND (
+            :search_empty = ''
+            OR party_name LIKE :search
+        )
         ORDER BY party_name ASC
-        LIMIT 20
+        LIMIT 50
     ");
 
 
@@ -70,6 +74,7 @@ try {
 
     $stmt->execute([
         ':company_id' => $companyId,
+        ':search_empty' => $search,
         ':search' => $searchValue
     ]);
 
@@ -98,6 +103,7 @@ try {
 
     echo json_encode([
         'success' => false,
-        'message' => 'Unable to search suppliers.'
+        'message' =>
+            'Unable to search suppliers.'
     ]);
 }

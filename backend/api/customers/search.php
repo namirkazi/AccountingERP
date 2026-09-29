@@ -25,28 +25,42 @@ try {
 
     $companyId = getCurrentCompanyId();
 
-    $search = trim(
-        $_GET['q'] ?? ''
-    );
+    if (!$companyId) {
 
-    if ($search === '') {
+        http_response_code(401);
 
         echo json_encode([
-            'success' => true,
-            'data' => [
-                'parties' => []
-            ]
+            'success' => false,
+            'message' => 'Company not found.'
         ]);
 
         exit;
     }
 
+
+    /*
+     * Search is optional.
+     *
+     * q=""
+     *     -> return all parties
+     *
+     * q="emir"
+     *     -> return matching parties
+     */
+
+    $search = trim(
+        $_GET['q'] ?? ''
+    );
+
+
     $partyModel = new Party($pdo);
+
 
     $parties = $partyModel->search(
         $companyId,
         $search
     );
+
 
     echo json_encode([
         'success' => true,

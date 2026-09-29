@@ -15,23 +15,27 @@ class Party
     ): array {
 
         $stmt = $this->db->prepare("
-            SELECT
-                id,
-                party_name,
-                party_type,
-                phone,
-                email
-            FROM parties
-            WHERE company_id = :company_id
-            AND party_name LIKE :search
-            ORDER BY party_name ASC
-            LIMIT 10
-        ");
+    SELECT
+        id,
+        party_name,
+        party_type,
+        phone,
+        email
+    FROM parties
+    WHERE company_id = :company_id
+    AND (
+        :search_empty = ''
+        OR party_name LIKE :search
+    )
+    ORDER BY party_name ASC
+    LIMIT 50
+");
 
-        $stmt->execute([
-            ':company_id' => $companyId,
-            ':search' => '%' . $search . '%'
-        ]);
+$stmt->execute([
+    ':company_id' => $companyId,
+    ':search_empty' => $search,
+    ':search' => '%' . $search . '%'
+]);
 
         return $stmt->fetchAll();
     }

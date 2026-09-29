@@ -94,7 +94,18 @@ try {
         $data['bank_amount'] ?? 0
     );
 
+    $capitalAllocations = $data['allocations'] ?? [];
 
+    if (is_string($capitalAllocations)) {
+        $capitalAllocations = json_decode(
+            $capitalAllocations,
+            true
+        );
+    }
+
+    if (!is_array($capitalAllocations)) {
+        $capitalAllocations = [];
+    }
     $vatInput = (float) (
         $data['vat_input'] ?? 0
     );
@@ -275,7 +286,6 @@ try {
     if ($type === 'capital') {
 
         if (abs($amount) < 0.001) {
-
             http_response_code(422);
 
             echo json_encode([
@@ -286,8 +296,105 @@ try {
             exit;
         }
 
+        if (count($capitalAllocations) === 0) {
+            http_response_code(422);
+
+            echo json_encode([
+                'success' => false,
+                'message' => 'At least one capital allocation is required.'
+            ]);
+
+            exit;
+        }
+
+        $allocationTotal = 0;
+
+        foreach ($capitalAllocations as $allocation) {
+
+            if (!is_array($allocation)) {
+                throw new Exception(
+                    'Invalid capital allocation.'
+                );
+            }
+
+            $allocationType = strtolower(
+                trim($allocation['type'] ?? '')
+            );
+
+            $allocationAmount = (float) (
+                $allocation['amount'] ?? 0
+            );
+
+            $allocationAccountId = (int) (
+                $allocation['account_id'] ?? 0
+            );
+
+            if (
+                $allocationType !== 'cash' &&
+                $allocationType !== 'bank'
+            ) {
+                throw new Exception(
+                    'Capital allocation must be Cash or Bank.'
+                );
+            }
+
+            if ($allocationAmount <= 0) {
+                throw new Exception(
+                    'Capital allocation amount must be greater than zero.'
+                );
+            }
+
+            /*
+     * Cash does not need an account_id.
+     */
+            if ($allocationType === 'cash') {
+                $allocationTotal += $allocationAmount;
+                continue;
+            }
+
+            /*
+     * Bank allocation must have a selected
+     * accounting ledger account.
+     */
+            if ($allocationAccountId <= 0) {
+                throw new Exception(
+                    'Please select a bank account for every bank allocation.'
+                );
+            }
+
+            /*
+     * Make sure this accounting account is actually
+     * an active physical bank belonging to this company.
+     */
+            $bankStmt = $pdo->prepare("
+        SELECT
+            ba.id,
+            ba.accounting_account_id
+        FROM bank_accounts ba
+        WHERE ba.company_id = :company_id
+          AND ba.accounting_account_id = :accounting_account_id
+          AND ba.is_active = 1
+        LIMIT 1
+    ");
+
+            $bankStmt->execute([
+                ':company_id' => $companyId,
+                ':accounting_account_id' => $allocationAccountId
+            ]);
+
+            $bankAccount = $bankStmt->fetch();
+
+            if (!$bankAccount) {
+                throw new Exception(
+                    'Selected bank account is invalid or inactive.'
+                );
+            }
+
+            $allocationTotal += $allocationAmount;
+        }
+
         $allocationTotal = round(
-            $cashAmount + $bankAmount,
+            $allocationTotal,
             2
         );
 
@@ -297,27 +404,12 @@ try {
                     round($amount, 2)
             ) > 0.001
         ) {
-
             http_response_code(422);
 
             echo json_encode([
                 'success' => false,
-                'message' => 'Cash and Bank allocation must equal the Capital amount.'
-            ]);
-
-            exit;
-        }
-
-        if (
-            abs($cashAmount) < 0.001 &&
-            abs($bankAmount) < 0.001
-        ) {
-
-            http_response_code(422);
-
-            echo json_encode([
-                'success' => false,
-                'message' => 'Enter an amount for Cash or Bank.'
+                'message' =>
+                'Capital allocations must equal the Capital amount.'
             ]);
 
             exit;
@@ -908,17 +1000,18 @@ try {
         case 'capital':
 
             /*
-             * Capital transfer:
-             *
-             * Dr Cash (if allocated)
-             * Dr Bank (if allocated)
-             * Cr Capital
-             */
+     * Capital transfer:
+     *
+     * Dr Cash / selected Bank accounts
+     * Cr Capital
+     *
+     * Physical bank accounts use their
+     * own accounting ledger account.
+     */
 
             $requiredAccounts = [
                 'capital',
-                'cash',
-                'bank'
+                'cash'
             ];
 
             break;
@@ -1690,57 +1783,78 @@ try {
     if ($type === 'capital') {
 
         /*
-     * Positive capital movement:
+     * Capital transfer
      *
-     * Dr Cash / Bank
-     * Cr Capital
+     * Positive:
+     *   Dr Cash / Bank allocations
+     *   Cr Capital
      *
-     * Negative capital movement:
+     * Negative:
+     *   Dr Capital
+     *   Cr Cash / Bank allocations
      *
-     * Dr Capital
-     * Cr Cash / Bank
+     * Example:
      *
-     * Ledger debit/credit values themselves
-     * always remain positive.
+     * Capital = 100,000
+     *
+     * Cash = 30,000
+     * Bank A = 50,000
+     * Bank B = 20,000
+     *
+     * Ledger:
+     *
+     * Dr Cash        30,000
+     * Dr Bank A      50,000
+     * Dr Bank B      20,000
+     * Cr Capital    100,000
      */
 
-        if ($cashAmount > 0) {
+        foreach ($capitalAllocations as $allocation) {
 
-            $addEntry(
-                $accountMap['cash'],
-                null,
-                $cashAmount,
-                0
+            $allocationType = strtolower(
+                trim($allocation['type'] ?? '')
             );
-        } elseif ($cashAmount < 0) {
 
-            $addEntry(
-                $accountMap['cash'],
-                null,
-                0,
-                abs($cashAmount)
+            $allocationAmount = (float) (
+                $allocation['amount'] ?? 0
             );
+
+            if ($allocationType === 'cash') {
+
+                $allocationAccountId =
+                    $accountMap['cash'];
+            } else {
+
+                $allocationAccountId =
+                    (int) (
+                        $allocation['account_id'] ?? 0
+                    );
+            }
+
+            if ($amount > 0) {
+
+                // Capital entering Cash / Bank
+                $addEntry(
+                    $allocationAccountId,
+                    null,
+                    $allocationAmount,
+                    0
+                );
+            } else {
+
+                // Capital leaving Cash / Bank
+                $addEntry(
+                    $allocationAccountId,
+                    null,
+                    0,
+                    abs($allocationAmount)
+                );
+            }
         }
 
-
-        if ($bankAmount > 0) {
-
-            $addEntry(
-                $accountMap['bank'],
-                null,
-                $bankAmount,
-                0
-            );
-        } elseif ($bankAmount < 0) {
-
-            $addEntry(
-                $accountMap['bank'],
-                null,
-                0,
-                abs($bankAmount)
-            );
-        }
-
+        /*
+     * Capital account is the balancing side.
+     */
 
         if ($amount > 0) {
 
@@ -1760,7 +1874,6 @@ try {
             );
         }
     }
-
 
     // =====================================================
     // VERIFY LEDGER BALANCE

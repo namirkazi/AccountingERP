@@ -383,7 +383,16 @@ COALESCE(SUM(le.credit), 0) AS credit
                 ),
                 0
             ) AS expenses,
-
+            COALESCE(
+    SUM(
+        CASE
+            WHEN v.voucher_type = 'PAYMENT'
+            THEN v.amount
+            ELSE 0
+        END
+    ),
+    0
+) AS payments,
             COALESCE(
                 SUM(
                     CASE
@@ -417,14 +426,17 @@ COALESCE(SUM(le.credit), 0) AS credit
         (float) ($totals['expenses'] ?? 0),
         2
     );
-
+    $totalPayments = round(
+        (float) ($totals['payments'] ?? 0),
+        2
+    );
     $totalCapital = round(
         (float) ($totals['capital'] ?? 0),
         2
     );
 
     $netActivity = round(
-        $totalSales - $totalExpenses,
+        $totalExpenses - $totalPayments,
         2
     );
 
@@ -464,6 +476,7 @@ COALESCE(SUM(le.credit), 0) AS credit
             'totals' => [
                 'sales' => $totalSales,
                 'expenses' => $totalExpenses,
+                'payments' => $totalPayments,
                 'capital' => $totalCapital,
                 'net_activity' => $netActivity
             ],

@@ -1,20 +1,20 @@
 import { useEffect, useState } from "react";
-import { getCompanyProfile } from "../../services/companyService";
 import AppLayout from "../../components/layout/AppLayout";
-import CapitalForm from "./components/Capital/CapitalForm";
+import { getCompanyProfile } from "../../services/companyService";
 import {
-  searchPaymentExpenses,
   createPayment,
+  searchPaymentExpenses,
 } from "../../services/paymentService";
 import {
   createTransaction,
-  searchReceiptInvoices,
   getAvailableCapital,
+  searchReceiptInvoices,
 } from "../../services/transactionService";
+import CapitalForm from "./components/Capital/CapitalForm";
+import SavedVoucher from "./components/Shared/SavedVoucher";
 import TransactionHeader, {
   TRANSACTION_TYPES,
 } from "./components/TransactionHeader";
-import SavedVoucher from "./components/Shared/SavedVoucher";
 
 import SalesForm from "./components/Sales/SalesForm";
 
@@ -22,17 +22,17 @@ import ReceiptForm from "./components/Receipt/ReceiptForm";
 
 import PaymentForm from "./components/Payment/PaymentForm";
 
+import PrintableCapitalVoucher from "../../components/accounting/PrintableCapitalVoucher";
+import PrintableVoucher from "../../components/accounting/PrintableVoucher";
+import SavedCapitalVoucher from "../../components/accounting/SavedCapitalVoucher";
 import ExpenseForm from "./components/Expense/ExpenseForm";
 import useExpenseTransaction from "./hooks/useExpenseTransaction";
-import PrintableVoucher from "../../components/accounting/PrintableVoucher";
-import PrintableCapitalVoucher from "../../components/accounting/PrintableCapitalVoucher";
-import styles from "./Transactions.module.css";
-import SavedCapitalVoucher from "../../components/accounting/SavedCapitalVoucher";
 import useSalesTransaction from "./hooks/useSalesTransaction";
+import styles from "./Transactions.module.css";
 
 import {
-  getNextSalesBillNumber,
   getNextReceiptNumber,
+  getNextSalesBillNumber,
 } from "../../services/transactionService";
 
 export default function Transactions() {
@@ -106,7 +106,7 @@ export default function Transactions() {
   const [amount, setAmount] = useState("");
 
   const [narration, setNarration] = useState("");
-
+  const [bankAccountId, setBankAccountId] = useState("");
   const [accountId, setAccountId] = useState("");
   const [paymentAccount, setPaymentAccount] = useState(null);
 
@@ -124,10 +124,7 @@ export default function Transactions() {
   const [showSavedVoucher, setShowSavedVoucher] = useState(false);
 
   const [capitalAmount, setCapitalAmount] = useState("");
-
-  const [capitalCash, setCapitalCash] = useState("");
-
-  const [capitalBank, setCapitalBank] = useState("");
+  const [capitalAllocations, setCapitalAllocations] = useState([]);
 
   const [availableCapital, setAvailableCapital] = useState(0);
   const [voucherNumber, setVoucherNumber] = useState("");
@@ -457,8 +454,7 @@ export default function Transactions() {
     setError("");
     setDiscount("");
     setCapitalAmount("");
-    setCapitalCash("");
-    setCapitalBank("");
+    setCapitalAllocations([]);
   }
 
   function resetTransactionForm() {
@@ -482,8 +478,7 @@ export default function Transactions() {
 
     if (type === "capital") {
       setCapitalAmount("");
-      setCapitalCash("");
-      setCapitalBank("");
+      setCapitalAllocations([]);
     }
   }
 
@@ -637,19 +632,46 @@ export default function Transactions() {
     if (type === "capital") {
       const transferAmount = Number(capitalAmount) || 0;
 
-      const cash = Number(capitalCash) || 0;
-
-      const bank = Number(capitalBank) || 0;
-
-      const allocated = cash + bank;
-
       if (Math.abs(transferAmount) < 0.001) {
         setError("Please enter a non-zero Capital amount.");
         return;
       }
 
+      if (
+        !Array.isArray(capitalAllocations) ||
+        capitalAllocations.length === 0
+      ) {
+        setError("Please add at least one capital allocation.");
+        return;
+      }
+
+      let allocated = 0;
+
+      for (const allocation of capitalAllocations) {
+        const allocationAmount = Number(allocation.amount) || 0;
+
+        if (allocation.type !== "cash" && allocation.type !== "bank") {
+          setError("Every allocation must be Cash or Bank.");
+          return;
+        }
+
+        if (allocationAmount <= 0) {
+          setError("Every allocation must have an amount greater than zero.");
+          return;
+        }
+
+        if (allocation.type === "bank" && Number(allocation.account_id) <= 0) {
+          setError("Please select a bank account for every bank allocation.");
+          return;
+        }
+
+        allocated += allocationAmount;
+      }
+
       if (Math.abs(allocated - transferAmount) > 0.001) {
-        setError("Cash and Bank must equal the Capital amount.");
+        setError(
+          `Allocations must equal the Capital amount. Currently allocated: AED ${allocated.toFixed(2)}.`,
+        );
         return;
       }
     }
@@ -739,14 +761,15 @@ export default function Transactions() {
 
         response = await createTransaction({
           type: "capital",
-
           date,
-
           amount: Number(capitalAmount) || 0,
 
-          cash_amount: Number(capitalCash) || 0,
-
-          bank_amount: Number(capitalBank) || 0,
+          allocations: capitalAllocations.map((allocation) => ({
+            type: allocation.type,
+            account_id:
+              allocation.type === "bank" ? Number(allocation.account_id) : null,
+            amount: Number(allocation.amount) || 0,
+          })),
 
           narration: narration?.trim() || "",
         });
@@ -827,7 +850,9 @@ export default function Transactions() {
             account_id:
               type === "payment" || type === "receipt"
                 ? Number(accountId) || null
-                : null,
+                : type === "capital"
+                  ? Number(bankAccountId) || null
+                  : null,
 
             narration: narration?.trim() || "",
           });
@@ -863,6 +888,16 @@ export default function Transactions() {
 
         if (savedPaymentNumber) {
           setVoucherNumber(savedPaymentNumber);
+        }
+
+        const savedBillReference =
+          response?.data?.bill_reference || response?.bill_reference || "";
+
+        if (savedBillReference) {
+          setSelectedPaymentBill((currentBill) => ({
+            ...(currentBill || {}),
+            bill_reference: savedBillReference,
+          }));
         }
       }
       setMessage(
@@ -1024,10 +1059,8 @@ export default function Transactions() {
               availableCapital={availableCapital}
               amount={capitalAmount}
               setAmount={setCapitalAmount}
-              cashAmount={capitalCash}
-              setCashAmount={setCapitalCash}
-              bankAmount={capitalBank}
-              setBankAmount={setCapitalBank}
+              allocations={capitalAllocations}
+              setAllocations={setCapitalAllocations}
               narration={narration}
               setNarration={setNarration}
               error={error}
@@ -1074,8 +1107,7 @@ export default function Transactions() {
                       voucherNumber={voucherNumber}
                       date={date}
                       amount={capitalAmount}
-                      cashAmount={capitalCash}
-                      bankAmount={capitalBank}
+                      allocations={capitalAllocations}
                       narration={narration}
                       company={company}
                     />
@@ -1090,7 +1122,7 @@ export default function Transactions() {
                         type === "expense"
                           ? referenceNumber
                           : type === "payment"
-                            ? selectedPaymentBill?.reference_number || ""
+                            ? selectedPaymentBill?.bill_reference || ""
                             : ""
                       }
                       voucherNumber={voucherNumber}
@@ -1149,12 +1181,10 @@ export default function Transactions() {
             voucherNumber={voucherNumber}
             date={date}
             amount={capitalAmount}
-            cashAmount={capitalCash}
-            bankAmount={capitalBank}
+            allocations={capitalAllocations}
             narration={narration}
             company={company}
             closeSavedVoucher={closeSavedVoucher}
-            company={company}
           />
         ) : (
           <SavedVoucher
@@ -1168,7 +1198,7 @@ export default function Transactions() {
               type === "expense"
                 ? referenceNumber
                 : type === "payment"
-                  ? selectedPaymentBill?.reference_number || ""
+                  ? selectedPaymentBill?.bill_reference || ""
                   : ""
             }
             voucherNumber={voucherNumber}

@@ -1,136 +1,145 @@
-import { ArrowDownToLine, Landmark, Wallet, CheckCircle2 } from "lucide-react";
+import { ArrowDownToLine, CheckCircle2, Plus, Trash2 } from "lucide-react";
+import BankAccountSelector from "../../../../components/accounting/BankAccountSelector";
 import styles from "./CapitalForm.module.css";
+
+function createAllocation() {
+  return {
+    type: "",
+    account_id: null,
+    account: null,
+    amount: "",
+  };
+}
 
 export default function CapitalForm({
   availableCapital,
-
   amount,
   setAmount,
-
-  cashAmount,
-  setCashAmount,
-
-  bankAmount,
-  setBankAmount,
-
+  allocations = [],
+  setAllocations,
   date,
   setDate,
-
   narration,
   setNarration,
-
   error,
   message,
   saving,
-
   onSubmit,
 }) {
   const capital = Number(availableCapital) || 0;
-
   const transferAmount = Number(amount) || 0;
 
-  const cash = Number(cashAmount) || 0;
-
-  const bank = Number(bankAmount) || 0;
-
-  const allocated = cash + bank;
+  const allocated = allocations.reduce(
+    (total, allocation) => total + (Number(allocation.amount) || 0),
+    0,
+  );
 
   const difference = transferAmount - allocated;
-
   const remainingCapital = capital - transferAmount;
 
-  const isBalanced = transferAmount !== 0 && Math.abs(difference) < 0.001;
+  const isBalanced = transferAmount > 0 && Math.abs(difference) < 0.001;
+
+  function addAllocation() {
+    setAllocations([...allocations, createAllocation()]);
+  }
+
+  function removeAllocation(index) {
+    setAllocations(
+      allocations.filter((_, allocationIndex) => allocationIndex !== index),
+    );
+  }
+
+  function updateAllocationType(index, type) {
+    setAllocations(
+      allocations.map((allocation, allocationIndex) => {
+        if (allocationIndex !== index) {
+          return allocation;
+        }
+
+        return {
+          ...allocation,
+          type,
+          account_id: null,
+          account: null,
+        };
+      }),
+    );
+  }
+
+  function updateAllocationBank(index, selectedAccount) {
+    setAllocations(
+      allocations.map((allocation, allocationIndex) => {
+        if (allocationIndex !== index) {
+          return allocation;
+        }
+
+        return {
+          ...allocation,
+          account_id: selectedAccount?.id || null,
+          account: selectedAccount || null,
+        };
+      }),
+    );
+  }
+
+  function updateAllocationAmount(index, value) {
+    setAllocations(
+      allocations.map((allocation, allocationIndex) => {
+        if (allocationIndex !== index) {
+          return allocation;
+        }
+
+        return {
+          ...allocation,
+          amount: value,
+        };
+      }),
+    );
+  }
+
+  function isBankAlreadySelected(accountId, currentIndex) {
+    return allocations.some(
+      (allocation, index) =>
+        index !== currentIndex &&
+        allocation.type === "bank" &&
+        Number(allocation.account_id) === Number(accountId),
+    );
+  }
 
   return (
     <form className={styles.form} onSubmit={onSubmit}>
-      {/* =========================================
-                HEADER
-            ========================================= */}
-
       <div className={styles.formHeader}>
         <div>
           <h2>Move Capital</h2>
-
-          <p>Transfer available capital into Cash and Bank.</p>
+          <p>
+            Allocate available capital between Cash and one or more bank
+            accounts.
+          </p>
         </div>
       </div>
 
-      {/* =========================================
-                AVAILABLE CAPITAL
-            ========================================= */}
+      {/* AVAILABLE CAPITAL */}
+      <div className={styles.capitalCard}>
+        <div className={styles.capitalCardInner}>
+          <div className={styles.capitalIcon}>
+            <ArrowDownToLine size={19} />
+          </div>
 
-      <div
-        style={{
-          padding: "18px 20px",
-          borderRadius: "12px",
-          border: "1px solid #e5e7eb",
-          background: "#f9fafb",
-          marginBottom: "22px",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: "20px",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-            }}
-          >
-            <div
-              style={{
-                width: "40px",
-                height: "40px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                borderRadius: "10px",
-                background: "#eff6ff",
-                color: "#2563eb",
-              }}
-            >
-              <ArrowDownToLine size={19} />
-            </div>
+          <div>
+            <div className={styles.capitalLabel}>Available Capital</div>
 
-            <div>
-              <div
-                style={{
-                  fontSize: "12px",
-                  color: "#6b7280",
-                  marginBottom: "3px",
-                }}
-              >
-                Available Capital
-              </div>
-
-              <div
-                style={{
-                  fontSize: "22px",
-                  fontWeight: 700,
-                  color: "#111827",
-                }}
-              >
-                AED{" "}
-                {capital.toLocaleString("en-AE", {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
-              </div>
+            <div className={styles.capitalValue}>
+              AED{" "}
+              {capital.toLocaleString("en-AE", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
             </div>
           </div>
         </div>
       </div>
 
-      {/* =========================================
-                DATE
-            ========================================= */}
-
+      {/* DATE */}
       <div className={styles.formGroup}>
         <label>Date</label>
 
@@ -141,10 +150,7 @@ export default function CapitalForm({
         />
       </div>
 
-      {/* =========================================
-                AMOUNT TO MOVE
-            ========================================= */}
-
+      {/* AMOUNT */}
       <div className={styles.formGroup}>
         <label>Amount to Move</label>
 
@@ -154,6 +160,7 @@ export default function CapitalForm({
           <input
             type="number"
             step="0.01"
+            min="0"
             value={amount}
             onChange={(event) => setAmount(event.target.value)}
             placeholder="0.00"
@@ -161,174 +168,173 @@ export default function CapitalForm({
         </div>
       </div>
 
-      {/* =========================================
-                CASH + BANK
-            ========================================= */}
-
-      <div
-        className={styles.formRow}
-        style={{
-          marginTop: "8px",
-        }}
-      >
-        {/* CASH */}
-
-        <div className={styles.formGroup}>
-          <label>Cash</label>
-
-          <div className={styles.amountInput}>
-            <span>AED</span>
-
-            <input
-              type="number"
-              step="0.01"
-              value={cashAmount}
-              onChange={(event) => setCashAmount(event.target.value)}
-              placeholder="0.00"
-            />
+      {/* ALLOCATIONS */}
+      <div className={styles.allocationCard}>
+        <div className={styles.allocationHeader}>
+          <div>
+            <strong>Capital Allocations</strong>
+            <span>Add as many Cash or Bank allocations as required.</span>
           </div>
+
+          <button
+            type="button"
+            className={styles.addButton}
+            onClick={addAllocation}
+          >
+            <Plus size={15} />
+            Add Allocation
+          </button>
         </div>
 
-        {/* BANK */}
+        <div className={styles.allocationBody}>
+          {allocations.length === 0 ? (
+            <div className={styles.emptyAllocation}>
+              <p>No allocations added yet.</p>
 
-        <div className={styles.formGroup}>
-          <label>Bank</label>
+              <button
+                type="button"
+                className={styles.emptyAddButton}
+                onClick={addAllocation}
+              >
+                <Plus size={15} />
+                Add your first allocation
+              </button>
+            </div>
+          ) : (
+            allocations.map((allocation, index) => (
+              <div
+                className={styles.allocationItem}
+                key={`allocation-${index}`}
+              >
+                <div className={styles.allocationItemHeader}>
+                  <span>Allocation {index + 1}</span>
 
-          <div className={styles.amountInput}>
-            <span>AED</span>
+                  <button
+                    type="button"
+                    className={styles.removeButton}
+                    onClick={() => removeAllocation(index)}
+                    title="Remove allocation"
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                </div>
 
-            <input
-              type="number"
-              step="0.01"
-              value={bankAmount}
-              onChange={(event) => setBankAmount(event.target.value)}
-              placeholder="0.00"
-            />
-          </div>
+                <div className={styles.allocationGrid}>
+                  {/* TYPE */}
+                  <div className={styles.formGroup}>
+                    <label>Account Type</label>
+
+                    <select
+                      value={allocation.type}
+                      onChange={(event) =>
+                        updateAllocationType(index, event.target.value)
+                      }
+                    >
+                      <option value="">Select type</option>
+                      <option value="cash">Cash</option>
+                      <option value="bank">Bank</option>
+                    </select>
+                  </div>
+
+                  {/* BANK */}
+                  {allocation.type === "bank" && (
+                    <div className={styles.formGroup}>
+                      <label>Bank Account</label>
+
+                      <BankAccountSelector
+                        value={allocation.account_id || ""}
+                        includeCash={false}
+                        onChange={(selectedAccount) => {
+                          if (
+                            selectedAccount &&
+                            isBankAlreadySelected(selectedAccount.id, index)
+                          ) {
+                            return;
+                          }
+
+                          updateAllocationBank(index, selectedAccount);
+                        }}
+                        placeholder="Select bank account"
+                      />
+                    </div>
+                  )}
+
+                  {/* AMOUNT */}
+                  <div className={styles.formGroup}>
+                    <label>Amount</label>
+
+                    <div className={styles.amountInput}>
+                      <span>AED</span>
+
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={allocation.amount || ""}
+                        onChange={(event) =>
+                          updateAllocationAmount(index, event.target.value)
+                        }
+                        placeholder="0.00"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {allocation.type === "bank" && allocation.account && (
+                  <div className={styles.selectedAccount}>
+                    {allocation.account.displayName}
+                  </div>
+                )}
+              </div>
+            ))
+          )}
         </div>
       </div>
 
-      {/* =========================================
-                SUMMARY
-            ========================================= */}
-
-      <div
-        style={{
-          marginTop: "8px",
-          border: "1px solid #e5e7eb",
-          borderRadius: "12px",
-          overflow: "hidden",
-          background: "#fff",
-        }}
-      >
-        <div
-          style={{
-            padding: "14px 16px",
-            borderBottom: "1px solid #f0f1f3",
-            fontSize: "12px",
-            fontWeight: 700,
-            color: "#374151",
-          }}
-        >
-          Capital Allocation
+      {/* SUMMARY */}
+      <div className={styles.allocationCard}>
+        <div className={styles.allocationHeader}>
+          <strong>Allocation Summary</strong>
         </div>
 
-        <div
-          style={{
-            padding: "14px 16px",
-            display: "flex",
-            flexDirection: "column",
-            gap: "11px",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-            }}
-          >
+        <div className={styles.allocationBody}>
+          <div className={styles.allocationRow}>
             <span>Amount to move</span>
-
             <strong>AED {transferAmount.toFixed(2)}</strong>
           </div>
 
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-            }}
-          >
-            <span>Cash</span>
-
-            <strong>AED {cash.toFixed(2)}</strong>
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-            }}
-          >
-            <span>Bank</span>
-
-            <strong>AED {bank.toFixed(2)}</strong>
-          </div>
-
-          <div
-            style={{
-              height: "1px",
-              background: "#f0f1f3",
-            }}
-          />
-
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-            }}
-          >
-            <span>Cash + Bank</span>
-
+          <div className={styles.allocationRow}>
+            <span>Total allocated</span>
             <strong>AED {allocated.toFixed(2)}</strong>
           </div>
 
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-            }}
-          >
-            <span>Remaining Capital</span>
+          <div className={styles.allocationDivider} />
 
+          <div className={styles.remainingRow}>
+            <span>Remaining</span>
+            <strong>AED {difference.toFixed(2)}</strong>
+          </div>
+
+          <div className={styles.allocationRow}>
+            <span>Capital remaining after move</span>
             <strong>AED {remainingCapital.toFixed(2)}</strong>
           </div>
 
           <div
-            style={{
-              marginTop: "4px",
-              padding: "10px 12px",
-              borderRadius: "8px",
-              background: isBalanced ? "#ecfdf5" : "#f9fafb",
-              color: isBalanced ? "#047857" : "#6b7280",
-              display: "flex",
-              alignItems: "center",
-              gap: "7px",
-              fontSize: "12px",
-            }}
+            className={isBalanced ? styles.balanceReady : styles.balancePending}
           >
             <CheckCircle2 size={16} />
 
-            {isBalanced
-              ? "Capital is fully allocated."
-              : "Cash + Bank must equal the amount being moved."}
+            <span>
+              {isBalanced
+                ? "Capital is fully allocated."
+                : "Allocations must equal the amount being moved."}
+            </span>
           </div>
         </div>
       </div>
 
-      {/* =========================================
-                NARRATION
-            ========================================= */}
-
+      {/* NARRATION */}
       <div className={styles.formGroup}>
         <label>Narration</label>
 
@@ -340,18 +346,12 @@ export default function CapitalForm({
         />
       </div>
 
-      {/* =========================================
-                MESSAGES
-            ========================================= */}
-
+      {/* MESSAGES */}
       {error && <div className={styles.error}>{error}</div>}
 
       {message && <div className={styles.success}>{message}</div>}
 
-      {/* =========================================
-                SUBMIT
-            ========================================= */}
-
+      {/* SUBMIT */}
       <div className={styles.formActions}>
         <button
           type="submit"

@@ -1,6 +1,6 @@
 import { BookOpen, RefreshCw } from "lucide-react";
-import PrintableVoucher from "../../components/accounting/PrintableVoucher";
 import { useSearchParams } from "react-router-dom";
+import PrintableVoucher from "../../components/accounting/PrintableVoucher";
 
 import AppLayout from "../../components/layout/AppLayout";
 
@@ -87,7 +87,7 @@ export default function Ledger() {
   const [error, setError] = useState("");
 
   const [sales, setSales] = useState(0);
-
+  const [payments, setPayments] = useState(0);
   const [expenses, setExpenses] = useState(0);
 
   const [netActivity, setNetActivity] = useState(0);
@@ -228,7 +228,7 @@ export default function Ledger() {
       setSales(Number(data.totals?.sales || 0));
 
       setExpenses(Number(data.totals?.expenses || 0));
-
+      setPayments(Number(data.totals?.payments || 0));
       setNetActivity(Number(data.totals?.net_activity || 0));
 
       /*
@@ -262,7 +262,7 @@ export default function Ledger() {
       setSales(0);
 
       setExpenses(0);
-
+      setPayments(0);
       setNetActivity(0);
 
       setError(requestError.message || "Unable to load ledger.");
@@ -432,6 +432,7 @@ export default function Ledger() {
           entries={entries}
           sales={sales}
           expenses={expenses}
+          payments={payments}
           netActivity={netActivity}
         />
 

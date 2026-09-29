@@ -12,8 +12,7 @@ export default function SavedCapitalVoucher({
   voucherNumber,
   date,
   amount,
-  cashAmount,
-  bankAmount,
+  allocations = [],
   narration,
   preparedBy,
   authorizedBy,
@@ -90,8 +89,7 @@ export default function SavedCapitalVoucher({
           voucherNumber={voucherNumber}
           date={date}
           amount={amount}
-          cashAmount={cashAmount}
-          bankAmount={bankAmount}
+          allocations={allocations}
           narration={narration}
           preparedBy={preparedBy}
           authorizedBy={authorizedBy}

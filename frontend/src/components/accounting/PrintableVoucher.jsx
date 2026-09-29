@@ -1,5 +1,3 @@
-import React from "react";
-
 import styles from "./PrintableVoucher.module.css";
 
 /*
@@ -473,7 +471,7 @@ export default function PrintableVoucher({
       isExpense
         ? billReference
         : isPayment
-          ? selectedPaymentBill?.voucher_number
+          ? billReference
           : isReceipt
             ? selectedReceiptBill?.invoice_number
             : referenceNumber,
@@ -540,11 +538,7 @@ export default function PrintableVoucher({
     currentOutstanding - paymentTotal,
   );
 
-  const paymentMethod =
-    clean(paymentAccount?.account_name) ||
-    clean(paymentAccount?.name) ||
-    clean(paymentAccount) ||
-    "—";
+  const paymentMethod = paymentAccount?.displayName || "—";
 
   /*
     |--------------------------------------------------------------------------
@@ -1043,7 +1037,9 @@ export default function PrintableVoucher({
         <div className={styles.signatureBox}>
           <div className={styles.signatureLine} />
 
-          <strong>Checked By</strong>
+          <strong>
+            {isPayment || isReceipt ? "Received By" : "Checked By"}
+          </strong>
 
           <span>Name / Signature</span>
         </div>

@@ -618,7 +618,82 @@ try {
  */
 
     $profit = $sales - $expenses;
+/*
+ * =========================================================
+ * PHYSICAL BANK ACCOUNTS
+ * =========================================================
+ *
+ * Each physical bank account is linked to an accounting
+ * account through bank_accounts.accounting_account_id.
+ *
+ * The balance comes from that linked ledger account.
+ */
 
+$physicalBankStmt = $pdo->prepare("
+    SELECT
+        ba.id,
+        ba.bank_name,
+        ba.account_name,
+        ba.account_number,
+        ba.iban,
+        ba.currency,
+        ba.accounting_account_id,
+        ba.is_active
+    FROM bank_accounts ba
+    WHERE ba.company_id = :company_id
+    ORDER BY ba.bank_name ASC, ba.account_name ASC
+");
+
+$physicalBankStmt->execute([
+    ':company_id' => $companyId
+]);
+
+$physicalBankAccounts = [];
+
+foreach ($physicalBankStmt->fetchAll() as $bankAccount) {
+
+    $accountingAccountId =
+        (int) $bankAccount['accounting_account_id'];
+
+    $balance = 0;
+
+    foreach ($balances as $account) {
+
+        if ((int) $account['id'] === $accountingAccountId) {
+            $balance = (float) $account['balance'];
+            break;
+        }
+    }
+
+    $physicalBankAccounts[] = [
+        'id' =>
+            (int) $bankAccount['id'],
+
+        'bank_name' =>
+            $bankAccount['bank_name'],
+
+        'account_name' =>
+            $bankAccount['account_name'],
+
+        'account_number' =>
+            $bankAccount['account_number'],
+
+        'iban' =>
+            $bankAccount['iban'],
+
+        'currency' =>
+            $bankAccount['currency'],
+
+        'accounting_account_id' =>
+            $accountingAccountId,
+
+        'is_active' =>
+            (int) $bankAccount['is_active'],
+
+        'balance' =>
+            round($balance, 2)
+    ];
+}
     echo json_encode([
 
         'success' => true,
@@ -670,6 +745,7 @@ try {
                 'profit' => round($profit, 2)
             ],
             'accounts' => $balances,
+            'bank_accounts' => $physicalBankAccounts,
             'receivables' => $receivables,
             'payables' => $payables,
             'capital_investors' => $capitalInvestors,

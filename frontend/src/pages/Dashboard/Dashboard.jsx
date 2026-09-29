@@ -1,18 +1,18 @@
-import { useAuth } from "../../context/AuthContext";
-import AppLayout from "../../components/layout/AppLayout";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import AppLayout from "../../components/layout/AppLayout";
+import { useAuth } from "../../context/AuthContext";
 import { getDashboardBalances } from "../../services/dashboardService";
 
 import {
-  Wallet,
   ArrowDownToLine,
   ArrowUpFromLine,
+  Building2,
+  ChevronRight,
   Landmark,
   Users,
-  Building2,
+  Wallet,
   X,
-  ChevronRight,
 } from "lucide-react";
 
 import styles from "./Dashboard.module.css";
@@ -40,11 +40,14 @@ export default function Dashboard() {
     profit: 0,
   });
 
+  const [bankAccounts, setBankAccounts] = useState([]);
+
   const [receivables, setReceivables] = useState([]);
 
   const [payables, setPayables] = useState([]);
 
   const [capitalInvestors, setCapitalInvestors] = useState([]);
+
   const [loading, setLoading] = useState(true);
 
   const [error, setError] = useState("");
@@ -72,6 +75,14 @@ export default function Dashboard() {
 
         setPayables(Array.isArray(data.payables) ? data.payables : []);
 
+        setBankAccounts(
+          Array.isArray(data.bank_accounts)
+            ? data.bank_accounts.filter(
+                (account) => Number(account.is_active) === 1,
+              )
+            : [],
+        );
+
         setCapitalInvestors(
           Array.isArray(data.capital_investors) ? data.capital_investors : [],
         );
@@ -87,19 +98,46 @@ export default function Dashboard() {
     loadDashboard();
   }, []);
 
+  /*
+   * =====================================================
+   * TOTAL BANK BALANCE
+   * =====================================================
+   *
+   * Do NOT use summary.bank here.
+   *
+   * Each physical bank account has its own accounting
+   * ledger account, so the dashboard calculates the
+   * total from the individual bank balances.
+   */
+
+  const totalBankBalance = bankAccounts.reduce(
+    (total, account) => total + Number(account.balance || 0),
+    0,
+  );
+
+  /*
+   * =====================================================
+   * MODAL DATA
+   * =====================================================
+   */
+
   const detailItems =
     detailType === "receivable"
       ? receivables
       : detailType === "payable"
         ? payables
-        : capitalInvestors;
+        : detailType === "capital"
+          ? capitalInvestors
+          : bankAccounts;
 
   const detailTotal =
     detailType === "receivable"
       ? summary.receivable
       : detailType === "payable"
         ? summary.payable
-        : summary.capital_investor_total;
+        : detailType === "capital"
+          ? summary.capital_investor_total
+          : totalBankBalance;
 
   return (
     <AppLayout>
@@ -313,9 +351,11 @@ export default function Dashboard() {
                 </button>
               </div>
             </div>
+
             {/* =========================================
                         CASH / BANK
                     ========================================= */}
+
             <div className={styles.positionCard}>
               <div className={styles.positionHeader}>
                 <div>
@@ -332,6 +372,10 @@ export default function Dashboard() {
               </div>
 
               <div className={styles.positionRows}>
+                {/* ================================
+                            CASH
+                        ================================= */}
+
                 <div className={`${styles.positionRow} ${styles.clickableRow}`}>
                   <div className={styles.rowIcon}>
                     <Wallet size={16} />
@@ -348,7 +392,15 @@ export default function Dashboard() {
                   </strong>
                 </div>
 
-                <div className={`${styles.positionRow} ${styles.clickableRow}`}>
+                {/* ================================
+                            BANK
+                        ================================= */}
+
+                <button
+                  type="button"
+                  className={`${styles.positionRow} ${styles.clickableRow}`}
+                  onClick={() => setDetailType("bank")}
+                >
                   <div className={styles.rowIcon}>
                     <Building2 size={16} />
                   </div>
@@ -356,14 +408,18 @@ export default function Dashboard() {
                   <div className={styles.rowContent}>
                     <strong>Bank</strong>
 
-                    <span>Bank balance</span>
+                    <span>All bank accounts</span>
                   </div>
+
                   <strong className={styles.rowAmount}>
-                    AED {formatAmount(summary.bank)}
+                    AED {formatAmount(totalBankBalance)}
                   </strong>
-                </div>
+
+                  <ChevronRight size={17} className={styles.rowArrow} />
+                </button>
               </div>
             </div>
+
             {/* =================================
                                 CAPITAL
                             ================================= */}
@@ -393,6 +449,7 @@ export default function Dashboard() {
 
                   <ChevronRight size={17} className={styles.rowArrow} />
                 </button>
+
                 {/* CAPITAL ALLOCATED */}
 
                 <div className={styles.positionRow}>
@@ -454,7 +511,9 @@ export default function Dashboard() {
                       ? "Accounts Receivable"
                       : detailType === "payable"
                         ? "Accounts Payable"
-                        : "Capital by Investor"}
+                        : detailType === "capital"
+                          ? "Capital by Investor"
+                          : "Bank Accounts"}
                   </h2>
 
                   <p>
@@ -462,7 +521,9 @@ export default function Dashboard() {
                       ? "Outstanding amounts from customers"
                       : detailType === "payable"
                         ? "Outstanding amounts owed to suppliers"
-                        : "Original capital contributed by each investor"}
+                        : detailType === "capital"
+                          ? "Original capital contributed by each investor"
+                          : "Current balance of each bank account"}
                   </p>
                 </div>
 
@@ -479,7 +540,9 @@ export default function Dashboard() {
                 <span>
                   {detailType === "capital"
                     ? "Total Investor Capital"
-                    : "Total Outstanding"}
+                    : detailType === "bank"
+                      ? "Total Bank Balance"
+                      : "Total Outstanding"}
                 </span>
 
                 <strong>AED {formatAmount(detailTotal)}</strong>
@@ -492,25 +555,43 @@ export default function Dashboard() {
                   <div className={styles.detailEmpty}>
                     {detailType === "capital"
                       ? "No investor capital found."
-                      : "No outstanding balances found."}
+                      : detailType === "bank"
+                        ? "No active bank accounts found."
+                        : "No outstanding balances found."}
                   </div>
                 ) : (
                   detailItems.map((item) => (
                     <div
-                      key={item.party_id || item.investor_id}
+                      key={
+                        detailType === "bank"
+                          ? item.id
+                          : item.party_id || item.investor_id
+                      }
                       className={styles.detailRow}
                     >
                       <div>
-                        <strong>{item.party_name || item.investor_name}</strong>
+                        <strong>
+                          {detailType === "bank"
+                            ? item.bank_name
+                            : item.party_name || item.investor_name}
+                        </strong>
 
                         <span>
-                          {detailType === "capital"
-                            ? "Investor"
-                            : item.party_type}
+                          {detailType === "bank"
+                            ? item.account_name
+                            : detailType === "capital"
+                              ? "Investor"
+                              : item.party_type}
                         </span>
                       </div>
 
-                      <strong>AED {formatAmount(item.balance)}</strong>
+                      <strong>
+                        {detailType === "bank"
+                          ? `${item.currency || "AED"} ${formatAmount(
+                              item.balance,
+                            )}`
+                          : `AED ${formatAmount(item.balance)}`}
+                      </strong>
                     </div>
                   ))
                 )}

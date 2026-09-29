@@ -161,19 +161,55 @@ function clean(value) {
 
   return String(value).trim();
 }
+function getAllocationLabel(allocation, index) {
+  if (allocation?.displayName) {
+    return allocation.displayName;
+  }
 
+  if (allocation?.account?.displayName) {
+    return allocation.account.displayName;
+  }
+
+  if (allocation?.bank_name) {
+    return allocation.bank_name;
+  }
+
+  if (allocation?.account_name) {
+    return allocation.account_name;
+  }
+
+  return `Bank ${index + 1}`;
+}
 export default function PrintableCapitalVoucher({
   voucherNumber,
   date,
   amount,
-  cashAmount,
-  bankAmount,
+  allocations = [],
   narration,
   company,
   preparedBy = "",
   authorizedBy = "",
 }) {
   const capitalAmount = Number(amount || 0);
+  const normalizedAllocations = Array.isArray(allocations) ? allocations : [];
+
+  const cashAllocations = normalizedAllocations.filter(
+    (allocation) => allocation?.type === "cash",
+  );
+
+  const bankAllocations = normalizedAllocations.filter(
+    (allocation) => allocation?.type === "bank",
+  );
+
+  const cashTotal = cashAllocations.reduce(
+    (total, allocation) => total + Number(allocation?.amount || 0),
+    0,
+  );
+
+  const bankTotal = bankAllocations.reduce(
+    (total, allocation) => total + Number(allocation?.amount || 0),
+    0,
+  );
   const companyName =
     clean(company?.name) || clean(company?.company_name) || "Company";
 
@@ -269,15 +305,16 @@ export default function PrintableCapitalVoucher({
 
         <div className={styles.transferRow}>
           <span>Cash :</span>
-
-          <strong>AED {formatAmount(cashAmount)}</strong>
+          <strong>AED {formatAmount(cashTotal)}</strong>
         </div>
 
-        <div className={styles.transferRow}>
-          <span>Bank :</span>
+        {bankAllocations.map((allocation, index) => (
+          <div className={styles.transferRow} key={`bank-summary-${index}`}>
+            <span>{getAllocationLabel(allocation, index)} :</span>
 
-          <strong>AED {formatAmount(bankAmount)}</strong>
-        </div>
+            <strong>AED {formatAmount(allocation?.amount)}</strong>
+          </div>
+        ))}
       </div>
       {/* =========================================
                 PARTICULARS
@@ -306,21 +343,28 @@ export default function PrintableCapitalVoucher({
             <td className={styles.amountColumn}>{formatAmount(amount)}</td>
           </tr>
 
-          <tr>
-            <td>
-              <strong>Cash Allocation</strong>
-            </td>
+          {cashTotal > 0 && (
+            <tr>
+              <td>
+                <strong>Cash Allocation</strong>
+              </td>
+              <td className={styles.amountColumn}>{formatAmount(cashTotal)}</td>
+            </tr>
+          )}
 
-            <td className={styles.amountColumn}>{formatAmount(cashAmount)}</td>
-          </tr>
+          {bankAllocations.map((allocation, index) => (
+            <tr key={`bank-particular-${index}`}>
+              <td>
+                <strong>
+                  {getAllocationLabel(allocation, index)} Allocation
+                </strong>
+              </td>
 
-          <tr>
-            <td>
-              <strong>Bank Allocation</strong>
-            </td>
-
-            <td className={styles.amountColumn}>{formatAmount(bankAmount)}</td>
-          </tr>
+              <td className={styles.amountColumn}>
+                {formatAmount(allocation?.amount)}
+              </td>
+            </tr>
+          ))}
 
           <tr className={styles.totalRow}>
             <td>TOTAL TRANSFERRED</td>
@@ -346,28 +390,20 @@ export default function PrintableCapitalVoucher({
 
       <div className={styles.accountingSection}>
         <div className={styles.accountingRow}>
-          <span>Transaction Type</span>
-
-          <strong>Capital Transfer</strong>
-        </div>
-
-        <div className={styles.accountingRow}>
-          <span>Capital Transferred</span>
-
-          <strong>AED {formatAmount(amount)}</strong>
-        </div>
-
-        <div className={styles.accountingRow}>
           <span>Cash Allocation</span>
-
-          <strong>AED {formatAmount(cashAmount)}</strong>
+          <strong>AED {formatAmount(cashTotal)}</strong>
         </div>
 
-        <div className={styles.accountingRow}>
-          <span>Bank Allocation</span>
+        {bankAllocations.map((allocation, index) => (
+          <div
+            className={styles.accountingRow}
+            key={`bank-accounting-${index}`}
+          >
+            <span>{getAllocationLabel(allocation, index)} Allocation</span>
 
-          <strong>AED {formatAmount(bankAmount)}</strong>
-        </div>
+            <strong>AED {formatAmount(allocation?.amount)}</strong>
+          </div>
+        ))}
       </div>
 
       {/* =========================================

@@ -1,8 +1,8 @@
 .form {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 /* ================================
@@ -10,28 +10,28 @@
 ================================ */
 
 .formHeader {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 20px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid #eef0f3;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #eef0f3;
 }
 
 .formHeader h2 {
-    margin: 0 0 5px;
-    color: #111827;
-    font-size: 20px;
-    line-height: 1.25;
-    font-weight: 650;
-    letter-spacing: -0.02em;
+  margin: 0 0 5px;
+  color: #111827;
+  font-size: 20px;
+  line-height: 1.25;
+  font-weight: 650;
+  letter-spacing: -0.02em;
 }
 
 .formHeader p {
-    margin: 0;
-    color: #6b7280;
-    font-size: 13px;
-    line-height: 1.55;
+  margin: 0;
+  color: #6b7280;
+  font-size: 13px;
+  line-height: 1.55;
 }
 
 /* ================================
@@ -39,45 +39,45 @@
 ================================ */
 
 .capitalCard {
-    padding: 18px 20px;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    background: #f9fafb;
+  padding: 18px 20px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #f9fafb;
 }
 
 .capitalCardInner {
-    display: flex;
-    align-items: center;
-    gap: 13px;
+  display: flex;
+  align-items: center;
+  gap: 13px;
 }
 
 .capitalIcon {
-    width: 42px;
-    height: 42px;
-    flex: 0 0 42px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid #dbeafe;
-    border-radius: 10px;
-    background: #eff6ff;
-    color: #2563eb;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #dbeafe;
+  border-radius: 10px;
+  background: #eff6ff;
+  color: #2563eb;
 }
 
 .capitalLabel {
-    margin-bottom: 3px;
-    color: #6b7280;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.02em;
+  margin-bottom: 3px;
+  color: #6b7280;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 .capitalValue {
-    color: #111827;
-    font-size: 22px;
-    line-height: 1.2;
-    font-weight: 700;
-    letter-spacing: -0.02em;
+  color: #111827;
+  font-size: 22px;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 /* ================================
@@ -85,54 +85,54 @@
 ================================ */
 
 .formGroup {
-    display: flex;
-    flex-direction: column;
-    gap: 7px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
 }
 
 .formGroup label {
-    color: #374151;
-    font-size: 13px;
-    font-weight: 600;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .formGroup input,
 .formGroup textarea {
-    width: 100%;
-    box-sizing: border-box;
-    border: 1px solid #dfe3e8;
-    border-radius: 9px;
-    background: #ffffff;
-    color: #111827;
-    font-family: inherit;
-    font-size: 13px;
-    outline: none;
-    transition:
-        border-color 0.15s ease,
-        box-shadow 0.15s ease;
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #dfe3e8;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #111827;
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .formGroup input {
-    height: 42px;
-    padding: 0 12px;
+  height: 42px;
+  padding: 0 12px;
 }
 
 .formGroup textarea {
-    min-height: 88px;
-    padding: 11px 12px;
-    resize: vertical;
-    line-height: 1.5;
+  min-height: 88px;
+  padding: 11px 12px;
+  resize: vertical;
+  line-height: 1.5;
 }
 
 .formGroup input::placeholder,
 .formGroup textarea::placeholder {
-    color: #9ca3af;
+  color: #9ca3af;
 }
 
 .formGroup input:focus,
 .formGroup textarea:focus {
-    border-color: #93c5fd;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
 }
 
 /* ================================
@@ -140,40 +140,40 @@
 ================================ */
 
 .amountInput {
-    position: relative;
-    display: flex;
-    align-items: center;
+  position: relative;
+  display: flex;
+  align-items: center;
 }
 
 .amountInput span {
-    position: absolute;
-    left: 13px;
-    z-index: 1;
-    color: #6b7280;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    pointer-events: none;
+  position: absolute;
+  left: 13px;
+  z-index: 1;
+  color: #6b7280;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  pointer-events: none;
 }
 
 .amountInput input {
-    padding-left: 48px;
-    text-align: right;
-    font-size: 15px;
-    font-weight: 600;
+  padding-left: 48px;
+  text-align: right;
+  font-size: 15px;
+  font-weight: 600;
 }
 
 /* Remove browser number arrows */
 
 .amountInput input::-webkit-outer-spin-button,
 .amountInput input::-webkit-inner-spin-button {
-    margin: 0;
-    -webkit-appearance: none;
+  margin: 0;
+  -webkit-appearance: none;
 }
 
 .amountInput input[type="number"] {
-    appearance: textfield;
-    -moz-appearance: textfield;
+  appearance: textfield;
+  -moz-appearance: textfield;
 }
 
 /* ================================
@@ -181,72 +181,232 @@
 ================================ */
 
 .formRow {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+/* ================================
+   ALLOCATION BUILDER
+================================ */
+
+.allocationCard {
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #ffffff;
 }
 
+.allocationHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  border-bottom: 1px solid #eef0f3;
+}
+
+.allocationHeader > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.allocationHeader strong {
+  color: #374151;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.allocationHeader span {
+  color: #9ca3af;
+  font-size: 11px;
+}
+
+.addButton,
+.emptyAddButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid #dbeafe;
+  border-radius: 8px;
+  background: #eff6ff;
+  color: #2563eb;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.addButton:hover,
+.emptyAddButton:hover {
+  background: #dbeafe;
+  border-color: #bfdbfe;
+}
+
+.allocationBody {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+}
+
+.emptyAllocation {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 28px 16px;
+  border: 1px dashed #d1d5db;
+  border-radius: 10px;
+  background: #fafafa;
+}
+
+.emptyAllocation p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.allocationItem {
+  padding: 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fafafa;
+}
+
+.allocationItemHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.allocationItemHeader > span {
+  color: #374151;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.removeButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid #fecaca;
+  border-radius: 7px;
+  background: #fff;
+  color: #dc2626;
+  cursor: pointer;
+}
+
+.removeButton:hover {
+  background: #fef2f2;
+}
+
+.allocationGrid {
+  display: grid;
+  grid-template-columns: 0.8fr 1.5fr 1fr;
+  gap: 14px;
+}
+
+.allocationGrid > .formGroup select {
+  width: 100%;
+  height: 42px;
+  padding: 0 12px;
+  box-sizing: border-box;
+  border: 1px solid #dfe3e8;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #111827;
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+}
+
+.allocationGrid > .formGroup select:focus {
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+}
+
+.selectedAccount {
+  margin-top: 10px;
+  padding: 8px 10px;
+  border-radius: 7px;
+  background: #eff6ff;
+  color: #2563eb;
+  font-size: 11px;
+  font-weight: 600;
+}
 /* ================================
    ALLOCATION SUMMARY
 ================================ */
 
 .allocationCard {
-    overflow: hidden;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    background: #ffffff;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #ffffff;
 }
 
 .allocationHeader {
-    padding: 13px 16px;
-    border-bottom: 1px solid #eef0f3;
-    color: #374151;
-    font-size: 12px;
-    font-weight: 700;
+  padding: 13px 16px;
+  border-bottom: 1px solid #eef0f3;
+  color: #374151;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .allocationBody {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
 }
 
 .allocationRow {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 20px;
-    color: #6b7280;
-    font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  color: #6b7280;
+  font-size: 12px;
 }
 
 .allocationRow strong {
-    color: #374151;
-    font-size: 12px;
-    font-weight: 650;
+  color: #374151;
+  font-size: 12px;
+  font-weight: 650;
 }
 
 .allocationDivider {
-    width: 100%;
-    height: 1px;
-    background: #eef0f3;
+  width: 100%;
+  height: 1px;
+  background: #eef0f3;
 }
 
 .remainingRow {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 20px;
-    color: #374151;
-    font-size: 12px;
-    font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  color: #374151;
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .remainingRow strong {
-    color: #111827;
-    font-size: 13px;
-    font-weight: 700;
+  color: #111827;
+  font-size: 13px;
+  font-weight: 700;
 }
 
 /* ================================
@@ -255,26 +415,26 @@
 
 .balanceReady,
 .balancePending {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    margin-top: 3px;
-    padding: 10px 12px;
-    border-radius: 8px;
-    font-size: 11px;
-    line-height: 1.45;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 3px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  line-height: 1.45;
 }
 
 .balanceReady {
-    border: 1px solid #a7f3d0;
-    background: #ecfdf5;
-    color: #047857;
+  border: 1px solid #a7f3d0;
+  background: #ecfdf5;
+  color: #047857;
 }
 
 .balancePending {
-    border: 1px solid #e5e7eb;
-    background: #f9fafb;
-    color: #6b7280;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  color: #6b7280;
 }
 
 /* ================================
@@ -283,25 +443,25 @@
 
 .error,
 .success {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    padding: 11px 13px;
-    border-radius: 9px;
-    font-size: 12px;
-    line-height: 1.45;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 11px 13px;
+  border-radius: 9px;
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 .error {
-    border: 1px solid #fecaca;
-    background: #fef2f2;
-    color: #b91c1c;
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #b91c1c;
 }
 
 .success {
-    border: 1px solid #a7f3d0;
-    background: #ecfdf5;
-    color: #047857;
+  border: 1px solid #a7f3d0;
+  background: #ecfdf5;
+  color: #047857;
 }
 
 /* ================================
@@ -309,41 +469,41 @@
 ================================ */
 
 .formActions {
-    display: flex;
-    justify-content: flex-end;
-    padding-top: 3px;
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 3px;
 }
 
 .primaryButton {
-    min-width: 150px;
-    height: 42px;
-    padding: 0 18px;
-    border: 0;
-    border-radius: 9px;
-    background: #111827;
-    color: #ffffff;
-    font-family: inherit;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition:
-        background 0.15s ease,
-        transform 0.15s ease,
-        opacity 0.15s ease;
+  min-width: 150px;
+  height: 42px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 9px;
+  background: #111827;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    transform 0.15s ease,
+    opacity 0.15s ease;
 }
 
 .primaryButton:hover:not(:disabled) {
-    background: #1f2937;
-    transform: translateY(-1px);
+  background: #1f2937;
+  transform: translateY(-1px);
 }
 
 .primaryButton:active:not(:disabled) {
-    transform: translateY(0);
+  transform: translateY(0);
 }
 
 .primaryButton:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 /* ================================
@@ -351,48 +511,48 @@
 ================================ */
 
 @media (max-width: 700px) {
+  .form {
+    gap: 16px;
+  }
 
-    .form {
-        gap: 16px;
-    }
+  .formRow {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
 
-    .formRow {
-        grid-template-columns: 1fr;
-        gap: 16px;
-    }
+  .allocationGrid {
+    grid-template-columns: 1fr;
+  }
 
-    .capitalCard {
-        padding: 16px;
-    }
+  .capitalCard {
+    padding: 16px;
+  }
 
-    .capitalValue {
-        font-size: 20px;
-    }
+  .capitalValue {
+    font-size: 20px;
+  }
 
-    .formActions {
-        justify-content: stretch;
-    }
+  .formActions {
+    justify-content: stretch;
+  }
 
-    .primaryButton {
-        width: 100%;
-    }
-
+  .primaryButton {
+    width: 100%;
+  }
 }
 
 @media (max-width: 430px) {
+  .formHeader h2 {
+    font-size: 18px;
+  }
 
-    .formHeader h2 {
-        font-size: 18px;
-    }
+  .capitalCardInner {
+    gap: 10px;
+  }
 
-    .capitalCardInner {
-        gap: 10px;
-    }
-
-    .capitalIcon {
-        width: 38px;
-        height: 38px;
-        flex-basis: 38px;
-    }
-
+  .capitalIcon {
+    width: 38px;
+    height: 38px;
+    flex-basis: 38px;
+  }
 }

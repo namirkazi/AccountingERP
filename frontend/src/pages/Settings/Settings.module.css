@@ -1,301 +1,783 @@
 .page {
-    padding: 28px 32px 40px;
-    max-width: 1200px;
-    margin: 0 auto;
+  padding: 28px 32px 40px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
 }
 
 .titleArea {
-    display: flex;
-    align-items: center;
-    gap: 14px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
 
 .icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #f1f5f9;
-    color: #334155;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f5f9;
+  color: #334155;
 }
 
 .titleArea h1 {
-    margin: 0;
-    font-size: 24px;
-    font-weight: 700;
-    color: #0f172a;
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #0f172a;
 }
 
 .titleArea p {
-    margin: 4px 0 0;
-    color: #64748b;
-    font-size: 14px;
+  margin: 4px 0 0;
+  color: #64748b;
+  font-size: 14px;
 }
 
 .form {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 16px;
-    overflow: hidden;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  overflow: hidden;
 }
 
 .cardHeader {
-    padding: 22px 24px;
-    border-bottom: 1px solid #e2e8f0;
+  padding: 22px 24px;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .cardHeader h2 {
-    margin: 0;
-    color: #0f172a;
-    font-size: 17px;
-    font-weight: 650;
+  margin: 0;
+  color: #0f172a;
+  font-size: 17px;
+  font-weight: 650;
 }
 
 .cardHeader p {
-    margin: 5px 0 0;
-    color: #64748b;
-    font-size: 13px;
+  margin: 5px 0 0;
+  color: #64748b;
+  font-size: 13px;
 }
 
+/* =====================================================
+   CARD HEADER WITH ACTION
+===================================================== */
+
+.cardHeaderWithAction {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 22px 24px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.cardHeaderWithAction h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 17px;
+  font-weight: 650;
+}
+
+.cardHeaderWithAction p {
+  margin: 5px 0 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+/* =====================================================
+   LOGO
+===================================================== */
+
 .logoSection {
-    display: flex;
-    align-items: center;
-    gap: 18px;
-    padding: 24px;
-    border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 24px;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .logoPreview {
-    width: 92px;
-    height: 92px;
-    border-radius: 14px;
-    border: 1px dashed #cbd5e1;
-    background: #f8fafc;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    color: #94a3b8;
-    flex-shrink: 0;
+  width: 92px;
+  height: 92px;
+  border-radius: 14px;
+  border: 1px dashed #cbd5e1;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  color: #94a3b8;
+  flex-shrink: 0;
 }
 
 .logoPreview img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    padding: 8px;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 8px;
 }
 
 .logoInfo h3 {
-    margin: 0;
-    font-size: 15px;
-    color: #0f172a;
+  margin: 0;
+  font-size: 15px;
+  color: #0f172a;
 }
 
 .logoInfo p {
-    margin: 5px 0 12px;
-    font-size: 13px;
-    color: #64748b;
+  margin: 5px 0 12px;
+  font-size: 13px;
+  color: #64748b;
 }
 
 .uploadButton {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    border: 1px solid #cbd5e1;
-    background: #ffffff;
-    color: #334155;
-    padding: 8px 12px;
-    border-radius: 9px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #334155;
+  padding: 8px 12px;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
 }
 
 .uploadButton:hover {
-    background: #f8fafc;
+  background: #f8fafc;
 }
 
+/* =====================================================
+   COMPANY FORM
+===================================================== */
+
 .grid {
-    padding: 24px;
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 18px;
+  padding: 24px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
 }
 
 .field {
-    display: flex;
-    flex-direction: column;
-    gap: 7px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
 }
 
 .fullWidth {
-    grid-column: 1 / -1;
+  grid-column: 1 / -1;
 }
 
 .field label,
 .colorField label {
-    color: #334155;
-    font-size: 13px;
-    font-weight: 600;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .field input,
 .field textarea,
+.field select,
 .colorControl input[type="text"],
 .colorControl > input:not([type="color"]) {
-    width: 100%;
-    box-sizing: border-box;
-    border: 1px solid #cbd5e1;
-    border-radius: 9px;
-    padding: 10px 12px;
-    font-size: 14px;
-    color: #0f172a;
-    background: #ffffff;
-    outline: none;
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #cbd5e1;
+  border-radius: 9px;
+  padding: 10px 12px;
+  font-size: 14px;
+  color: #0f172a;
+  background: #ffffff;
+  outline: none;
+  font-family: inherit;
 }
 
 .field input:focus,
 .field textarea:focus,
+.field select:focus,
 .colorControl > input:not([type="color"]):focus {
-    border-color: #94a3b8;
-    box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.15);
+  border-color: #94a3b8;
+  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.15);
 }
 
 .field textarea {
-    resize: vertical;
-    min-height: 80px;
+  resize: vertical;
+  min-height: 80px;
 }
 
+.field select {
+  cursor: pointer;
+}
+
+/* =====================================================
+   BRANDING COLORS
+===================================================== */
+
 .colorGrid {
-    padding: 24px;
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 18px;
+  padding: 24px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
 }
 
 .colorField {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .colorControl {
-    display: flex;
-    gap: 8px;
+  display: flex;
+  gap: 8px;
 }
 
 .colorControl input[type="color"] {
-    width: 44px;
-    height: 42px;
-    padding: 3px;
-    border: 1px solid #cbd5e1;
-    border-radius: 9px;
-    background: #ffffff;
-    cursor: pointer;
+  width: 44px;
+  height: 42px;
+  padding: 3px;
+  border: 1px solid #cbd5e1;
+  border-radius: 9px;
+  background: #ffffff;
+  cursor: pointer;
 }
 
 .colorControl > input:not([type="color"]) {
-    flex: 1;
+  flex: 1;
 }
 
+/* =====================================================
+   GENERAL BUTTONS
+===================================================== */
+
+.addButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: none;
+  border-radius: 9px;
+  padding: 9px 14px;
+  background: #0f172a;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.addButton:hover {
+  background: #1e293b;
+}
+
+.addButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* =====================================================
+   BANK ACCOUNTS
+===================================================== */
+
+.bankLoading {
+  padding: 50px 24px;
+  text-align: center;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.bankList {
+  display: flex;
+  flex-direction: column;
+}
+
+.bankItem {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 24px;
+  border-bottom: 1px solid #f1f5f9;
+  transition:
+    background 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.bankItem:last-child {
+  border-bottom: none;
+}
+
+.bankItem:hover {
+  background: #f8fafc;
+}
+
+.bankItemInactive {
+  opacity: 0.62;
+}
+
+.bankIcon {
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.bankDetails {
+  min-width: 0;
+  flex: 1;
+}
+
+.bankName {
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.accountName {
+  margin-top: 2px;
+  color: #475569;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.bankMeta {
+  margin-top: 5px;
+  color: #94a3b8;
+  font-size: 12px;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bankStatus {
+  flex-shrink: 0;
+}
+
+.activeBadge,
+.inactiveBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 62px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.activeBadge {
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.inactiveBadge {
+  background: #f8fafc;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+}
+
+.bankActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.iconButton {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #475569;
+  cursor: pointer;
+}
+
+.iconButton:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+.iconButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* =====================================================
+   EMPTY BANK STATE
+===================================================== */
+
+.emptyState {
+  padding: 55px 24px;
+  text-align: center;
+}
+
+.emptyIcon {
+  width: 54px;
+  height: 54px;
+  margin: 0 auto 14px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.emptyState h3 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.emptyState p {
+  max-width: 420px;
+  margin: 7px auto 18px;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* =====================================================
+   MAIN SAVE BUTTON
+===================================================== */
+
 .actions {
-    display: flex;
-    justify-content: flex-end;
+  display: flex;
+  justify-content: flex-end;
 }
 
 .saveButton {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    min-width: 145px;
-    border: none;
-    border-radius: 10px;
-    padding: 11px 18px;
-    background: #0f172a;
-    color: #ffffff;
-    font-size: 14px;
-    font-weight: 650;
-    cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 145px;
+  border: none;
+  border-radius: 10px;
+  padding: 11px 18px;
+  background: #0f172a;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 650;
+  cursor: pointer;
 }
 
 .saveButton:hover {
-    background: #1e293b;
+  background: #1e293b;
 }
 
 .saveButton:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
+/* =====================================================
+   ERROR / SUCCESS
+===================================================== */
+
 .error {
-    margin-bottom: 18px;
-    padding: 12px 14px;
-    border-radius: 10px;
-    background: #fef2f2;
-    border: 1px solid #fecaca;
-    color: #b91c1c;
-    font-size: 14px;
+  margin-bottom: 18px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  font-size: 14px;
 }
 
 .success {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 18px;
-    padding: 12px 14px;
-    border-radius: 10px;
-    background: #f0fdf4;
-    border: 1px solid #bbf7d0;
-    color: #166534;
-    font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 18px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+  font-size: 14px;
 }
+
+/* =====================================================
+   LOADING
+===================================================== */
 
 .loading {
-    padding: 80px 20px;
-    text-align: center;
-    color: #64748b;
-    font-size: 14px;
+  padding: 80px 20px;
+  text-align: center;
+  color: #64748b;
+  font-size: 14px;
 }
 
+/* =====================================================
+   BANK ACCOUNT MODAL
+===================================================== */
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+.modal {
+  width: min(560px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
+}
+
+.modalHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 22px 24px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.modalHeader h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.modalHeader p {
+  margin: 5px 0 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.modalClose {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #64748b;
+  cursor: pointer;
+}
+
+.modalClose:hover {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.modalClose:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.bankForm {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 24px;
+}
+
+.modalGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 150px;
+  gap: 16px;
+}
+
+.modalActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.cancelButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 90px;
+  padding: 10px 15px;
+  border: 1px solid #cbd5e1;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cancelButton:hover {
+  background: #f8fafc;
+}
+
+.cancelButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.modalSaveButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-width: 130px;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 9px;
+  background: #0f172a;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.modalSaveButton:hover {
+  background: #1e293b;
+}
+
+.modalSaveButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+
 @media (max-width: 800px) {
+  .page {
+    padding: 20px;
+  }
 
-    .page {
-        padding: 20px;
-    }
+  .grid,
+  .colorGrid {
+    grid-template-columns: 1fr;
+  }
 
-    .grid,
-    .colorGrid {
-        grid-template-columns: 1fr;
-    }
+  .fullWidth {
+    grid-column: auto;
+  }
 
-    .fullWidth {
-        grid-column: auto;
-    }
+  .cardHeaderWithAction {
+    align-items: flex-start;
+    flex-direction: column;
+  }
 
+  .bankItem {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .bankDetails {
+    min-width: calc(100% - 58px);
+  }
+
+  .bankStatus {
+    margin-left: 58px;
+  }
+
+  .bankActions {
+    margin-left: auto;
+  }
 }
 
 @media (max-width: 560px) {
+  .page {
+    padding: 16px;
+  }
 
-    .logoSection {
-        align-items: flex-start;
-        flex-direction: column;
-    }
+  .logoSection {
+    align-items: flex-start;
+    flex-direction: column;
+  }
 
+  .cardHeader,
+  .cardHeaderWithAction {
+    padding: 18px;
+  }
+
+  .grid,
+  .colorGrid {
+    padding: 18px;
+  }
+
+  .bankItem {
+    padding: 16px 18px;
+  }
+
+  .bankStatus {
+    margin-left: 58px;
+  }
+
+  .bankActions {
+    margin-left: 58px;
+    width: calc(100% - 58px);
+  }
+
+  .modalOverlay {
+    padding: 12px;
+    align-items: flex-end;
+  }
+
+  .modal {
+    max-height: calc(100vh - 24px);
+    border-radius: 16px 16px 0 0;
+  }
+
+  .modalHeader,
+  .bankForm {
+    padding: 18px;
+  }
+
+  .modalGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .modalActions {
+    flex-direction: column-reverse;
+  }
+
+  .cancelButton,
+  .modalSaveButton {
+    width: 100%;
+  }
 }
