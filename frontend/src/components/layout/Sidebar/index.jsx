@@ -1,9 +1,9 @@
+import { Building2, Check, ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
-import { ChevronDown, ChevronRight, Check, Building2 } from "lucide-react";
 import { menuItems } from "./menu";
 import styles from "./Sidebar.module.css";
-import { useNavigate } from "react-router-dom";
 
 /*
 |--------------------------------------------------------------------------
@@ -101,9 +101,9 @@ export default function Sidebar({ collapsed }) {
             onClick={() => setCompanyMenuOpen((open) => !open)}
           >
             <div className={styles.companyInfo}>
-              {activeCompany?.logo ? (
+              {activeCompany?.logo_data ? (
                 <img
-                  src={getCompanyLogoUrl(activeCompany.logo)}
+                  src={activeCompany.logo_data}
                   alt=""
                   className={styles.companyLogo}
                   onError={(event) => {
@@ -158,9 +158,9 @@ export default function Sidebar({ collapsed }) {
                         }`}
                         onClick={() => handleCompanySwitch(company)}
                       >
-                        {company.logo ? (
+                        {company.logo_data ? (
                           <img
-                            src={getCompanyLogoUrl(company.logo)}
+                            src={company.logo_data}
                             alt=""
                             className={styles.companyOptionLogo}
                             onError={(event) => {
