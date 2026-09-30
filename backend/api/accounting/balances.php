@@ -537,26 +537,6 @@ try {
  * opening balances and should not reduce investor capital.
  *
  */
-
-    $firstContributionStmt = $pdo->prepare("
-    SELECT
-        MIN(transaction_date)
-
-    FROM investor_capital_transactions
-
-    WHERE company_id = :company_id
-
-    AND transaction_type = 'CONTRIBUTION'
-");
-
-    $firstContributionStmt->execute([
-        ':company_id' => $companyId
-    ]);
-
-    $firstContributionDate =
-        $firstContributionStmt->fetchColumn();
-
-
     /*
  * ---------------------------------------------------------
  * CAPITAL ALREADY TRANSFERRED
@@ -579,16 +559,11 @@ try {
     WHERE company_id = :company_id
 
     AND voucher_type = 'CAPITAL'
-
-    AND voucher_date >= :contribution_date
 ");
 
     $capitalTransferStmt->execute([
         ':company_id' =>
-        $companyId,
-
-        ':contribution_date' =>
-        $firstContributionDate
+        $companyId
     ]);
 
     $capitalTransferred =
@@ -618,7 +593,7 @@ try {
  */
 
     $profit = $sales - $expenses;
-/*
+    /*
  * =========================================================
  * PHYSICAL BANK ACCOUNTS
  * =========================================================
@@ -629,7 +604,7 @@ try {
  * The balance comes from that linked ledger account.
  */
 
-$physicalBankStmt = $pdo->prepare("
+    $physicalBankStmt = $pdo->prepare("
     SELECT
         ba.id,
         ba.bank_name,
@@ -644,56 +619,56 @@ $physicalBankStmt = $pdo->prepare("
     ORDER BY ba.bank_name ASC, ba.account_name ASC
 ");
 
-$physicalBankStmt->execute([
-    ':company_id' => $companyId
-]);
+    $physicalBankStmt->execute([
+        ':company_id' => $companyId
+    ]);
 
-$physicalBankAccounts = [];
+    $physicalBankAccounts = [];
 
-foreach ($physicalBankStmt->fetchAll() as $bankAccount) {
+    foreach ($physicalBankStmt->fetchAll() as $bankAccount) {
 
-    $accountingAccountId =
-        (int) $bankAccount['accounting_account_id'];
+        $accountingAccountId =
+            (int) $bankAccount['accounting_account_id'];
 
-    $balance = 0;
+        $balance = 0;
 
-    foreach ($balances as $account) {
+        foreach ($balances as $account) {
 
-        if ((int) $account['id'] === $accountingAccountId) {
-            $balance = (float) $account['balance'];
-            break;
+            if ((int) $account['id'] === $accountingAccountId) {
+                $balance = (float) $account['balance'];
+                break;
+            }
         }
-    }
 
-    $physicalBankAccounts[] = [
-        'id' =>
+        $physicalBankAccounts[] = [
+            'id' =>
             (int) $bankAccount['id'],
 
-        'bank_name' =>
+            'bank_name' =>
             $bankAccount['bank_name'],
 
-        'account_name' =>
+            'account_name' =>
             $bankAccount['account_name'],
 
-        'account_number' =>
+            'account_number' =>
             $bankAccount['account_number'],
 
-        'iban' =>
+            'iban' =>
             $bankAccount['iban'],
 
-        'currency' =>
+            'currency' =>
             $bankAccount['currency'],
 
-        'accounting_account_id' =>
+            'accounting_account_id' =>
             $accountingAccountId,
 
-        'is_active' =>
+            'is_active' =>
             (int) $bankAccount['is_active'],
 
-        'balance' =>
+            'balance' =>
             round($balance, 2)
-    ];
-}
+        ];
+    }
     echo json_encode([
 
         'success' => true,
