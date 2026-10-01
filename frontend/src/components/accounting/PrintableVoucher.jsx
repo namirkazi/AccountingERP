@@ -538,7 +538,7 @@ export default function PrintableVoucher({
     currentOutstanding - paymentTotal,
   );
 
-  const paymentMethod = paymentAccount?.displayName || "—";
+  const accountMethod = paymentAccount?.displayName || "—";
 
   /*
     |--------------------------------------------------------------------------
@@ -679,11 +679,11 @@ export default function PrintableVoucher({
           </div>
         )}
 
-        {isPayment && (
+        {(isPayment || isReceipt) && (
           <div>
-            <span>PAYMENT METHOD</span>
+            <span>{isReceipt ? "RECEIVED THROUGH" : "PAYMENT METHOD"}</span>
 
-            <strong>{paymentMethod}</strong>
+            <strong>{accountMethod}</strong>
           </div>
         )}
       </section>

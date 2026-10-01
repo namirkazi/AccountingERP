@@ -1,7 +1,7 @@
 import { BookOpen, RefreshCw } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
+import PrintableCapitalVoucher from "../../components/accounting/PrintableCapitalVoucher";
 import PrintableVoucher from "../../components/accounting/PrintableVoucher";
-
 import AppLayout from "../../components/layout/AppLayout";
 
 import LedgerFilters from "./components/LedgerFilters";
@@ -571,36 +571,38 @@ export default function Ledger() {
               ref={voucherPrintRef}
               className={styles.ledgerVoucherPrintArea}
             >
-              <PrintableVoucher
-                type={viewingVoucher.type}
-                date={viewingVoucher.date}
-                party={viewingVoucher.party}
-                company={viewingVoucher.company}
-                referenceNumber={viewingVoucher.referenceNumber}
-                billReference={
-                  viewingVoucher.type === "expense"
-                    ? viewingVoucher.billReference || ""
-                    : viewingVoucher.type === "payment"
-                      ? viewingVoucher.selectedPaymentBill?.voucher_number ||
-                        viewingVoucher.selectedPaymentBill?.voucher_no ||
-                        ""
-                      : ""
-                }
-                voucherNumber={viewingVoucher.voucherNumber}
-                items={viewingVoucher.items}
-                amount={viewingVoucher.amount}
-                discountAmount={viewingVoucher.discountAmount}
-                vatRate={viewingVoucher.vatRate}
-                vatAmount={viewingVoucher.vatAmount}
-                totalAmount={viewingVoucher.totalAmount}
-                paymentAmount={viewingVoucher.paymentAmount}
-                receiptAmount={viewingVoucher.receiptAmount}
-                paymentAccount={viewingVoucher.paymentAccount}
-                selectedPaymentBill={viewingVoucher.selectedPaymentBill}
-                selectedReceiptBill={viewingVoucher.selectedReceiptBill}
-                narration={viewingVoucher.narration}
-                documentStatus="COPY"
-              />
+              {viewingVoucher.type === "capital" ? (
+                <PrintableCapitalVoucher
+                  voucherNumber={viewingVoucher.voucherNumber}
+                  date={viewingVoucher.date}
+                  amount={viewingVoucher.amount}
+                  allocations={viewingVoucher.allocations || []}
+                  narration={viewingVoucher.narration}
+                  company={viewingVoucher.company}
+                />
+              ) : (
+                <PrintableVoucher
+                  type={viewingVoucher.type}
+                  date={viewingVoucher.date}
+                  party={viewingVoucher.party}
+                  company={viewingVoucher.company}
+                  referenceNumber={viewingVoucher.referenceNumber}
+                  billReference={viewingVoucher.billReference || ""}
+                  voucherNumber={viewingVoucher.voucherNumber}
+                  items={viewingVoucher.items || []}
+                  amount={viewingVoucher.amount}
+                  discountAmount={viewingVoucher.discountAmount}
+                  vatRate={viewingVoucher.vatRate}
+                  vatAmount={viewingVoucher.vatAmount}
+                  totalAmount={viewingVoucher.totalAmount}
+                  paymentAmount={viewingVoucher.paymentAmount}
+                  receiptAmount={viewingVoucher.receiptAmount}
+                  paymentAccount={viewingVoucher.paymentAccount}
+                  selectedPaymentBill={viewingVoucher.selectedPaymentBill}
+                  selectedReceiptBill={viewingVoucher.selectedReceiptBill}
+                  narration={viewingVoucher.narration}
+                />
+              )}
             </div>
           </div>
         </div>

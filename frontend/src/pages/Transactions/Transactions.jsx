@@ -985,6 +985,8 @@ export default function Transactions() {
               setReceiptAmount={setReceiptAmount}
               accountId={accountId}
               setAccountId={setAccountId}
+              paymentAccount={paymentAccount}
+              setPaymentAccount={setPaymentAccount}
               narration={narration}
               setNarration={setNarration}
               error={error}

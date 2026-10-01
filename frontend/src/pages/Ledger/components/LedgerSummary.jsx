@@ -70,7 +70,7 @@ export default function LedgerSummary({
         </div>
 
         <div>
-          <span>Net</span>
+          <span>Total Payable</span>
 
           <strong>AED {formatAmount(netActivity)}</strong>
         </div>

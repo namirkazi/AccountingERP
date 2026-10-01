@@ -27,6 +27,9 @@ export default function ReceiptForm({
   accountId,
   setAccountId,
 
+  paymentAccount,
+  setPaymentAccount,
+
   narration,
   setNarration,
 
@@ -129,10 +132,12 @@ export default function ReceiptForm({
           onChange={(selectedAccount) => {
             if (!selectedAccount) {
               setAccountId("");
+              setPaymentAccount(null);
               return;
             }
 
             setAccountId(selectedAccount.id);
+            setPaymentAccount(selectedAccount);
           }}
         />
       </div>

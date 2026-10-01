@@ -96,9 +96,15 @@ try {
 
     if (!empty($company['logo'])) {
 
+        $storagePath = rtrim(
+            getenv('STORAGE_PATH')
+                ?: (__DIR__ . '/../../storage'),
+            '/\\'
+        );
+
         $logoFilePath =
-            __DIR__ .
-            '/../../' .
+            $storagePath .
+            '/' .
             ltrim(
                 $company['logo'],
                 '/'
@@ -307,7 +313,86 @@ try {
 
     unset($line);
 
+    /*
+|--------------------------------------------------------------------------
+| CAPITAL ALLOCATIONS
+|--------------------------------------------------------------------------
+|
+| Capital allocations are stored through ledger_entries.
+|
+| Positive Capital:
+|   Dr Cash / Bank
+|   Cr Capital
+|
+| Negative Capital:
+|   Dr Capital
+|   Cr Cash / Bank
+|
+*/
 
+    $capitalAllocations = [];
+
+    if ($voucherType === 'CAPITAL') {
+
+        foreach ($ledgerEntries as $line) {
+
+            $subtype = strtolower(
+                trim(
+                    (string) (
+                        $line['account_subtype']
+                        ?? ''
+                    )
+                )
+            );
+
+            /*
+         * Only Cash and physical Bank ledger lines
+         * are Capital allocation lines.
+         */
+            if (
+                $subtype !== 'cash' &&
+                $subtype !== 'bank'
+            ) {
+                continue;
+            }
+
+            /*
+         * Positive Capital uses debit.
+         * Negative Capital uses credit.
+         */
+            $allocationAmount =
+                (float) $line['debit'] > 0
+                ? (float) $line['debit']
+                : (float) $line['credit'];
+
+            if ($allocationAmount <= 0) {
+                continue;
+            }
+
+            $capitalAllocations[] = [
+
+                'type' =>
+                $subtype === 'cash'
+                    ? 'cash'
+                    : 'bank',
+
+                'account_id' =>
+                (int) $line['account_id'],
+
+                'account_name' =>
+                $line['account_name'] ?? '',
+
+                'displayName' =>
+                $line['account_name'] ?? '',
+
+                'amount' =>
+                round(
+                    $allocationAmount,
+                    2
+                )
+            ];
+        }
+    }
     /*
     |--------------------------------------------------------------------------
     | FIND THE MAIN ACCOUNT
@@ -480,39 +565,160 @@ try {
     |--------------------------------------------------------------------------
     */
 
-    $paymentAccount =
-        null;
-
+    $paymentAccount = null;
 
     if (
         $voucherType === 'PAYMENT' ||
         $voucherType === 'RECEIPT'
     ) {
 
-        foreach (
-            $ledgerEntries
-            as $line
-        ) {
+        foreach ($ledgerEntries as $line) {
+
+            $accountSubtype = strtolower(
+                trim(
+                    (string) (
+                        $line['account_subtype']
+                        ?? ''
+                    )
+                )
+            );
 
             if (
-                in_array(
-                    strtolower(
-                        (string)
-                        $line['account_subtype']
-                    ),
-                    [
-                        'cash',
-                        'bank'
-                    ],
-                    true
-                )
+                $accountSubtype !== 'cash' &&
+                $accountSubtype !== 'bank'
             ) {
+                continue;
+            }
 
-                $paymentAccount =
-                    $line;
+            /*
+         * Cash
+         */
+            if ($accountSubtype === 'cash') {
+
+                $paymentAccount = [
+                    'id' =>
+                    (int) $line['account_id'],
+
+                    'account_id' =>
+                    (int) $line['account_id'],
+
+                    'account_name' =>
+                    $line['account_name'] ?? 'Cash',
+
+                    'displayName' =>
+                    'Cash'
+                ];
 
                 break;
             }
+
+            /*
+         * Physical Bank
+         */
+            $bankStmt = $pdo->prepare("
+            SELECT
+                id,
+                bank_name,
+                account_name,
+                account_number,
+                iban,
+                currency,
+                accounting_account_id
+
+            FROM bank_accounts
+
+            WHERE company_id = :company_id
+              AND accounting_account_id = :account_id
+
+            LIMIT 1
+        ");
+
+            $bankStmt->execute([
+                ':company_id' =>
+                $companyId,
+
+                ':account_id' =>
+                (int) $line['account_id']
+            ]);
+
+            $bankAccount =
+                $bankStmt->fetch();
+
+            if ($bankAccount) {
+
+                $accountNumber =
+                    trim(
+                        (string) (
+                            $bankAccount['account_number']
+                            ?? ''
+                        )
+                    );
+
+                $lastFour =
+                    $accountNumber !== ''
+                    ? substr($accountNumber, -4)
+                    : '';
+
+                $displayName =
+                    trim(
+                        (string) (
+                            $bankAccount['bank_name']
+                            ?? ''
+                        )
+                    );
+
+                if ($lastFour !== '') {
+                    $displayName .=
+                        ' — ' .
+                        $lastFour;
+                }
+
+                $paymentAccount = [
+                    'id' =>
+                    (int) $bankAccount['accounting_account_id'],
+
+                    'account_id' =>
+                    (int) $bankAccount['accounting_account_id'],
+
+                    'bank_account_id' =>
+                    (int) $bankAccount['id'],
+
+                    'bank_name' =>
+                    $bankAccount['bank_name'] ?? '',
+
+                    'account_name' =>
+                    $bankAccount['account_name'] ?? '',
+
+                    'account_number' =>
+                    $bankAccount['account_number'] ?? '',
+
+                    'currency' =>
+                    $bankAccount['currency'] ?? 'AED',
+
+                    'displayName' =>
+                    $displayName
+                ];
+            } else {
+
+                /*
+             * Fallback if the physical bank row no longer exists.
+             */
+                $paymentAccount = [
+                    'id' =>
+                    (int) $line['account_id'],
+
+                    'account_id' =>
+                    (int) $line['account_id'],
+
+                    'account_name' =>
+                    $line['account_name'] ?? '',
+
+                    'displayName' =>
+                    $line['account_name'] ?? 'Bank'
+                ];
+            }
+
+            break;
         }
     }
 
@@ -759,6 +965,9 @@ try {
 
             'items' =>
             $items,
+
+            'allocations' =>
+            $capitalAllocations,
 
             'amount' =>
             $amount,
