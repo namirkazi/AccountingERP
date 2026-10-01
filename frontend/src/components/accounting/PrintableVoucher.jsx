@@ -353,6 +353,8 @@ export default function PrintableVoucher({
 
   selectedPaymentBill,
 
+  paymentAllocations = [],
+
   selectedReceiptBill,
 
   receiptAmount,
@@ -504,8 +506,137 @@ export default function PrintableVoucher({
 
   let finalAmount = 0;
 
+  /*
+|--------------------------------------------------------------------------
+| Payment details
+|--------------------------------------------------------------------------
+*/
+
+  /*
+   * New payments use paymentAllocations.
+   *
+   * Old historical payments may still only contain
+   * selectedPaymentBill, so keep a single-bill fallback.
+   */
+
+  const rawPaymentAllocations =
+    Array.isArray(paymentAllocations) && paymentAllocations.length > 0
+      ? paymentAllocations
+      : selectedPaymentBill
+        ? [
+            {
+              expense_id:
+                selectedPaymentBill.id || selectedPaymentBill.expense_id,
+
+              reference_number:
+                selectedPaymentBill.reference_number ||
+                selectedPaymentBill.voucher_number ||
+                selectedPaymentBill.voucher_no ||
+                "",
+
+              bill_reference: selectedPaymentBill.bill_reference || "",
+
+              bill_amount: Number(
+                selectedPaymentBill.bill_amount ??
+                  selectedPaymentBill.total_amount ??
+                  selectedPaymentBill.amount ??
+                  0,
+              ),
+
+              paid_amount: Number(
+                selectedPaymentBill.paid_amount ??
+                  selectedPaymentBill.previously_paid ??
+                  0,
+              ),
+
+              outstanding_amount: Number(
+                selectedPaymentBill.outstanding_amount ??
+                  selectedPaymentBill.outstanding_before ??
+                  0,
+              ),
+
+              amount: paymentTotal,
+            },
+          ]
+        : [];
+
+  const normalizedPaymentAllocations = rawPaymentAllocations.map(
+    (allocation) => {
+      const billAmount = Number(
+        allocation.bill_amount ??
+          allocation.original_amount ??
+          allocation.total_amount ??
+          0,
+      );
+
+      const previouslyPaid = Number(
+        allocation.paid_amount ?? allocation.previously_paid ?? 0,
+      );
+
+      const thisPayment = Number(
+        allocation.amount ??
+          allocation.allocated_amount ??
+          allocation.payment_amount ??
+          0,
+      );
+
+      const outstandingBefore = Number(
+        allocation.outstanding_before ??
+          allocation.outstanding_amount ??
+          Math.max(0, billAmount - previouslyPaid),
+      );
+
+      const outstandingAfter = Number(
+        allocation.outstanding_after ??
+          Math.max(0, outstandingBefore - thisPayment),
+      );
+
+      return {
+        ...allocation,
+
+        billAmount,
+        previouslyPaid,
+        thisPayment,
+        outstandingBefore,
+        outstandingAfter,
+
+        displayReference:
+          clean(allocation.bill_reference) ||
+          clean(allocation.reference_number) ||
+          (allocation.expense_id ? `Voucher #${allocation.expense_id}` : "—"),
+      };
+    },
+  );
+
+  const allocationPaymentTotal = normalizedPaymentAllocations.reduce(
+    (sum, allocation) => sum + allocation.thisPayment,
+    0,
+  );
+
+  const effectivePaymentTotal =
+    normalizedPaymentAllocations.length > 0
+      ? allocationPaymentTotal
+      : paymentTotal;
+
+  const paymentBillTotal = normalizedPaymentAllocations.reduce(
+    (sum, allocation) => sum + allocation.billAmount,
+    0,
+  );
+
+  const paymentPreviouslyPaid = normalizedPaymentAllocations.reduce(
+    (sum, allocation) => sum + allocation.previouslyPaid,
+    0,
+  );
+
+  const paymentBalanceAfter = normalizedPaymentAllocations.reduce(
+    (sum, allocation) => sum + allocation.outstandingAfter,
+    0,
+  );
+
+  const accountMethod = paymentAccount?.displayName || "—";
+
   if (isPayment) {
-    finalAmount = paymentTotal;
+    finalAmount = effectivePaymentTotal;
   } else if (isReceipt) {
     finalAmount = Number(receiptAmount || 0);
   } else if (isExpense) {
@@ -513,32 +644,6 @@ export default function PrintableVoucher({
   } else {
     finalAmount = Number(totalAmount || 0) || transactionAmount;
   }
-
-  /*
-    |--------------------------------------------------------------------------
-    | Payment details
-    |--------------------------------------------------------------------------
-    */
-
-  const originalBill = Number(
-    selectedPaymentBill?.amount ??
-      selectedPaymentBill?.total_amount ??
-      selectedPaymentBill?.bill_amount ??
-      0,
-  );
-
-  const alreadyPaid = Number(selectedPaymentBill?.paid_amount || 0);
-
-  const currentOutstanding = Number(
-    selectedPaymentBill?.outstanding_amount || 0,
-  );
-
-  const outstandingAfterPayment = Math.max(
-    0,
-    currentOutstanding - paymentTotal,
-  );
-
-  const accountMethod = paymentAccount?.displayName || "—";
 
   /*
     |--------------------------------------------------------------------------
@@ -691,137 +796,241 @@ export default function PrintableVoucher({
       {/* =====================================================
                 ITEMS / PARTICULARS
             ===================================================== */}
-
       <section className={styles.itemsSection}>
-        <table
-          className={
-            isSale
-              ? `${styles.itemsTable} ${styles.salesItemsTable}`
-              : styles.itemsTable
-          }
-        >
-          <thead>
-            <tr>
-              <th className={styles.serialColumn}>#</th>
-
-              <th>{isSale ? "SERVICE" : "PARTICULARS"}</th>
-
-              {!isSale && (
-                <>
-                  <th className={styles.quantityColumn}>QTY</th>
-
-                  <th className={styles.rateColumn}>RATE</th>
-                </>
-              )}
-
-              <th className={styles.amountColumn}>AMOUNT</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {isReceipt ? (
+        {isPayment ? (
+          /*
+           * =====================================================
+           * PAYMENT - MULTIPLE BILL TABLE
+           * =====================================================
+           */
+          <table className={`${styles.itemsTable} ${styles.paymentItemsTable}`}>
+            <thead>
               <tr>
-                <td className={styles.serialCell}>1</td>
+                <th className={styles.serialColumn}>#</th>
 
-                <td>
-                  <div className={styles.itemDescription}>{partyName}</div>
+                <th>BILL / REFERENCE</th>
 
-                  {selectedReceiptBill?.invoice_number && (
-                    <div className={styles.itemSubtext}>
-                      Bill No: {selectedReceiptBill.invoice_number}
-                    </div>
-                  )}
-                </td>
+                <th className={styles.paymentMoneyColumn}>BILL AMOUNT</th>
 
-                <td className={styles.numberCell}>—</td>
+                <th className={styles.paymentMoneyColumn}>PREVIOUSLY PAID</th>
 
-                <td className={styles.numberCell}>—</td>
+                <th className={styles.paymentMoneyColumn}>THIS PAYMENT</th>
 
-                <td className={styles.numberCell}>
-                  AED {formatAmount(finalAmount)}
-                </td>
+                <th className={styles.paymentMoneyColumn}>BALANCE</th>
               </tr>
-            ) : expenseItems.length > 0 ? (
-              expenseItems.map((item, index) => {
-                const quantity = getItemQuantity(item);
+            </thead>
 
-                const rate = getItemRate(item);
+            <tbody>
+              {normalizedPaymentAllocations.length > 0 ? (
+                normalizedPaymentAllocations.map((allocation, index) => (
+                  <tr key={allocation.expense_id ?? allocation.id ?? index}>
+                    {/* NUMBER */}
 
-                const lineAmount =
-                  getItemAmount(item) ||
-                  (isSale && expenseItems.length === 1 ? finalAmount : 0);
-
-                return (
-                  <tr key={item.id ?? item.customerServiceId ?? index}>
                     <td className={styles.serialCell}>{index + 1}</td>
+
+                    {/* BILL / REFERENCE */}
 
                     <td>
                       <div className={styles.itemDescription}>
-                        {getItemDescription(item)}
+                        {allocation.displayReference}
                       </div>
 
-                      {isPayment && externalReference !== "—" && (
+                      {allocation.bill_reference && (
                         <div className={styles.itemSubtext}>
-                          Against Bill: {externalReference}
+                          Against Bill: {allocation.bill_reference}
                         </div>
                       )}
                     </td>
 
-                    {isSale ? (
-                      <td className={styles.numberCell}>
-                        AED {formatAmount(lineAmount)}
-                      </td>
-                    ) : (
-                      <>
-                        <td className={styles.numberCell}>{quantity}</td>
+                    {/* ORIGINAL BILL AMOUNT */}
 
-                        <td className={styles.numberCell}>
-                          AED {formatAmount(rate)}
-                        </td>
+                    <td className={styles.paymentMoneyCell}>
+                      AED {formatAmount(allocation.billAmount)}
+                    </td>
 
-                        <td className={styles.numberCell}>
-                          AED {formatAmount(lineAmount)}
-                        </td>
-                      </>
-                    )}
+                    {/* PREVIOUSLY PAID */}
+
+                    <td className={styles.paymentMoneyCell}>
+                      AED {formatAmount(allocation.previouslyPaid)}
+                    </td>
+
+                    {/* PAYMENT BEING MADE NOW */}
+
+                    <td className={styles.paymentMoneyCell}>
+                      AED {formatAmount(allocation.thisPayment)}
+                    </td>
+
+                    {/* BALANCE AFTER THIS PAYMENT */}
+
+                    <td className={styles.paymentMoneyCell}>
+                      AED {formatAmount(allocation.outstandingAfter)}
+                    </td>
                   </tr>
-                );
-              })
-            ) : (
-              <tr>
-                <td className={styles.serialCell}>1</td>
+                ))
+              ) : (
+                /*
+                 * No bills selected yet.
+                 * This can appear in the live preview.
+                 */
+                <tr>
+                  <td className={styles.serialCell}>—</td>
 
-                <td>
-                  <div className={styles.itemDescription}>
-                    {isPayment ? partyName : description}
-                  </div>
-
-                  {isPayment && externalReference !== "—" && (
-                    <div className={styles.itemSubtext}>
-                      Bill Reference: {externalReference}
+                  <td>
+                    <div className={styles.itemDescription}>
+                      No bills selected
                     </div>
-                  )}
-                </td>
+                  </td>
 
-                {isSale ? (
+                  <td className={styles.paymentMoneyCell}>—</td>
+
+                  <td className={styles.paymentMoneyCell}>—</td>
+
+                  <td className={styles.paymentMoneyCell}>—</td>
+
+                  <td className={styles.paymentMoneyCell}>—</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        ) : (
+          /*
+           * =====================================================
+           * SALE / EXPENSE / RECEIPT TABLE
+           * =====================================================
+           *
+           * This is basically your existing table.
+           */
+          <table
+            className={
+              isSale
+                ? `${styles.itemsTable} ${styles.salesItemsTable}`
+                : styles.itemsTable
+            }
+          >
+            <thead>
+              <tr>
+                <th className={styles.serialColumn}>#</th>
+
+                <th>{isSale ? "SERVICE" : "PARTICULARS"}</th>
+
+                {!isSale && (
+                  <>
+                    <th className={styles.quantityColumn}>QTY</th>
+
+                    <th className={styles.rateColumn}>RATE</th>
+                  </>
+                )}
+
+                <th className={styles.amountColumn}>AMOUNT</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {isReceipt ? (
+                /*
+                 * =================================================
+                 * RECEIPT
+                 * =================================================
+                 */
+                <tr>
+                  <td className={styles.serialCell}>1</td>
+
+                  <td>
+                    <div className={styles.itemDescription}>{partyName}</div>
+
+                    {selectedReceiptBill?.invoice_number && (
+                      <div className={styles.itemSubtext}>
+                        Bill No: {selectedReceiptBill.invoice_number}
+                      </div>
+                    )}
+                  </td>
+
+                  <td className={styles.numberCell}>—</td>
+
+                  <td className={styles.numberCell}>—</td>
+
                   <td className={styles.numberCell}>
                     AED {formatAmount(finalAmount)}
                   </td>
-                ) : (
-                  <>
-                    <td className={styles.numberCell}>—</td>
+                </tr>
+              ) : expenseItems.length > 0 ? (
+                /*
+                 * =================================================
+                 * SALE / EXPENSE ITEMS
+                 * =================================================
+                 */
+                expenseItems.map((item, index) => {
+                  const quantity = getItemQuantity(item);
 
-                    <td className={styles.numberCell}>—</td>
+                  const rate = getItemRate(item);
 
+                  const lineAmount =
+                    getItemAmount(item) ||
+                    (isSale && expenseItems.length === 1 ? finalAmount : 0);
+
+                  return (
+                    <tr key={item.id ?? item.customerServiceId ?? index}>
+                      <td className={styles.serialCell}>{index + 1}</td>
+
+                      <td>
+                        <div className={styles.itemDescription}>
+                          {getItemDescription(item)}
+                        </div>
+                      </td>
+
+                      {isSale ? (
+                        <td className={styles.numberCell}>
+                          AED {formatAmount(lineAmount)}
+                        </td>
+                      ) : (
+                        <>
+                          <td className={styles.numberCell}>{quantity}</td>
+
+                          <td className={styles.numberCell}>
+                            AED {formatAmount(rate)}
+                          </td>
+
+                          <td className={styles.numberCell}>
+                            AED {formatAmount(lineAmount)}
+                          </td>
+                        </>
+                      )}
+                    </tr>
+                  );
+                })
+              ) : (
+                /*
+                 * =================================================
+                 * GENERIC FALLBACK
+                 * =================================================
+                 */
+                <tr>
+                  <td className={styles.serialCell}>1</td>
+
+                  <td>
+                    <div className={styles.itemDescription}>{description}</div>
+                  </td>
+
+                  {isSale ? (
                     <td className={styles.numberCell}>
                       AED {formatAmount(finalAmount)}
                     </td>
-                  </>
-                )}
-              </tr>
-            )}
-          </tbody>
-        </table>
+                  ) : (
+                    <>
+                      <td className={styles.numberCell}>—</td>
+
+                      <td className={styles.numberCell}>—</td>
+
+                      <td className={styles.numberCell}>
+                        AED {formatAmount(finalAmount)}
+                      </td>
+                    </>
+                  )}
+                </tr>
+              )}
+            </tbody>
+          </table>
+        )}
       </section>
 
       {/* =====================================================
@@ -968,33 +1177,39 @@ export default function PrintableVoucher({
       {isPayment && (
         <section className={styles.paymentSummary}>
           <div>
-            <span>Bill Amount</span>
+            <span>Bills Included</span>
 
-            <strong>AED {formatAmount(originalBill)}</strong>
+            <strong>{normalizedPaymentAllocations.length}</strong>
+          </div>
+
+          <div>
+            <span>Total Bill Value</span>
+
+            <strong>AED {formatAmount(paymentBillTotal)}</strong>
           </div>
 
           <div>
             <span>Previously Paid</span>
 
-            <strong>AED {formatAmount(alreadyPaid)}</strong>
+            <strong>AED {formatAmount(paymentPreviouslyPaid)}</strong>
           </div>
 
           <div>
             <span>This Payment</span>
 
-            <strong>AED {formatAmount(paymentTotal)}</strong>
+            <strong>AED {formatAmount(effectivePaymentTotal)}</strong>
           </div>
 
           <div className={styles.paymentBalance}>
-            <span>Balance Due</span>
+            <span>Remaining Balance</span>
 
-            <strong>AED {formatAmount(outstandingAfterPayment)}</strong>
+            <strong>AED {formatAmount(paymentBalanceAfter)}</strong>
           </div>
 
           <div className={styles.paymentTotal}>
-            <span>TOTAL PAID</span>
+            <span>TOTAL PAID NOW</span>
 
-            <strong>AED {formatAmount(paymentTotal)}</strong>
+            <strong>AED {formatAmount(effectivePaymentTotal)}</strong>
           </div>
         </section>
       )}

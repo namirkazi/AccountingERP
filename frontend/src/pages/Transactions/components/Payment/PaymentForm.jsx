@@ -17,14 +17,12 @@ export default function PaymentForm({
   setParty,
 
   paymentBills,
-  selectedPaymentBill,
-  setSelectedPaymentBill,
-
-  paymentAmount,
-  setPaymentAmount,
+  paymentAllocations,
+  setPaymentAllocations,
 
   accountId,
   setAccountId,
+
   paymentAccount,
   setPaymentAccount,
 
@@ -37,11 +35,16 @@ export default function PaymentForm({
 
   onSubmit,
 }) {
+  const paymentAmount = paymentAllocations.reduce(
+    (sum, allocation) => sum + (Number(allocation.amount) || 0),
+    0,
+  );
+
   return (
     <form className={styles.form} onSubmit={onSubmit}>
       {/* =================================
-                BASIC DETAILS
-            ================================= */}
+          BASIC DETAILS
+      ================================= */}
 
       <div className={styles.card}>
         <div className={styles.sectionTitle}>
@@ -74,53 +77,54 @@ export default function PaymentForm({
 
             <PartySelector
               value={party}
-              onChange={setParty}
+              onChange={(selectedParty) => {
+                setParty(selectedParty);
+
+                /*
+                 * Allocations belong to the currently
+                 * selected supplier. Clear them whenever
+                 * supplier changes.
+                 */
+                setPaymentAllocations([]);
+              }}
               partyType="supplier"
             />
           </div>
         </div>
 
-        {/* BILL */}
+        {/* BILLS */}
 
         <PaymentBillSelector
           party={party}
           paymentBills={paymentBills}
-          selectedPaymentBill={selectedPaymentBill}
-          setSelectedPaymentBill={setSelectedPaymentBill}
-          setPaymentAmount={setPaymentAmount}
+          paymentAllocations={paymentAllocations}
+          setPaymentAllocations={setPaymentAllocations}
         />
       </div>
 
       {/* =================================
-                PAYMENT AMOUNT
-            ================================= */}
+          PAYMENT TOTAL
+      ================================= */}
 
       <div className={styles.card}>
-        <div className={styles.sectionTitle}>Amount Details</div>
+        <div className={styles.sectionTitle}>Payment Total</div>
 
         <div className={styles.fieldRow}>
           <div className={styles.field}>
-            <label>Payment Amount</label>
+            <label>Total Payment</label>
 
             <div className={styles.amountField}>
               <span>AED</span>
 
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder="0.00"
-                value={paymentAmount}
-                onChange={(event) => setPaymentAmount(event.target.value)}
-              />
+              <input type="text" readOnly value={paymentAmount.toFixed(2)} />
             </div>
           </div>
         </div>
       </div>
 
       {/* =================================
-                PAID THROUGH
-            ================================= */}
+          PAID THROUGH
+      ================================= */}
 
       <div className={styles.card}>
         <div className={styles.sectionTitle}>Paid Through</div>
@@ -141,8 +145,8 @@ export default function PaymentForm({
       </div>
 
       {/* =================================
-                NARRATION
-            ================================= */}
+          NARRATION
+      ================================= */}
 
       <div className={styles.card}>
         <div className={styles.sectionTitle}>Narration</div>

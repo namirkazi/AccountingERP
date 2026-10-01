@@ -599,6 +599,7 @@ export default function Ledger() {
                   receiptAmount={viewingVoucher.receiptAmount}
                   paymentAccount={viewingVoucher.paymentAccount}
                   selectedPaymentBill={viewingVoucher.selectedPaymentBill}
+                  paymentAllocations={viewingVoucher.paymentAllocations || []}
                   selectedReceiptBill={viewingVoucher.selectedReceiptBill}
                   narration={viewingVoucher.narration}
                 />

@@ -95,9 +95,8 @@ export default function Transactions() {
     resetExpense,
   } = expense;
   const [paymentBills, setPaymentBills] = useState([]);
-  const [selectedPaymentBill, setSelectedPaymentBill] = useState(null);
 
-  const [paymentAmount, setPaymentAmount] = useState("");
+  const [paymentAllocations, setPaymentAllocations] = useState([]);
 
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
 
@@ -131,6 +130,13 @@ export default function Transactions() {
   const [company, setCompany] = useState(null);
   const [expenseAttachment, setExpenseAttachment] = useState(null);
 
+  const paymentAmount = paymentAllocations.reduce(
+    (sum, allocation) => sum + (Number(allocation.amount) || 0),
+    0,
+  );
+
+  const selectedPaymentBill =
+    paymentAllocations.length === 1 ? paymentAllocations[0] : null;
   /* Receipt Number */
   useEffect(() => {
     if (type !== "receipt") {
@@ -353,6 +359,7 @@ export default function Transactions() {
   useEffect(() => {
     if (type !== "payment" || !party?.party_name) {
       setPaymentBills([]);
+      setPaymentAllocations([]);
       return;
     }
 
@@ -445,8 +452,7 @@ export default function Transactions() {
     setAccountId("");
     setPaymentAccount(null);
     setPaymentBills([]);
-    setSelectedPaymentBill(null);
-    setPaymentAmount("");
+    setPaymentAllocations([]);
     setReceiptBills([]);
     setSelectedReceiptBill(null);
     setReceiptAmount("");
@@ -460,7 +466,6 @@ export default function Transactions() {
   function resetTransactionForm() {
     setParty(null);
     setAmount("");
-    setPaymentAmount("");
     resetExpense();
     resetSales();
     setExpenseAttachment(null);
@@ -472,7 +477,7 @@ export default function Transactions() {
     setReceiptBills([]);
     setSelectedReceiptBill(null);
     setReceiptAmount("");
-    setSelectedPaymentBill(null);
+    setPaymentAllocations([]);
     setMessage("");
     setError("");
 
@@ -525,7 +530,7 @@ export default function Transactions() {
    */
   function printVoucher() {
     const supplierName =
-      party?.party_name || selectedPaymentBill?.party_name || "Supplier";
+      party?.party_name || paymentAllocations[0]?.party_name || "Supplier";
 
     const reference = voucherNumber || referenceNumber || "Voucher";
     const cleanSupplier = supplierName.replace(/[<>:"/\\|?*]/g, "").trim();
@@ -676,8 +681,11 @@ export default function Transactions() {
       }
     }
     if (type === "payment") {
-      if (!selectedPaymentBill) {
-        setError("Please select a bill to pay.");
+      if (
+        !Array.isArray(paymentAllocations) ||
+        paymentAllocations.length === 0
+      ) {
+        setError("Please select at least one bill to pay.");
         return;
       }
 
@@ -686,13 +694,31 @@ export default function Transactions() {
         return;
       }
 
-      const outstanding = Number(selectedPaymentBill.outstanding_amount) || 0;
+      for (const allocation of paymentAllocations) {
+        const allocationAmount = Number(allocation.amount) || 0;
 
-      if (currentAmount > outstanding) {
-        setError(
-          `Payment cannot exceed the outstanding amount of AED ${outstanding.toFixed(2)}.`,
-        );
-        return;
+        const outstanding = Number(allocation.outstanding_amount) || 0;
+
+        if (allocationAmount <= 0) {
+          setError(
+            "Every selected bill must have a payment amount greater than zero.",
+          );
+          return;
+        }
+
+        if (allocationAmount > outstanding + 0.001) {
+          setError(
+            `Payment for ${
+              allocation.reference_number ||
+              allocation.bill_reference ||
+              `bill #${allocation.expense_id}`
+            } cannot exceed its outstanding amount of AED ${outstanding.toFixed(
+              2,
+            )}.`,
+          );
+
+          return;
+        }
       }
     }
     if (type === "receipt") {
@@ -746,15 +772,17 @@ export default function Transactions() {
 
       if (type === "payment") {
         response = await createPayment({
-          expense_id: Number(selectedPaymentBill.id),
-
-          amount: Number(paymentAmount),
-
           payment_account_id: Number(accountId),
 
           date,
 
           narration: narration.trim(),
+
+          allocations: paymentAllocations.map((allocation) => ({
+            expense_id: Number(allocation.expense_id),
+
+            amount: Number(allocation.amount) || 0,
+          })),
         });
       } else if (type === "capital") {
         // Capital API will be wired here next.
@@ -890,14 +918,24 @@ export default function Transactions() {
           setVoucherNumber(savedPaymentNumber);
         }
 
-        const savedBillReference =
-          response?.data?.bill_reference || response?.bill_reference || "";
+        const savedAllocations = response?.data?.allocations;
 
-        if (savedBillReference) {
-          setSelectedPaymentBill((currentBill) => ({
-            ...(currentBill || {}),
-            bill_reference: savedBillReference,
-          }));
+        if (Array.isArray(savedAllocations)) {
+          setPaymentAllocations((current) =>
+            current.map((allocation) => {
+              const saved = savedAllocations.find(
+                (item) =>
+                  String(item.expense_id) === String(allocation.expense_id),
+              );
+
+              return saved
+                ? {
+                    ...allocation,
+                    ...saved,
+                  }
+                : allocation;
+            }),
+          );
         }
       }
       setMessage(
@@ -1003,10 +1041,8 @@ export default function Transactions() {
               party={party}
               setParty={setParty}
               paymentBills={paymentBills}
-              selectedPaymentBill={selectedPaymentBill}
-              setSelectedPaymentBill={setSelectedPaymentBill}
-              paymentAmount={paymentAmount}
-              setPaymentAmount={setPaymentAmount}
+              paymentAllocations={paymentAllocations}
+              setPaymentAllocations={setPaymentAllocations}
               accountId={accountId}
               setAccountId={setAccountId}
               paymentAccount={paymentAccount}
@@ -1157,6 +1193,7 @@ export default function Transactions() {
                       paymentAmount={paymentAmount}
                       paymentAccount={paymentAccount}
                       selectedPaymentBill={selectedPaymentBill}
+                      paymentAllocations={paymentAllocations}
                       selectedReceiptBill={selectedReceiptBill}
                       receiptAmount={receiptAmount}
                       narration={narration}
@@ -1199,8 +1236,8 @@ export default function Transactions() {
             billReference={
               type === "expense"
                 ? referenceNumber
-                : type === "payment"
-                  ? selectedPaymentBill?.bill_reference || ""
+                : type === "payment" && paymentAllocations.length === 1
+                  ? paymentAllocations[0]?.bill_reference || ""
                   : ""
             }
             voucherNumber={voucherNumber}
@@ -1215,6 +1252,7 @@ export default function Transactions() {
             paymentAmount={paymentAmount}
             paymentAccount={paymentAccount}
             selectedPaymentBill={selectedPaymentBill}
+            paymentAllocations={paymentAllocations}
             selectedReceiptBill={selectedReceiptBill}
             receiptAmount={receiptAmount}
             narration={narration}

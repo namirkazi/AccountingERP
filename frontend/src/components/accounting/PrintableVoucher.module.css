@@ -407,7 +407,109 @@
   padding-right: 12mm !important;
   box-sizing: border-box;
 }
+/* =========================================================
+   PAYMENT ALLOCATION TABLE
+   ========================================================= */
 
+.itemsTable.paymentItemsTable {
+  width: 100%;
+  max-width: 100%;
+
+  table-layout: fixed;
+
+  font-size: 9px;
+}
+
+/* ---------------------------------------------------------
+   PAYMENT TABLE COLUMN WIDTHS
+   --------------------------------------------------------- */
+
+/* # */
+.itemsTable.paymentItemsTable th:nth-child(1),
+.itemsTable.paymentItemsTable td:nth-child(1) {
+  width: 5%;
+}
+
+/* Bill / Reference */
+.itemsTable.paymentItemsTable th:nth-child(2),
+.itemsTable.paymentItemsTable td:nth-child(2) {
+  width: 25%;
+}
+
+/* Bill Amount */
+.itemsTable.paymentItemsTable th:nth-child(3),
+.itemsTable.paymentItemsTable td:nth-child(3) {
+  width: 17.5%;
+}
+
+/* Previously Paid */
+.itemsTable.paymentItemsTable th:nth-child(4),
+.itemsTable.paymentItemsTable td:nth-child(4) {
+  width: 17.5%;
+}
+
+/* This Payment */
+.itemsTable.paymentItemsTable th:nth-child(5),
+.itemsTable.paymentItemsTable td:nth-child(5) {
+  width: 17.5%;
+}
+
+/* Balance */
+.itemsTable.paymentItemsTable th:nth-child(6),
+.itemsTable.paymentItemsTable td:nth-child(6) {
+  width: 17.5%;
+}
+
+/* ---------------------------------------------------------
+   MONEY HEADERS
+   --------------------------------------------------------- */
+
+.paymentMoneyColumn {
+  text-align: right !important;
+
+  font-size: 7.5px !important;
+
+  line-height: 1.25;
+
+  white-space: normal;
+}
+
+/* ---------------------------------------------------------
+   MONEY CELLS
+   --------------------------------------------------------- */
+
+.paymentMoneyCell {
+  text-align: right;
+
+  white-space: nowrap;
+
+  font-variant-numeric: tabular-nums;
+
+  box-sizing: border-box;
+}
+
+/* ---------------------------------------------------------
+   PAYMENT TABLE CELL SPACING
+   --------------------------------------------------------- */
+
+.itemsTable.paymentItemsTable th {
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+.itemsTable.paymentItemsTable td {
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+/* ---------------------------------------------------------
+   BILL REFERENCE COLUMN
+   --------------------------------------------------------- */
+
+.itemsTable.paymentItemsTable th:nth-child(2),
+.itemsTable.paymentItemsTable td:nth-child(2) {
+  overflow-wrap: anywhere;
+}
 /* =========================================================
    SALES TABLE
    ========================================================= */

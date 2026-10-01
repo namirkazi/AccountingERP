@@ -721,7 +721,512 @@ try {
             break;
         }
     }
+    /*
+|--------------------------------------------------------------------------
+| PAYMENT ALLOCATIONS
+|--------------------------------------------------------------------------
+|
+| New Payment vouchers can settle multiple Expense vouchers.
+|
+| payment_allocations stores:
+|
+|   Payment Voucher -> Expense Voucher -> Amount Paid
+|
+| For every bill we reconstruct:
+|
+|   - Supplier bill reference
+|   - Internal Expense voucher reference
+|   - Original bill amount
+|   - Amount paid before THIS Payment
+|   - Amount allocated by THIS Payment
+|   - Balance after THIS Payment
+|
+| Old Payment vouchers that only use source_voucher_id are also
+| converted into one allocation row below.
+|
+*/
 
+    $paymentAllocations = [];
+
+
+    if ($voucherType === 'PAYMENT') {
+
+        /*
+    |--------------------------------------------------------------------------
+    | LOAD ALLOCATIONS FOR THIS PAYMENT
+    |--------------------------------------------------------------------------
+    */
+
+        $paymentAllocationStmt =
+            $pdo->prepare("
+            SELECT
+                pa.id,
+                pa.expense_voucher_id,
+                pa.amount AS allocation_amount,
+
+                e.reference_number,
+                e.bill_reference,
+                e.amount AS bill_amount,
+                e.party_id
+
+            FROM payment_allocations pa
+
+            INNER JOIN vouchers e
+                ON e.id = pa.expense_voucher_id
+                AND e.company_id = pa.company_id
+                AND e.voucher_type = 'EXPENSE'
+
+            WHERE pa.company_id = :company_id
+
+            AND pa.payment_voucher_id = :payment_voucher_id
+
+            ORDER BY pa.id ASC
+        ");
+
+
+        $paymentAllocationStmt->execute([
+
+            ':company_id' =>
+            $companyId,
+
+            ':payment_voucher_id' =>
+            $voucherId
+
+        ]);
+
+
+        $allocationRows =
+            $paymentAllocationStmt->fetchAll(
+                PDO::FETCH_ASSOC
+            );
+
+
+        /*
+    |--------------------------------------------------------------------------
+    | CALCULATE PAYMENTS MADE BEFORE THIS PAYMENT
+    |--------------------------------------------------------------------------
+    |
+    | We need the historical balance as of this Payment voucher.
+    |
+    | Previous payments can come from:
+    |
+    | 1. Legacy vouchers.source_voucher_id payments
+    | 2. New payment_allocations rows
+    |
+    | We only count Payments before the current voucher.
+    |
+    | Ordering:
+    |   voucher_date first
+    |   voucher.id second
+    |
+    */
+
+        $previousPaidStmt =
+            $pdo->prepare("
+            SELECT
+
+                COALESCE(
+                    (
+                        SELECT SUM(previous_payment.amount)
+
+                        FROM vouchers previous_payment
+
+                        WHERE previous_payment.company_id =
+                            :legacy_company_id
+
+                        AND previous_payment.voucher_type =
+                            'PAYMENT'
+
+                        AND previous_payment.source_voucher_id =
+                            :legacy_expense_id
+
+                        AND (
+                            previous_payment.voucher_date <
+                                :legacy_payment_date
+
+                            OR (
+                                previous_payment.voucher_date =
+                                    :legacy_same_date
+
+                                AND previous_payment.id <
+                                    :legacy_payment_id
+                            )
+                        )
+
+                        AND NOT EXISTS (
+                            SELECT 1
+
+                            FROM payment_allocations legacy_check
+
+                            WHERE legacy_check.company_id =
+                                previous_payment.company_id
+
+                            AND legacy_check.payment_voucher_id =
+                                previous_payment.id
+                        )
+                    ),
+                    0
+                )
+
+                +
+
+                COALESCE(
+                    (
+                        SELECT SUM(previous_allocation.amount)
+
+                        FROM payment_allocations previous_allocation
+
+                        INNER JOIN vouchers previous_voucher
+                            ON previous_voucher.id =
+                                previous_allocation.payment_voucher_id
+
+                            AND previous_voucher.company_id =
+                                previous_allocation.company_id
+
+                            AND previous_voucher.voucher_type =
+                                'PAYMENT'
+
+                        WHERE previous_allocation.company_id =
+                            :allocation_company_id
+
+                        AND previous_allocation.expense_voucher_id =
+                            :allocation_expense_id
+
+                        AND (
+                            previous_voucher.voucher_date <
+                                :allocation_payment_date
+
+                            OR (
+                                previous_voucher.voucher_date =
+                                    :allocation_same_date
+
+                                AND previous_voucher.id <
+                                    :allocation_payment_id
+                            )
+                        )
+                    ),
+                    0
+                )
+
+                AS previously_paid
+        ");
+
+
+        /*
+    |--------------------------------------------------------------------------
+    | FORMAT NEW ALLOCATION-BASED PAYMENTS
+    |--------------------------------------------------------------------------
+    */
+
+        foreach ($allocationRows as $allocationRow) {
+
+            $expenseId =
+                (int)
+                $allocationRow['expense_voucher_id'];
+
+
+            $previousPaidStmt->execute([
+
+                ':legacy_company_id' =>
+                $companyId,
+
+                ':legacy_expense_id' =>
+                $expenseId,
+
+                ':legacy_payment_date' =>
+                $voucher['voucher_date'],
+
+                ':legacy_same_date' =>
+                $voucher['voucher_date'],
+
+                ':legacy_payment_id' =>
+                $voucherId,
+
+
+                ':allocation_company_id' =>
+                $companyId,
+
+                ':allocation_expense_id' =>
+                $expenseId,
+
+                ':allocation_payment_date' =>
+                $voucher['voucher_date'],
+
+                ':allocation_same_date' =>
+                $voucher['voucher_date'],
+
+                ':allocation_payment_id' =>
+                $voucherId
+
+            ]);
+
+
+            $previouslyPaid =
+                round(
+                    (float)
+                    $previousPaidStmt->fetchColumn(),
+                    2
+                );
+
+
+            $billAmount =
+                round(
+                    (float)
+                    $allocationRow['bill_amount'],
+                    2
+                );
+
+
+            $thisPayment =
+                round(
+                    (float)
+                    $allocationRow['allocation_amount'],
+                    2
+                );
+
+
+            $outstandingBefore =
+                max(
+                    0,
+                    round(
+                        $billAmount -
+                            $previouslyPaid,
+                        2
+                    )
+                );
+
+
+            $outstandingAfter =
+                max(
+                    0,
+                    round(
+                        $outstandingBefore -
+                            $thisPayment,
+                        2
+                    )
+                );
+
+
+            $paymentAllocations[] = [
+
+                'expense_id' =>
+                $expenseId,
+
+                /*
+             * Internal ERP Expense number.
+             */
+                'reference_number' =>
+                $allocationRow['reference_number']
+                    ?? '',
+
+                /*
+             * Supplier's actual bill / invoice number.
+             */
+                'bill_reference' =>
+                $allocationRow['bill_reference']
+                    ?? '',
+
+                /*
+             * Original bill value.
+             */
+                'bill_amount' =>
+                $billAmount,
+
+                'original_amount' =>
+                $billAmount,
+
+                /*
+             * Historical paid amount BEFORE this Payment.
+             */
+                'paid_amount' =>
+                $previouslyPaid,
+
+                'previously_paid' =>
+                $previouslyPaid,
+
+                /*
+             * Balance immediately before this Payment.
+             */
+                'outstanding_amount' =>
+                $outstandingBefore,
+
+                'outstanding_before' =>
+                $outstandingBefore,
+
+                /*
+             * Amount paid by THIS Payment voucher.
+             */
+                'amount' =>
+                $thisPayment,
+
+                /*
+             * Balance after this Payment.
+             */
+                'outstanding_after' =>
+                $outstandingAfter,
+
+                'status' =>
+                $outstandingAfter <= 0.0001
+                    ? 'PAID'
+                    : 'PARTIALLY_PAID'
+
+            ];
+        }
+
+
+        /*
+    |--------------------------------------------------------------------------
+    | LEGACY PAYMENT FALLBACK
+    |--------------------------------------------------------------------------
+    |
+    | Older Payments do not have payment_allocations rows.
+    |
+    | They only have:
+    |
+    |     vouchers.source_voucher_id
+    |
+    | Convert those old Payments into the same allocation shape so
+    | PrintableVoucher does not need separate rendering logic.
+    |
+    */
+
+        if (
+            empty($paymentAllocations) &&
+            $sourceVoucher
+        ) {
+
+            $expenseId =
+                (int)
+                $sourceVoucher['id'];
+
+
+            $previousPaidStmt->execute([
+
+                ':legacy_company_id' =>
+                $companyId,
+
+                ':legacy_expense_id' =>
+                $expenseId,
+
+                ':legacy_payment_date' =>
+                $voucher['voucher_date'],
+
+                ':legacy_same_date' =>
+                $voucher['voucher_date'],
+
+                ':legacy_payment_id' =>
+                $voucherId,
+
+
+                ':allocation_company_id' =>
+                $companyId,
+
+                ':allocation_expense_id' =>
+                $expenseId,
+
+                ':allocation_payment_date' =>
+                $voucher['voucher_date'],
+
+                ':allocation_same_date' =>
+                $voucher['voucher_date'],
+
+                ':allocation_payment_id' =>
+                $voucherId
+
+            ]);
+
+
+            $previouslyPaid =
+                round(
+                    (float)
+                    $previousPaidStmt->fetchColumn(),
+                    2
+                );
+
+
+            $billAmount =
+                round(
+                    (float)
+                    $sourceVoucher['amount'],
+                    2
+                );
+
+
+            $thisPayment =
+                round(
+                    (float)
+                    $voucher['amount'],
+                    2
+                );
+
+
+            $outstandingBefore =
+                max(
+                    0,
+                    round(
+                        $billAmount -
+                            $previouslyPaid,
+                        2
+                    )
+                );
+
+
+            $outstandingAfter =
+                max(
+                    0,
+                    round(
+                        $outstandingBefore -
+                            $thisPayment,
+                        2
+                    )
+                );
+
+
+            $paymentAllocations[] = [
+
+                'expense_id' =>
+                $expenseId,
+
+                'reference_number' =>
+                $sourceVoucher['reference_number']
+                    ?? '',
+
+                'bill_reference' =>
+                $sourceVoucher['bill_reference']
+                    ?? '',
+
+                'bill_amount' =>
+                $billAmount,
+
+                'original_amount' =>
+                $billAmount,
+
+                'paid_amount' =>
+                $previouslyPaid,
+
+                'previously_paid' =>
+                $previouslyPaid,
+
+                'outstanding_amount' =>
+                $outstandingBefore,
+
+                'outstanding_before' =>
+                $outstandingBefore,
+
+                'amount' =>
+                $thisPayment,
+
+                'outstanding_after' =>
+                $outstandingAfter,
+
+                'status' =>
+                $outstandingAfter <= 0.0001
+                    ? 'PAID'
+                    : 'PARTIALLY_PAID'
+
+            ];
+        }
+    }
 
     /*
     |--------------------------------------------------------------------------
@@ -1027,12 +1532,17 @@ try {
             'paymentAccount' =>
             $paymentAccount,
 
+            'paymentAllocations' =>
+            $paymentAllocations,
+
+            'payment_allocations' =>
+            $paymentAllocations,
+
             'selectedPaymentBill' =>
             $selectedPaymentBill,
 
             'selectedReceiptBill' =>
             $selectedReceiptBill,
-
             'narration' =>
             $voucher['narration'],
 
