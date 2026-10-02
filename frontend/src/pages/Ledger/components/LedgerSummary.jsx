@@ -1,4 +1,4 @@
-import { ArrowDownLeft, FileText } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, FileText } from "lucide-react";
 
 import styles from "../Ledger.module.css";
 
@@ -10,30 +10,20 @@ function formatAmount(value) {
 }
 
 export default function LedgerSummary({
-  entries = [],
   sales = 0,
   expenses = 0,
   payments = 0,
-  netActivity = 0,
+  payable = 0,
+  receipts = 0,
+  receivable = 0,
 }) {
   return (
     <div className={styles.summaryGrid}>
+      {/* SALES */}
       <div className={styles.summaryCard}>
         <div className={styles.summaryIcon}>
           <FileText size={19} />
         </div>
-
-        {/* <div>
-          <span>Entries</span>
-
-          <strong>{entries.length}</strong>
-        </div>
-      </div>
-
-      <div className={styles.summaryCard}>
-        <div className={styles.summaryIcon}>
-          <ArrowUpRight size={19} />
-        </div> */}
 
         <div>
           <span>Sales</span>
@@ -42,6 +32,31 @@ export default function LedgerSummary({
         </div>
       </div>
 
+      {/* RECEIVED */}
+      <div className={styles.summaryCard}>
+        <div className={styles.summaryIcon}>
+          <ArrowUpRight size={19} />
+        </div>
+
+        <div>
+          <span>Receipts</span>
+
+          <strong>AED {formatAmount(receipts)}</strong>
+        </div>
+      </div>
+      {/* RECEIVABLE */}
+      <div className={styles.summaryCard}>
+        <div className={styles.summaryIcon}>
+          <FileText size={19} />
+        </div>
+
+        <div>
+          <span>Total Receivable</span>
+
+          <strong>AED {formatAmount(receivable)}</strong>
+        </div>
+      </div>
+      {/* EXPENSES */}
       <div className={styles.summaryCard}>
         <div className={styles.summaryIcon}>
           <ArrowDownLeft size={19} />
@@ -53,17 +68,21 @@ export default function LedgerSummary({
           <strong>AED {formatAmount(expenses)}</strong>
         </div>
       </div>
+
+      {/* PAID */}
       <div className={styles.summaryCard}>
         <div className={styles.summaryIcon}>
           <ArrowDownLeft size={19} />
         </div>
 
         <div>
-          <span>Total Paid</span>
+          <span>Payments</span>
 
           <strong>AED {formatAmount(payments)}</strong>
         </div>
       </div>
+
+      {/* PAYABLE */}
       <div className={styles.summaryCard}>
         <div className={styles.summaryIcon}>
           <FileText size={19} />
@@ -72,7 +91,7 @@ export default function LedgerSummary({
         <div>
           <span>Total Payable</span>
 
-          <strong>AED {formatAmount(netActivity)}</strong>
+          <strong>AED {formatAmount(payable)}</strong>
         </div>
       </div>
     </div>

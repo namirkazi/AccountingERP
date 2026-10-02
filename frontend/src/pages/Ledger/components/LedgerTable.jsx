@@ -1,4 +1,4 @@
-import { Eye, FileText } from "lucide-react";
+import { Eye, FileText, Paperclip } from "lucide-react";
 
 import styles from "../Ledger.module.css";
 
@@ -115,15 +115,68 @@ export default function LedgerTable({ entries = [], loading, onViewVoucher }) {
               </td>
 
               <td>
-                <button
-                  type="button"
-                  className={styles.viewButton}
-                  onClick={() => onViewVoucher(entry)}
-                  title="View voucher"
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "7px",
+                    flexWrap: "wrap",
+                  }}
                 >
-                  <Eye size={16} />
-                  <span>View Bill</span>
-                </button>
+                  <button
+                    type="button"
+                    className={styles.viewButton}
+                    onClick={() => onViewVoucher(entry)}
+                    title="View ERP voucher"
+                  >
+                    <Eye size={16} />
+
+                    <span>View Bill</span>
+                  </button>
+
+                  {entry.voucher_type === "PAYMENT" &&
+                    Array.isArray(entry.reference_bills) &&
+                    entry.reference_bills.map((referenceBill, index) => {
+                      const attachment = referenceBill?.attachment;
+
+                      if (!attachment?.url) {
+                        return null;
+                      }
+
+                      /*
+                       * Prefer the supplier's actual
+                       * bill/reference number.
+                       */
+                      const label =
+                        referenceBill.bill_reference ||
+                        referenceBill.reference_number ||
+                        `Bill ${index + 1}`;
+
+                      return (
+                        <a
+                          key={[
+                            entry.voucher_id,
+                            referenceBill.expense_id,
+                            attachment.id,
+                          ].join("-")}
+                          href={attachment.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={styles.viewButton}
+                          title={
+                            attachment.name || `View supplier bill ${label}`
+                          }
+                          style={{
+                            textDecoration: "none",
+                          }}
+                        >
+                          <Paperclip size={15} />
+
+                          <span>Ref {label}</span>
+                        </a>
+                      );
+                    })}
+                </div>
               </td>
             </tr>
           ))}

@@ -301,7 +301,31 @@ function getItemRate(item) {
       0,
   );
 }
+function getPaymentAllocationItems(allocation) {
+  if (!allocation) {
+    return [];
+  }
 
+  if (Array.isArray(allocation.items) && allocation.items.length > 0) {
+    return allocation.items
+      .map((item) => clean(item?.description || item?.item_name || item?.name))
+      .filter(Boolean);
+  }
+
+  const summary =
+    clean(allocation.items_summary) ||
+    clean(allocation.item_summary) ||
+    clean(allocation.items_text);
+
+  if (!summary) {
+    return [];
+  }
+
+  return summary
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
 function getItemAmount(item) {
   if (
     item?.amount !== undefined &&
@@ -832,13 +856,15 @@ export default function PrintableVoucher({
 
                     <td>
                       <div className={styles.itemDescription}>
-                        {allocation.displayReference}
+                        {clean(allocation.party_name) || partyName}
                       </div>
 
-                      {allocation.bill_reference && (
-                        <div className={styles.itemSubtext}>
-                          Against Bill: {allocation.bill_reference}
-                        </div>
+                      {getPaymentAllocationItems(allocation).map(
+                        (itemDescription, itemIndex) => (
+                          <div key={itemIndex} className={styles.itemSubtext}>
+                            {itemDescription}
+                          </div>
+                        ),
                       )}
                     </td>
 

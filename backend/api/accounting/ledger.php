@@ -243,7 +243,7 @@ try {
             v.source_voucher_id,
             v.party_id,
 
-                    CASE
+            CASE
     WHEN v.voucher_type IN ('EXPENSE', 'SALE') THEN
         (
             SELECT GROUP_CONCAT(
@@ -312,7 +312,560 @@ COALESCE(SUM(le.credit), 0) AS credit
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
     $entries = $stmt->fetchAll();
+    /*
+|--------------------------------------------------------------------------
+| VOUCHER ATTACHMENT ENDPOINT
+|--------------------------------------------------------------------------
+|
+| Used by Ledger rows to open the original uploaded
+| supplier bill / reference document.
+|
+*/
 
+    $forwardedProto =
+        $_SERVER['HTTP_X_FORWARDED_PROTO']
+        ?? '';
+
+
+    if ($forwardedProto !== '') {
+
+        $scheme =
+            trim(
+                explode(
+                    ',',
+                    $forwardedProto
+                )[0]
+            );
+    } else {
+
+        $scheme =
+            (
+                !empty($_SERVER['HTTPS']) &&
+                $_SERVER['HTTPS'] !== 'off'
+            )
+            ? 'https'
+            : 'http';
+    }
+
+
+    $forwardedHost =
+        $_SERVER['HTTP_X_FORWARDED_HOST']
+        ?? '';
+
+
+    if ($forwardedHost !== '') {
+
+        $host =
+            trim(
+                explode(
+                    ',',
+                    $forwardedHost
+                )[0]
+            );
+    } else {
+
+        $host =
+            $_SERVER['HTTP_HOST']
+            ?? '';
+    }
+
+
+    $scriptDirectory =
+        rtrim(
+            str_replace(
+                '\\',
+                '/',
+                dirname(
+                    $_SERVER['SCRIPT_NAME']
+                        ?? '/api/accounting/ledger.php'
+                )
+            ),
+            '/'
+        );
+
+
+    $attachmentEndpoint =
+        $host !== ''
+        ? (
+            $scheme
+            . '://'
+            . $host
+            . $scriptDirectory
+            . '/voucher_attachment.php'
+        )
+        : '';
+
+    /*
+|--------------------------------------------------------------------------
+| PAYMENT -> SUPPLIER REFERENCE BILLS
+|--------------------------------------------------------------------------
+|
+| A Payment does not own the supplier bill attachment.
+|
+| Instead:
+|
+| PAYMENT
+|   -> payment_allocations
+|   -> EXPENSE
+|   -> voucher_attachments
+|
+| Legacy single-bill Payments use source_voucher_id.
+|
+*/
+
+
+    $paymentVoucherIds = [];
+
+
+    foreach ($entries as $rawEntry) {
+
+        if (
+            strtoupper(
+                (string) (
+                    $rawEntry['voucher_type']
+                    ?? ''
+                )
+            ) !== 'PAYMENT'
+        ) {
+            continue;
+        }
+
+
+        $paymentVoucherId =
+            (int) (
+                $rawEntry['voucher_id']
+                ?? 0
+            );
+
+
+        if ($paymentVoucherId > 0) {
+
+            $paymentVoucherIds[] =
+                $paymentVoucherId;
+        }
+    }
+
+
+    $paymentVoucherIds =
+        array_values(
+            array_unique(
+                $paymentVoucherIds
+            )
+        );
+
+
+    $paymentReferenceBills = [];
+
+
+    /*
+|--------------------------------------------------------------------------
+| NEW ALLOCATION-BASED PAYMENTS
+|--------------------------------------------------------------------------
+*/
+
+    $paymentsWithAllocations = [];
+
+
+    if (count($paymentVoucherIds) > 0) {
+
+        $paymentPlaceholders =
+            implode(
+                ',',
+                array_fill(
+                    0,
+                    count($paymentVoucherIds),
+                    '?'
+                )
+            );
+
+
+        $paymentReferenceStmt =
+            $pdo->prepare("
+            SELECT
+                pa.payment_voucher_id,
+
+                e.id AS expense_id,
+
+                e.reference_number,
+
+                e.bill_reference,
+
+                va.id AS attachment_id,
+
+                va.original_name AS attachment_name,
+
+                va.mime_type AS attachment_mime_type,
+
+                va.file_size AS attachment_file_size
+
+
+            FROM payment_allocations pa
+
+
+            INNER JOIN vouchers e
+                ON e.id = pa.expense_voucher_id
+
+                AND e.company_id = pa.company_id
+
+                AND e.voucher_type = 'EXPENSE'
+
+
+            LEFT JOIN voucher_attachments va
+                ON va.id = (
+
+                    SELECT va_latest.id
+
+                    FROM voucher_attachments va_latest
+
+                    WHERE va_latest.voucher_id = e.id
+
+                    ORDER BY va_latest.id DESC
+
+                    LIMIT 1
+                )
+
+
+            WHERE pa.company_id = ?
+
+            AND pa.payment_voucher_id IN (
+                {$paymentPlaceholders}
+            )
+
+
+            ORDER BY
+                pa.payment_voucher_id ASC,
+                pa.id ASC
+        ");
+
+
+        $paymentReferenceStmt->execute(
+            array_merge(
+                [$companyId],
+                $paymentVoucherIds
+            )
+        );
+
+
+        $allocationReferenceRows =
+            $paymentReferenceStmt->fetchAll(
+                PDO::FETCH_ASSOC
+            );
+
+
+        foreach (
+            $allocationReferenceRows
+            as $referenceRow
+        ) {
+
+            $paymentVoucherId =
+                (int) (
+                    $referenceRow['payment_voucher_id']
+                    ?? 0
+                );
+
+
+            if ($paymentVoucherId <= 0) {
+                continue;
+            }
+
+
+            /*
+         * Important:
+         *
+         * Mark the Payment as allocation-based even if
+         * this particular Expense has no attachment.
+         *
+         * That prevents source_voucher_id from being
+         * counted as a second reference.
+         */
+
+            $paymentsWithAllocations[$paymentVoucherId] = true;
+
+
+            $attachmentId =
+                (int) (
+                    $referenceRow['attachment_id']
+                    ?? 0
+                );
+
+
+            /*
+         * No supplier document was uploaded for
+         * this Expense.
+         */
+
+            if (
+                $attachmentId <= 0 ||
+                $attachmentEndpoint === ''
+            ) {
+                continue;
+            }
+
+
+            if (
+                !isset(
+                    $paymentReferenceBills[$paymentVoucherId]
+                )
+            ) {
+
+                $paymentReferenceBills[$paymentVoucherId] = [];
+            }
+
+
+            $paymentReferenceBills[$paymentVoucherId][] = [
+
+                'expense_id' =>
+                (int) (
+                    $referenceRow['expense_id']
+                    ?? 0
+                ),
+
+                'reference_number' =>
+                $referenceRow['reference_number']
+                    ?? '',
+
+                /*
+             * Supplier's own invoice / bill reference.
+             *
+             * This is the label we want to display.
+             */
+                'bill_reference' =>
+                $referenceRow['bill_reference']
+                    ?? '',
+
+                'attachment' => [
+
+                    'id' =>
+                    $attachmentId,
+
+                    'name' =>
+                    $referenceRow['attachment_name']
+                        ?? 'Supplier Bill',
+
+                    'mime_type' =>
+                    $referenceRow['attachment_mime_type']
+                        ?? '',
+
+                    'file_size' =>
+                    (int) (
+                        $referenceRow['attachment_file_size']
+                        ?? 0
+                    ),
+
+                    'url' =>
+                    $attachmentEndpoint
+                        . '?id='
+                        . rawurlencode(
+                            (string)
+                            $attachmentId
+                        )
+
+                ]
+
+            ];
+        }
+
+
+        /*
+    |--------------------------------------------------------------------------
+    | LEGACY SINGLE-BILL PAYMENTS
+    |--------------------------------------------------------------------------
+    |
+    | Older Payments may not have payment_allocations.
+    |
+    | Those use:
+    |
+    | payment.source_voucher_id -> Expense
+    |
+    */
+
+
+        $legacyPaymentIds =
+            array_values(
+                array_filter(
+                    $paymentVoucherIds,
+                    fn($paymentVoucherId) =>
+                    !isset(
+                        $paymentsWithAllocations[$paymentVoucherId]
+                    )
+                )
+            );
+
+
+        if (
+            count($legacyPaymentIds) > 0
+        ) {
+
+            $legacyPlaceholders =
+                implode(
+                    ',',
+                    array_fill(
+                        0,
+                        count(
+                            $legacyPaymentIds
+                        ),
+                        '?'
+                    )
+                );
+
+
+            $legacyReferenceStmt =
+                $pdo->prepare("
+                SELECT
+                    pay.id AS payment_voucher_id,
+
+                    e.id AS expense_id,
+
+                    e.reference_number,
+
+                    e.bill_reference,
+
+                    va.id AS attachment_id,
+
+                    va.original_name AS attachment_name,
+
+                    va.mime_type AS attachment_mime_type,
+
+                    va.file_size AS attachment_file_size
+
+
+                FROM vouchers pay
+
+
+                INNER JOIN vouchers e
+                    ON e.id = pay.source_voucher_id
+
+                    AND e.company_id = pay.company_id
+
+                    AND e.voucher_type = 'EXPENSE'
+
+
+                LEFT JOIN voucher_attachments va
+                    ON va.id = (
+
+                        SELECT va_latest.id
+
+                        FROM voucher_attachments va_latest
+
+                        WHERE va_latest.voucher_id = e.id
+
+                        ORDER BY va_latest.id DESC
+
+                        LIMIT 1
+                    )
+
+
+                WHERE pay.company_id = ?
+
+                AND pay.voucher_type = 'PAYMENT'
+
+                AND pay.id IN (
+                    {$legacyPlaceholders}
+                )
+            ");
+
+
+            $legacyReferenceStmt->execute(
+                array_merge(
+                    [$companyId],
+                    $legacyPaymentIds
+                )
+            );
+
+
+            $legacyReferenceRows =
+                $legacyReferenceStmt->fetchAll(
+                    PDO::FETCH_ASSOC
+                );
+
+
+            foreach (
+                $legacyReferenceRows
+                as $referenceRow
+            ) {
+
+                $paymentVoucherId =
+                    (int) (
+                        $referenceRow['payment_voucher_id']
+                        ?? 0
+                    );
+
+
+                $attachmentId =
+                    (int) (
+                        $referenceRow['attachment_id']
+                        ?? 0
+                    );
+
+
+                if (
+                    $paymentVoucherId <= 0 ||
+                    $attachmentId <= 0 ||
+                    $attachmentEndpoint === ''
+                ) {
+                    continue;
+                }
+
+
+                if (
+                    !isset(
+                        $paymentReferenceBills[$paymentVoucherId]
+                    )
+                ) {
+
+                    $paymentReferenceBills[$paymentVoucherId] = [];
+                }
+
+
+                $paymentReferenceBills[$paymentVoucherId][] = [
+
+                    'expense_id' =>
+                    (int) (
+                        $referenceRow['expense_id']
+                        ?? 0
+                    ),
+
+                    'reference_number' =>
+                    $referenceRow['reference_number']
+                        ?? '',
+
+                    'bill_reference' =>
+                    $referenceRow['bill_reference']
+                        ?? '',
+
+                    'attachment' => [
+
+                        'id' =>
+                        $attachmentId,
+
+                        'name' =>
+                        $referenceRow['attachment_name']
+                            ?? 'Supplier Bill',
+
+                        'mime_type' =>
+                        $referenceRow['attachment_mime_type']
+                            ?? '',
+
+                        'file_size' =>
+                        (int) (
+                            $referenceRow['attachment_file_size']
+                            ?? 0
+                        ),
+
+                        'url' =>
+                        $attachmentEndpoint
+                            . '?id='
+                            . rawurlencode(
+                                (string)
+                                $attachmentId
+                            )
+
+                    ]
+
+                ];
+            }
+        }
+    }
     foreach ($entries as &$entry) {
         $entry['id'] = (int) $entry['voucher_id'];
         $entry['voucher_id'] = (int) $entry['voucher_id'];
@@ -324,7 +877,32 @@ COALESCE(SUM(le.credit), 0) AS credit
         $entry['credit'] = (float) $entry['credit'];
         $entry['vat_input'] = (float) $entry['vat_input'];
         $entry['vat_output'] = (float) $entry['vat_output'];
+        /*
+|--------------------------------------------------------------------------
+| PAYMENT REFERENCE BILLS
+|--------------------------------------------------------------------------
+*/
 
+        $entry['reference_bills'] = [];
+
+
+        if (
+            strtoupper(
+                (string) (
+                    $entry['voucher_type']
+                    ?? ''
+                )
+            ) === 'PAYMENT'
+        ) {
+
+            $paymentVoucherId =
+                (int) $entry['voucher_id'];
+
+
+            $entry['reference_bills'] =
+                $paymentReferenceBills[$paymentVoucherId]
+                ?? [];
+        }
         // Keep both names for existing frontend consumers.
         $entry['voucher_number'] = $entry['reference_number'];
         $entry['referenceNumber'] = $entry['reference_number'];
@@ -393,6 +971,16 @@ COALESCE(SUM(le.credit), 0) AS credit
     ),
     0
 ) AS payments,
+ COALESCE(
+    SUM(
+        CASE
+            WHEN v.voucher_type = 'RECEIPT'
+            THEN v.amount
+            ELSE 0
+        END
+    ),
+    0
+) AS receipts,
             COALESCE(
                 SUM(
                     CASE
@@ -430,16 +1018,32 @@ COALESCE(SUM(le.credit), 0) AS credit
         (float) ($totals['payments'] ?? 0),
         2
     );
+    $totalReceipts = round(
+        (float) ($totals['receipts'] ?? 0),
+        2
+    );
+
     $totalCapital = round(
         (float) ($totals['capital'] ?? 0),
         2
     );
 
-    $netActivity = round(
-        $totalExpenses - $totalPayments,
-        2
+    $totalPayable = max(
+        0,
+        round(
+            $totalExpenses - $totalPayments,
+            2
+        )
     );
 
+
+    $totalReceivable = max(
+        0,
+        round(
+            $totalSales - $totalReceipts,
+            2
+        )
+    );
     /* Filter options */
     $accountStmt = $pdo->prepare("
         SELECT id, account_name, account_type, account_subtype
@@ -474,11 +1078,28 @@ COALESCE(SUM(le.credit), 0) AS credit
         'data' => [
             'entries' => $entries,
             'totals' => [
-                'sales' => $totalSales,
-                'expenses' => $totalExpenses,
-                'payments' => $totalPayments,
-                'capital' => $totalCapital,
-                'net_activity' => $netActivity
+
+                'sales' =>
+                $totalSales,
+
+                'expenses' =>
+                $totalExpenses,
+
+                'payments' =>
+                $totalPayments,
+
+                'payable' =>
+                $totalPayable,
+
+                'receipts' =>
+                $totalReceipts,
+
+                'receivable' =>
+                $totalReceivable,
+
+                'capital' =>
+                $totalCapital
+
             ],
             'filters' => [
                 'accounts' => $accounts,

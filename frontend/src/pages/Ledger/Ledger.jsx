@@ -87,10 +87,16 @@ export default function Ledger() {
   const [error, setError] = useState("");
 
   const [sales, setSales] = useState(0);
-  const [payments, setPayments] = useState(0);
+
   const [expenses, setExpenses] = useState(0);
 
-  const [netActivity, setNetActivity] = useState(0);
+  const [payments, setPayments] = useState(0);
+
+  const [payable, setPayable] = useState(0);
+
+  const [receipts, setReceipts] = useState(0);
+
+  const [receivable, setReceivable] = useState(0);
 
   const [viewingVoucher, setViewingVoucher] = useState(null);
 
@@ -228,8 +234,14 @@ export default function Ledger() {
       setSales(Number(data.totals?.sales || 0));
 
       setExpenses(Number(data.totals?.expenses || 0));
+
       setPayments(Number(data.totals?.payments || 0));
-      setNetActivity(Number(data.totals?.net_activity || 0));
+
+      setPayable(Number(data.totals?.payable || 0));
+
+      setReceipts(Number(data.totals?.receipts || 0));
+
+      setReceivable(Number(data.totals?.receivable || 0));
 
       /*
        * Build Account filter options.
@@ -262,8 +274,14 @@ export default function Ledger() {
       setSales(0);
 
       setExpenses(0);
+
       setPayments(0);
-      setNetActivity(0);
+
+      setPayable(0);
+
+      setReceipts(0);
+
+      setReceivable(0);
 
       setError(requestError.message || "Unable to load ledger.");
     } finally {
@@ -429,11 +447,12 @@ export default function Ledger() {
                 ================================================= */}
 
         <LedgerSummary
-          entries={entries}
           sales={sales}
           expenses={expenses}
           payments={payments}
-          netActivity={netActivity}
+          payable={payable}
+          receipts={receipts}
+          receivable={receivable}
         />
 
         {/* =================================================

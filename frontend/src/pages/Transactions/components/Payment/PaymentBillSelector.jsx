@@ -56,6 +56,10 @@ export default function PaymentBillSelector({
           outstanding_amount: outstanding,
 
           party_name: bill.party_name || party?.party_name || "",
+
+          items: Array.isArray(bill.items) ? bill.items : [],
+
+          items_summary: bill.items_summary || "",
         },
       ];
     });
@@ -118,6 +122,10 @@ export default function PaymentBillSelector({
         outstanding_amount: Number(bill.outstanding_amount) || 0,
 
         party_name: bill.party_name || party?.party_name || "",
+
+        items: Array.isArray(bill.items) ? bill.items : [],
+
+        items_summary: bill.items_summary || "",
       }));
 
     setPaymentAllocations(nextAllocations);
@@ -203,30 +211,81 @@ export default function PaymentBillSelector({
             return (
               <div key={bill.id} className={styles.selectedPaymentBill}>
                 <div className={styles.selectedPaymentBillHeader}>
-                  <label
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "5px",
+                    }}
+                  >
+                    <label
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selected}
+                        onChange={() => toggleBill(bill)}
+                      />
+
+                      <strong>
+                        {bill.reference_number || `Voucher #${bill.id}`}
+                      </strong>
+                    </label>
+
+                    {bill.bill_reference && (
+                      <span>
+                        Supplier Ref: <strong>{bill.bill_reference}</strong>
+                      </span>
+                    )}
+                  </div>
+
+                  <div
                     style={{
                       display: "flex",
                       alignItems: "center",
                       gap: "8px",
-                      cursor: "pointer",
                     }}
                   >
-                    <input
-                      type="checkbox"
-                      checked={selected}
-                      onChange={() => toggleBill(bill)}
-                    />
-
-                    <strong>
-                      {bill.reference_number || `Voucher #${bill.id}`}
-                    </strong>
-                  </label>
-
-                  {bill.bill_reference && (
-                    <span>
-                      Supplier Ref: <strong>{bill.bill_reference}</strong>
-                    </span>
-                  )}
+                    {bill.attachment?.url ? (
+                      <a
+                        href={bill.attachment.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          minHeight: "32px",
+                          padding: "0 12px",
+                          border: "1px solid #d1d5db",
+                          borderRadius: "7px",
+                          background: "#ffffff",
+                          color: "#111827",
+                          fontSize: "12px",
+                          fontWeight: 600,
+                          textDecoration: "none",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        View Supplier Bill
+                      </a>
+                    ) : (
+                      <span
+                        style={{
+                          fontSize: "11px",
+                          color: "#9ca3af",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        No attachment
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 <div className={styles.selectedPaymentBillAmounts}>

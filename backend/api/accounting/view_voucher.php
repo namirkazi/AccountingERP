@@ -750,7 +750,32 @@ try {
 
 
     if ($voucherType === 'PAYMENT') {
+        /*
+|--------------------------------------------------------------------------
+| SOURCE EXPENSE ITEMS
+|--------------------------------------------------------------------------
+|
+| These are the actual items / particulars from the Expense bill.
+| They are displayed underneath the supplier name on the Payment voucher.
+|
+*/
 
+        $paymentExpenseItemsStmt =
+            $pdo->prepare("
+        SELECT
+            id,
+            description,
+            unit,
+            quantity,
+            rate,
+            amount
+
+        FROM voucher_items
+
+        WHERE voucher_id = :expense_voucher_id
+
+        ORDER BY id ASC
+    ");
         /*
     |--------------------------------------------------------------------------
     | LOAD ALLOCATIONS FOR THIS PAYMENT
@@ -923,7 +948,44 @@ try {
             $expenseId =
                 (int)
                 $allocationRow['expense_voucher_id'];
+            /*
+|--------------------------------------------------------------------------
+| LOAD ITEMS FROM THE SOURCE EXPENSE
+|--------------------------------------------------------------------------
+*/
 
+            $paymentExpenseItemsStmt->execute([
+                ':expense_voucher_id' =>
+                $expenseId
+            ]);
+
+
+            $expenseItems =
+                $paymentExpenseItemsStmt->fetchAll(
+                    PDO::FETCH_ASSOC
+                );
+
+
+            foreach (
+                $expenseItems
+                as &$expenseItem
+            ) {
+
+                $expenseItem['id'] =
+                    (int) $expenseItem['id'];
+
+                $expenseItem['quantity'] =
+                    (float) $expenseItem['quantity'];
+
+                $expenseItem['rate'] =
+                    (float) $expenseItem['rate'];
+
+                $expenseItem['amount'] =
+                    (float) $expenseItem['amount'];
+            }
+
+
+            unset($expenseItem);
 
             $previousPaidStmt->execute([
 
@@ -1025,7 +1087,30 @@ try {
                 'bill_reference' =>
                 $allocationRow['bill_reference']
                     ?? '',
+                /*
+ * Items from the original Expense bill.
+ */
+                'items' =>
+                $expenseItems,
 
+                'items_summary' =>
+                implode(
+                    ', ',
+                    array_values(
+                        array_filter(
+                            array_map(
+                                fn($item) =>
+                                trim(
+                                    (string) (
+                                        $item['description']
+                                        ?? ''
+                                    )
+                                ),
+                                $expenseItems
+                            )
+                        )
+                    )
+                ),
                 /*
              * Original bill value.
              */
@@ -1098,7 +1183,38 @@ try {
             $expenseId =
                 (int)
                 $sourceVoucher['id'];
+            $paymentExpenseItemsStmt->execute([
+                ':expense_voucher_id' =>
+                $expenseId
+            ]);
 
+
+            $expenseItems =
+                $paymentExpenseItemsStmt->fetchAll(
+                    PDO::FETCH_ASSOC
+                );
+
+
+            foreach (
+                $expenseItems
+                as &$expenseItem
+            ) {
+
+                $expenseItem['id'] =
+                    (int) $expenseItem['id'];
+
+                $expenseItem['quantity'] =
+                    (float) $expenseItem['quantity'];
+
+                $expenseItem['rate'] =
+                    (float) $expenseItem['rate'];
+
+                $expenseItem['amount'] =
+                    (float) $expenseItem['amount'];
+            }
+
+
+            unset($expenseItem);
 
             $previousPaidStmt->execute([
 
@@ -1194,7 +1310,27 @@ try {
                 'bill_reference' =>
                 $sourceVoucher['bill_reference']
                     ?? '',
+                'items' =>
+                $expenseItems,
 
+                'items_summary' =>
+                implode(
+                    ', ',
+                    array_values(
+                        array_filter(
+                            array_map(
+                                fn($item) =>
+                                trim(
+                                    (string) (
+                                        $item['description']
+                                        ?? ''
+                                    )
+                                ),
+                                $expenseItems
+                            )
+                        )
+                    )
+                ),
                 'bill_amount' =>
                 $billAmount,
 

@@ -76,6 +76,11 @@ try {
 
             p.party_name,
 
+            va.id AS attachment_id,
+            va.original_name AS attachment_name,
+            va.mime_type AS attachment_mime_type,
+            va.file_size AS attachment_file_size,
+
             (
                 /*
                 |----------------------------------------------------------
@@ -142,6 +147,21 @@ try {
         LEFT JOIN parties p
             ON p.id = e.party_id
             AND p.company_id = e.company_id
+
+
+        LEFT JOIN voucher_attachments va
+            ON va.id = (
+
+                SELECT va_latest.id
+
+                FROM voucher_attachments va_latest
+
+                WHERE va_latest.voucher_id = e.id
+
+                ORDER BY va_latest.id DESC
+
+                LIMIT 1
+            )
 
 
         WHERE e.company_id = :company_id
@@ -264,7 +284,113 @@ try {
     $expenses =
         $stmt->fetchAll();
 
+    /*
+|--------------------------------------------------------------------------
+| SOURCE EXPENSE ITEMS
+|--------------------------------------------------------------------------
+|
+| Payment vouchers need the original Expense line items so they can
+| display what each supplier bill was for.
+|
+*/
 
+    $expenseItemsStmt =
+        $pdo->prepare("
+        SELECT
+            id,
+            voucher_id,
+            supplier_item_id,
+            description,
+            unit,
+            quantity,
+            rate,
+            amount
+
+        FROM voucher_items
+
+        WHERE voucher_id = :voucher_id
+
+        ORDER BY id ASC
+    ");
+
+    /*
+|--------------------------------------------------------------------------
+| ATTACHMENT ENDPOINT BASE URL
+|--------------------------------------------------------------------------
+*/
+
+    $forwardedProto =
+        $_SERVER['HTTP_X_FORWARDED_PROTO']
+        ?? '';
+
+
+    if ($forwardedProto !== '') {
+
+        $scheme =
+            trim(
+                explode(
+                    ',',
+                    $forwardedProto
+                )[0]
+            );
+    } else {
+
+        $scheme =
+            (
+                !empty($_SERVER['HTTPS']) &&
+                $_SERVER['HTTPS'] !== 'off'
+            )
+            ? 'https'
+            : 'http';
+    }
+
+
+    $forwardedHost =
+        $_SERVER['HTTP_X_FORWARDED_HOST']
+        ?? '';
+
+
+    if ($forwardedHost !== '') {
+
+        $host =
+            trim(
+                explode(
+                    ',',
+                    $forwardedHost
+                )[0]
+            );
+    } else {
+
+        $host =
+            $_SERVER['HTTP_HOST']
+            ?? '';
+    }
+
+
+    $scriptDirectory =
+        rtrim(
+            str_replace(
+                '\\',
+                '/',
+                dirname(
+                    $_SERVER['SCRIPT_NAME']
+                        ?? '/api/accounting/payment_expenses.php'
+                )
+            ),
+            '/'
+        );
+
+
+    $attachmentEndpoint =
+        $host !== ''
+        ? (
+            $scheme
+            . '://'
+            . $host
+            . $scriptDirectory
+            . '/voucher_attachment.php'
+        )
+        : '';
     /*
     |--------------------------------------------------------------------------
     | FORMAT RESPONSE
@@ -284,6 +410,142 @@ try {
 
         $expense['paid_amount'] =
             (float) $expense['paid_amount'];
+
+        /*
+|--------------------------------------------------------------------------
+| ITEMS FROM ORIGINAL EXPENSE
+|--------------------------------------------------------------------------
+*/
+
+        $expenseItemsStmt->execute([
+            ':voucher_id' =>
+            (int) $expense['id']
+        ]);
+
+
+        $expenseItems =
+            $expenseItemsStmt->fetchAll(
+                PDO::FETCH_ASSOC
+            );
+
+
+        foreach (
+            $expenseItems
+            as &$expenseItem
+        ) {
+
+            $expenseItem['id'] =
+                (int) $expenseItem['id'];
+
+            $expenseItem['voucher_id'] =
+                (int) $expenseItem['voucher_id'];
+
+            $expenseItem['supplier_item_id'] =
+                $expenseItem['supplier_item_id'] !== null
+                ? (int) $expenseItem['supplier_item_id']
+                : null;
+
+            $expenseItem['quantity'] =
+                (float) $expenseItem['quantity'];
+
+            $expenseItem['rate'] =
+                (float) $expenseItem['rate'];
+
+            $expenseItem['amount'] =
+                (float) $expenseItem['amount'];
+        }
+
+
+        unset($expenseItem);
+
+
+        /*
+ * Full items are useful if we need them later.
+ */
+
+        $expense['items'] =
+            $expenseItems;
+
+
+        /*
+ * Ready-made text for the Payment Voucher.
+ */
+
+        $expense['items_summary'] =
+            implode(
+                ', ',
+                array_values(
+                    array_filter(
+                        array_map(
+                            fn($item) =>
+                            trim(
+                                (string) (
+                                    $item['description']
+                                    ?? ''
+                                )
+                            ),
+                            $expenseItems
+                        )
+                    )
+                )
+            );
+        $attachmentId =
+            (int) (
+                $expense['attachment_id']
+                ?? 0
+            );
+
+
+        if (
+            $attachmentId > 0 &&
+            $attachmentEndpoint !== ''
+        ) {
+
+            $expense['attachment'] = [
+
+                'id' =>
+                $attachmentId,
+
+                'name' =>
+                $expense['attachment_name']
+                    ?? 'Supplier Bill',
+
+                'mime_type' =>
+                $expense['attachment_mime_type']
+                    ?? '',
+
+                'file_size' =>
+                (int) (
+                    $expense['attachment_file_size']
+                    ?? 0
+                ),
+
+                'url' =>
+                $attachmentEndpoint
+                    . '?id='
+                    . rawurlencode(
+                        (string) $attachmentId
+                    )
+
+            ];
+        } else {
+
+            $expense['attachment'] =
+                null;
+        }
+
+
+        /*
+ * Internal query fields are no longer needed
+ * by the frontend.
+ */
+
+        unset(
+            $expense['attachment_id'],
+            $expense['attachment_name'],
+            $expense['attachment_mime_type'],
+            $expense['attachment_file_size']
+        );
 
         $expense['outstanding_amount'] =
             round(
