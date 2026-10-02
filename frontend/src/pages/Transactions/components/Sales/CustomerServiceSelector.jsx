@@ -9,7 +9,12 @@ import {
 
 import styles from "./CustomerServiceSelector.module.css";
 
-export default function CustomerServiceSelector({ value, amount, onChange }) {
+export default function CustomerServiceSelector({
+  customerId,
+  value,
+  amount,
+  onChange,
+}) {
   const [query, setQuery] = useState(value?.description || "");
 
   const [services, setServices] = useState([]);
@@ -60,13 +65,18 @@ export default function CustomerServiceSelector({ value, amount, onChange }) {
    */
 
   useEffect(() => {
+    if (!customerId) {
+      setServices([]);
+      return;
+    }
+
     let cancelled = false;
 
     async function loadServices() {
       try {
         setLoading(true);
 
-        const response = await getCustomerServices();
+        const response = await getCustomerServices(customerId);
 
         if (cancelled) {
           return;
@@ -75,7 +85,7 @@ export default function CustomerServiceSelector({ value, amount, onChange }) {
         setServices(response?.data?.services || response?.services || []);
       } catch (error) {
         if (!cancelled) {
-          console.error("Unable to load services:", error);
+          console.error("Unable to load customer services:", error);
 
           setServices([]);
         }
@@ -91,7 +101,7 @@ export default function CustomerServiceSelector({ value, amount, onChange }) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [customerId]);
 
   /*
    * Filter the company-wide service list
@@ -129,14 +139,15 @@ export default function CustomerServiceSelector({ value, amount, onChange }) {
   async function createService() {
     const serviceName = query.trim();
 
-    if (!serviceName || creating) {
+    if (!customerId || !serviceName || creating) {
       return;
     }
-
     try {
       setCreating(true);
 
       const response = await createCustomerService({
+        customer_id: Number(customerId),
+
         service_name: serviceName,
 
         default_amount: Number(amount) || 0,

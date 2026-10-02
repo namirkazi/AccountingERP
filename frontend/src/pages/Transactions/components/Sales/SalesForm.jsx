@@ -132,6 +132,7 @@ export default function SalesForm({
           {services.map((service) => (
             <div className={styles.salesServiceRow} key={service.id}>
               <CustomerServiceSelector
+                customerId={party?.id || null}
                 value={service}
                 amount={service.amount}
                 onChange={(selected) => {
