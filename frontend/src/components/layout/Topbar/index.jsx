@@ -1,247 +1,178 @@
-import {
-    Menu,
-    Search,
-    Bell,
-    ChevronDown,
-    LogOut,
-    User
-} from "lucide-react";
+import { Bell, ChevronDown, LogOut, Menu, Search, User } from "lucide-react";
 
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../../../context/AuthContext";
 
 import styles from "./Topbar.module.css";
+function getPageTitle(pathname, portal) {
+  if (pathname === "/dashboard") {
+    return "Dashboard";
+  }
 
-export default function Topbar({
-    collapsed,
-    setCollapsed
-}) {
+  if (pathname === "/opening") {
+    return "Capital & Balances";
+  }
 
-    const { user, logout } = useAuth();
+  if (pathname === "/transactions") {
+    return "Accounting";
+  }
 
-    const navigate = useNavigate();
+  if (pathname === "/ledger") {
+    return "General Ledger";
+  }
 
-    const [profileOpen, setProfileOpen] = useState(false);
+  if (pathname === "/companies/add") {
+    return "Add Company";
+  }
 
-    async function handleLogout() {
+  if (pathname === "/settings") {
+    return "Settings";
+  }
 
-        try {
+  if (pathname === "/funds/dashboard") {
+    return "Funds Dashboard";
+  }
 
-            await logout();
+  if (pathname === "/funds/ledger") {
+    return "Funds Ledger";
+  }
 
-            navigate("/", {
-                replace: true
-            });
+  return portal === "funds" ? "Funds Management" : "Accounting ERP";
+}
+export default function Topbar({ collapsed, setCollapsed }) {
+  const { user, portal, activeCompany, logout } = useAuth();
 
-        } catch (error) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [profileOpen, setProfileOpen] = useState(false);
 
-            console.error(
-                "Logout failed:",
-                error
-            );
+  async function handleLogout() {
+    try {
+      await logout();
 
-        }
+      navigate("/", {
+        replace: true,
+      });
+    } catch (error) {
+      console.error("Logout failed:", error);
     }
+  }
 
-    const initials =
-        user?.full_name
-            ?.split(" ")
-            .map(word => word[0])
-            .join("")
-            .slice(0, 2)
-            .toUpperCase()
-        || "US";
+  const initials =
+    user?.full_name
+      ?.split(" ")
+      .map((word) => word[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase() || "US";
 
-    return (
+  return (
+    <header className={styles.topbar}>
+      {/* Left */}
 
-        <header className={styles.topbar}>
+      <div className={styles.left}>
+        <button
+          className={styles.menuButton}
+          onClick={() => setCollapsed(!collapsed)}
+        >
+          <Menu size={22} />
+        </button>
 
-            {/* Left */}
+        <div>
+          <h2>{getPageTitle(location.pathname, portal)}</h2>
 
-            <div className={styles.left}>
+          <p>
+            {portal === "funds"
+              ? "Funds Management System"
+              : activeCompany?.company_name || "Accounting ERP"}
+          </p>
+        </div>
+      </div>
 
-                <button
-                    className={styles.menuButton}
-                    onClick={() =>
-                        setCollapsed(!collapsed)
-                    }
-                >
+      {/* Right */}
 
-                    <Menu size={22} />
+      <div className={styles.right}>
+        {/* Search */}
 
-                </button>
+        <div className={styles.search}>
+          <Search size={18} />
+
+          <input placeholder="Search..." />
+        </div>
+
+        {/* Notifications */}
+
+        <button className={styles.notification}>
+          <Bell size={20} />
+        </button>
+
+        {/* Profile */}
+
+        <div className={styles.profileWrapper}>
+          <button
+            className={styles.profile}
+            onClick={() => setProfileOpen(!profileOpen)}
+          >
+            <div className={styles.avatar}>{initials}</div>
+
+            <div className={styles.userInfo}>
+              <span>{user?.full_name || "User"}</span>
+
+              <small>
+                {portal === "funds"
+                  ? user?.role === "admin"
+                    ? "Funds Administrator"
+                    : "Funds Operator"
+                  : user?.role === "admin"
+                    ? "Administrator"
+                    : "User"}
+              </small>
+            </div>
+
+            <ChevronDown
+              size={18}
+              className={profileOpen ? styles.rotate : ""}
+            />
+          </button>
+
+          {/* Dropdown */}
+
+          {profileOpen && (
+            <div className={styles.profileMenu}>
+              <div className={styles.profileHeader}>
+                <div className={styles.largeAvatar}>{initials}</div>
 
                 <div>
+                  <strong>{user?.full_name}</strong>
 
-                    <h2 >
-                        Dashboard
-                    </h2>
-
-                    <p>
-                        {user?.company_name ||
-                            "Accounting ERP"}
-                    </p>
-
+                  <span>
+                    {portal === "funds"
+                      ? "Funds Management System"
+                      : activeCompany?.company_name || "Accounting ERP"}
+                  </span>
                 </div>
+              </div>
 
+              <div className={styles.menuDivider} />
+
+              <button className={styles.profileItem}>
+                <User size={18} />
+                Profile
+              </button>
+
+              <button
+                className={`${styles.profileItem} ${styles.logoutItem}`}
+                onClick={handleLogout}
+              >
+                <LogOut size={18} />
+                Logout
+              </button>
             </div>
-
-
-            {/* Right */}
-
-            <div className={styles.right}>
-
-                {/* Search */}
-
-                <div className={styles.search}>
-
-                    <Search size={18} />
-
-                    <input
-                        placeholder="Search..."
-                    />
-
-                </div>
-
-
-                {/* Notifications */}
-
-                <button
-                    className={styles.notification}
-                >
-
-                    <Bell size={20} />
-
-                </button>
-
-
-                {/* Profile */}
-
-                <div className={styles.profileWrapper}>
-
-                    <button
-                        className={styles.profile}
-                        onClick={() =>
-                            setProfileOpen(
-                                !profileOpen
-                            )
-                        }
-                    >
-
-                        <div className={styles.avatar}>
-
-                            {initials}
-
-                        </div>
-
-                        <div className={styles.userInfo}>
-
-                            <span>
-                                {user?.full_name ||
-                                    "User"}
-                            </span>
-
-                            <small>
-                                {user?.role === "admin"
-                                    ? "Administrator"
-                                    : "User"}
-                            </small>
-
-                        </div>
-
-                        <ChevronDown
-                            size={18}
-                            className={
-                                profileOpen
-                                    ? styles.rotate
-                                    : ""
-                            }
-                        />
-
-                    </button>
-
-
-                    {/* Dropdown */}
-
-                    {profileOpen && (
-
-                        <div
-                            className={
-                                styles.profileMenu
-                            }
-                        >
-
-                            <div
-                                className={
-                                    styles.profileHeader
-                                }
-                            >
-
-                                <div
-                                    className={
-                                        styles.largeAvatar
-                                    }
-                                >
-                                    {initials}
-                                </div>
-
-                                <div>
-
-                                    <strong>
-                                        {user?.full_name}
-                                    </strong>
-
-                                    <span>
-                                        {user?.company_name}
-                                    </span>
-
-                                </div>
-
-                            </div>
-
-
-                            <div
-                                className={
-                                    styles.menuDivider
-                                }
-                            />
-
-
-                            <button
-                                className={
-                                    styles.profileItem
-                                }
-                            >
-
-                                <User size={18} />
-
-                                Profile
-
-                            </button>
-
-
-                            <button
-                                className={`${styles.profileItem} ${styles.logoutItem}`}
-                                onClick={handleLogout}
-                            >
-
-                                <LogOut size={18} />
-
-                                Logout
-
-                            </button>
-
-                        </div>
-
-                    )}
-
-                </div>
-
-            </div>
-
-        </header>
-
-    );
+          )}
+        </div>
+      </div>
+    </header>
+  );
 }

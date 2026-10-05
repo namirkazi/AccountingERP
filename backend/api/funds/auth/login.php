@@ -1,13 +1,19 @@
 <?php
 
-require_once __DIR__ . '/../../config/cors.php';
+require_once __DIR__ . '/../../../config/cors.php';
 
 header('Content-Type: application/json');
 
-require_once __DIR__ . '/../../config/config.php';
-require_once __DIR__ . '/../../config/database.php';
-require_once __DIR__ . '/../../services/AuthService.php';
+require_once __DIR__ . '/../../../config/config.php';
+require_once __DIR__ . '/../../../config/database.php';
+require_once __DIR__ . '/../../../services/FundAuthService.php';
 
+
+/*
+|--------------------------------------------------------------------------
+| METHOD
+|--------------------------------------------------------------------------
+*/
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
@@ -21,6 +27,12 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+
+/*
+|--------------------------------------------------------------------------
+| REQUEST BODY
+|--------------------------------------------------------------------------
+*/
 
 $data =
     json_decode(
@@ -45,6 +57,12 @@ $password =
     );
 
 
+/*
+|--------------------------------------------------------------------------
+| VALIDATION
+|--------------------------------------------------------------------------
+*/
+
 if (
     $username === '' ||
     $password === ''
@@ -62,13 +80,19 @@ if (
 }
 
 
+/*
+|--------------------------------------------------------------------------
+| LOGIN
+|--------------------------------------------------------------------------
+*/
+
 try {
 
     $authService =
-        new AuthService($pdo);
+        new FundAuthService($pdo);
 
 
-    $authState =
+    $user =
         $authService->login(
             $username,
             $password
@@ -82,8 +106,12 @@ try {
         'message' =>
         'Login successful.',
 
-        'data' =>
-        $authState
+        'data' => [
+
+            'user' =>
+            $user
+
+        ]
 
     ]);
 } catch (Throwable $e) {

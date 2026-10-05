@@ -10,17 +10,17 @@ if (session_status() === PHP_SESSION_NONE) {
 
 /*
 |--------------------------------------------------------------------------
-| AUTHENTICATION
+| FUNDS AUTHENTICATION
 |--------------------------------------------------------------------------
 */
 
-if (!isset($_SESSION['user_id'])) {
+if (!isset($_SESSION['fund_user_id'])) {
 
     http_response_code(401);
 
     echo json_encode([
         'success' => false,
-        'message' => 'Authentication required.'
+        'message' => 'Funds authentication required.'
     ]);
 
     exit;
@@ -29,14 +29,14 @@ if (!isset($_SESSION['user_id'])) {
 
 /*
 |--------------------------------------------------------------------------
-| CURRENT USER
+| CURRENT FUNDS USER ID
 |--------------------------------------------------------------------------
 */
 
-function getCurrentUserId(): int
+function getCurrentFundUserId(): int
 {
     return (int) (
-        $_SESSION['user_id']
+        $_SESSION['fund_user_id']
         ?? 0
     );
 }
@@ -44,32 +44,17 @@ function getCurrentUserId(): int
 
 /*
 |--------------------------------------------------------------------------
-| CURRENT COMPANY
+| CURRENT FUNDS USER ROLE
 |--------------------------------------------------------------------------
 */
 
-function getCurrentCompanyId(): int
-{
-    return (int) (
-        $_SESSION['company_id']
-        ?? 0
-    );
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| CURRENT ROLE
-|--------------------------------------------------------------------------
-*/
-
-function getCurrentUserRole(): string
+function getCurrentFundUserRole(): string
 {
     return strtolower(
         trim(
             (string) (
-                $_SESSION['role']
-                ?? 'user'
+                $_SESSION['fund_role']
+                ?? 'operator'
             )
         )
     );
@@ -78,22 +63,14 @@ function getCurrentUserRole(): string
 
 /*
 |--------------------------------------------------------------------------
-| REQUIRE ROLE
+| FUNDS ROLE GUARD
 |--------------------------------------------------------------------------
-|
-| Example:
-|
-| requireAnyRole([
-|     'admin',
-|     'funds_operator'
-| ]);
-|
 */
 
-function requireAnyRole(array $allowedRoles): void
+function requireFundRole(array $allowedRoles): void
 {
     $currentRole =
-        getCurrentUserRole();
+        getCurrentFundUserRole();
 
 
     $allowedRoles =

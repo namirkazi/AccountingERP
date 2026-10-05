@@ -11,55 +11,85 @@ const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
+
+  const [portal, setPortal] = useState(null);
+
   const [loading, setLoading] = useState(true);
+
   const [companies, setCompanies] = useState([]);
+
   const [activeCompany, setActiveCompany] = useState(null);
 
   useEffect(() => {
     checkAuthentication();
   }, []);
 
+  function applyAuthData(data) {
+    const nextPortal = data?.portal || data?.user?.portal || null;
+
+    const nextUser = data?.user
+      ? {
+          ...data.user,
+          portal: nextPortal,
+        }
+      : null;
+
+    setPortal(nextPortal);
+
+    setUser(nextUser);
+
+    setCompanies(Array.isArray(data?.companies) ? data.companies : []);
+
+    setActiveCompany(data?.active_company || null);
+  }
+
+  function clearAuthData() {
+    setUser(null);
+
+    setPortal(null);
+
+    setCompanies([]);
+
+    setActiveCompany(null);
+  }
+
   async function checkAuthentication() {
     try {
       const response = await getCurrentUser();
 
       if (response?.success) {
-        const data = response.data;
-
-        setUser(data.user);
-
-        setCompanies(Array.isArray(data.companies) ? data.companies : []);
-
-        setActiveCompany(data.active_company || null);
+        applyAuthData(response.data);
       } else {
-        setUser(null);
-        setCompanies([]);
-        setActiveCompany(null);
+        clearAuthData();
       }
     } catch {
-      setUser(null);
-      setCompanies([]);
-      setActiveCompany(null);
+      clearAuthData();
     } finally {
       setLoading(false);
     }
   }
 
   async function login(username, password) {
-    /*
-     * Wait for the initial authentication check to finish.
-     *
-     * This prevents the initial /me.php request from racing
-     * against the login request and overwriting the PHP session.
-     */
     while (loading) {
       await new Promise((resolve) => setTimeout(resolve, 10));
     }
 
-    // Establish the PHP session.
+    /*
+     * Establish either:
+     *
+     * Accounting session
+     *
+     * OR
+     *
+     * Funds session
+     */
+
     await loginRequest(username, password);
 
-    // Fetch the canonical authenticated state.
+    /*
+     * Load canonical session state.
+     */
+
     const currentUserResponse = await getCurrentUser();
 
     if (!currentUserResponse?.success) {
@@ -68,13 +98,7 @@ export function AuthProvider({ children }) {
       );
     }
 
-    const data = currentUserResponse.data;
-
-    setUser(data.user);
-
-    setCompanies(Array.isArray(data.companies) ? data.companies : []);
-
-    setActiveCompany(data.active_company || null);
+    applyAuthData(currentUserResponse.data);
 
     return currentUserResponse;
   }
@@ -82,37 +106,26 @@ export function AuthProvider({ children }) {
   async function logout() {
     await logoutRequest();
 
-    setUser(null);
-    setCompanies([]);
-    setActiveCompany(null);
+    clearAuthData();
   }
 
   async function switchCompany(companyId) {
+    if (portal !== "accounting") {
+      throw new Error(
+        "Company switching is only available in the Accounting portal.",
+      );
+    }
+
     const response = await switchCompanyService(companyId);
 
     if (!response?.success) {
       throw new Error(response?.message || "Unable to switch company.");
     }
 
-    const data = response.data;
-
-    // Update the active company immediately.
-    setActiveCompany(data.active_company || null);
-
-    // Re-fetch the complete user state so the
-    // company-specific role is also updated.
     const currentUserResponse = await getCurrentUser();
 
     if (currentUserResponse?.success) {
-      const currentData = currentUserResponse.data;
-
-      setUser(currentData.user);
-
-      setCompanies(
-        Array.isArray(currentData.companies) ? currentData.companies : [],
-      );
-
-      setActiveCompany(currentData.active_company || null);
+      applyAuthData(currentUserResponse.data);
     }
 
     return response;
@@ -122,13 +135,21 @@ export function AuthProvider({ children }) {
     <AuthContext.Provider
       value={{
         user,
+
+        portal,
+
         loading,
+
         login,
+
         logout,
+
         isAuthenticated: !!user,
 
         companies,
+
         activeCompany,
+
         activeCompanyId: activeCompany?.company_id || null,
 
         switchCompany,

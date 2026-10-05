@@ -1,22 +1,15 @@
 import {
-  LayoutDashboard,
-  FolderOpen,
-  Wallet,
-  ChartColumn,
-  Settings,
-  Users,
-  Building2,
-  Receipt,
-  CreditCard,
-  Landmark,
-  Package,
-  CircleDollarSign,
-  Calculator,
+  ArrowLeftRight,
   BookOpen,
+  Calculator,
+  CircleDollarSign,
   CirclePlus,
+  LayoutDashboard,
+  Settings
 } from "lucide-react";
 
-export const menuItems = [
+
+export const accountingMenuItems = [
   {
     title: "Dashboard",
     icon: LayoutDashboard,
@@ -34,6 +27,7 @@ export const menuItems = [
     icon: Calculator,
     path: "/transactions",
   },
+
   {
     title: "Ledger",
     icon: BookOpen,
@@ -45,10 +39,31 @@ export const menuItems = [
     icon: CirclePlus,
     path: "/companies/add",
   },
+
   {
     title: "Settings",
     icon: Settings,
     path: "/settings",
     role: ["admin"],
+  },
+];
+
+
+export const fundMenuItems = [
+  {
+    title: "Dashboard",
+    icon: LayoutDashboard,
+    path: "/funds/dashboard",
+  },
+
+  {
+    title: "Deposit / Withdrawal",
+    icon: ArrowLeftRight,
+    path: "/funds/transactions",
+  },
+  {
+    title: "Funds Ledger",
+    icon: BookOpen,
+    path: "/funds/ledger",
   },
 ];
