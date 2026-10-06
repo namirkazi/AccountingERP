@@ -1307,8 +1307,7 @@ try {
         ':narration' =>
         $narration !== ''
             ? $narration
-            : ucfirst($type)
-            . ' transaction',
+            : null,
 
 
         ':created_by' =>

@@ -2157,9 +2157,7 @@ try {
         ':narration' =>
         $narration !== ''
             ? $narration
-            : ucfirst($type)
-            .
-            ' transaction',
+            : null,
 
         ':voucher_id' =>
         $voucherId,

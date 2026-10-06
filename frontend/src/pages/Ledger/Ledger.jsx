@@ -354,7 +354,10 @@ export default function Ledger() {
    * VIEW VOUCHER
    * =====================================================
    */
-
+  const editPaymentTotal = editPaymentAllocations.reduce(
+    (sum, allocation) => sum + Number(allocation.amount || 0),
+    0,
+  );
   async function handleViewVoucher(entry) {
     const voucherId = Number(entry?.voucher_id);
 
@@ -702,12 +705,10 @@ export default function Ledger() {
   );
 
   const finalEditAmount =
-    editType === "sale"
+    editType === "sale" || editType === "expense"
       ? editItemsTotal
-      : editType === "expense"
-        ? editItems.length > 0
-          ? editItemsTotal
-          : Number(editAmount || 0)
+      : editType === "payment"
+        ? editPaymentTotal
         : editType === "capital"
           ? editCapitalTotal
           : Number(editAmount || 0);
