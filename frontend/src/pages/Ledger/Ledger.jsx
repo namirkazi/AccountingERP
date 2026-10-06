@@ -436,15 +436,35 @@ export default function Ledger() {
 
     setEditItems(items);
 
-    const voucherAmount = Number(
-      voucher.paymentAmount ??
-        voucher.receiptAmount ??
-        voucher.totalAmount ??
-        voucher.amount ??
-        0,
-    );
+    let voucherAmount = 0;
 
-    setEditAmount(String(voucherAmount));
+    switch (voucherType) {
+      case "payment":
+        voucherAmount = Number(
+          voucher.paymentAmount || voucher.amount || voucher.totalAmount || 0,
+        );
+        break;
+
+      case "receipt":
+        voucherAmount = Number(
+          voucher.receiptAmount || voucher.amount || voucher.totalAmount || 0,
+        );
+        break;
+
+      case "sale":
+      case "expense":
+        voucherAmount = Number(voucher.totalAmount || voucher.amount || 0);
+        break;
+
+      case "capital":
+        voucherAmount = Math.abs(
+          Number(voucher.amount || voucher.totalAmount || 0),
+        );
+        break;
+
+      default:
+        voucherAmount = Number(voucher.amount || voucher.totalAmount || 0);
+    }
 
     const subtotal = items.reduce(
       (sum, item) => sum + Number(item.quantity || 0) * Number(item.rate || 0),
@@ -682,11 +702,15 @@ export default function Ledger() {
   );
 
   const finalEditAmount =
-    editType === "sale" || editType === "expense"
+    editType === "sale"
       ? editItemsTotal
-      : editType === "capital"
-        ? editCapitalTotal
-        : Number(editAmount || 0);
+      : editType === "expense"
+        ? editItems.length > 0
+          ? editItemsTotal
+          : Number(editAmount || 0)
+        : editType === "capital"
+          ? editCapitalTotal
+          : Number(editAmount || 0);
   const cashBankAccountOptions = accountOptions.filter((account) => {
     const subtype = String(account.account_subtype || "").toLowerCase();
 

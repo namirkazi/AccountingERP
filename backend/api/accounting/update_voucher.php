@@ -1557,7 +1557,23 @@ try {
                     $expenseId,
 
                     'amount' =>
-                    $allocationAmount
+                    $allocationAmount,
+
+                    'bill_reference' =>
+                    !empty($expense['bill_reference'])
+                        ? trim(
+                            (string)
+                            $expense['bill_reference']
+                        )
+                        : null,
+
+                    'reference_number' =>
+                    !empty($expense['reference_number'])
+                        ? trim(
+                            (string)
+                            $expense['reference_number']
+                        )
+                        : null
 
                 ];
 
@@ -1704,7 +1720,92 @@ try {
         }
     }
 
+    /*
+|--------------------------------------------------------------------------
+| PAYMENT BILL REFERENCE
+|--------------------------------------------------------------------------
+|
+| A Payment may be allocated against one or multiple Expense bills.
+|
+| One Expense:
+|   Keep that Expense's supplier bill/reference number on the Payment.
+|
+| Multiple Expenses:
+|   There is no single bill reference, so leave it NULL.
+|
+| Legacy Payment:
+|   Preserve the existing Payment bill reference.
+|
+*/
 
+    if ($type === 'payment') {
+
+        if (
+            count(
+                $cleanPaymentAllocations
+            ) === 1
+        ) {
+
+            $paymentExpense =
+                $cleanPaymentAllocations[0];
+
+            $billReference =
+                trim(
+                    (string) (
+                        $paymentExpense['bill_reference']
+                        ??
+                        ''
+                    )
+                );
+
+
+            /*
+         * If the Expense has no supplier bill reference,
+         * fall back to its Expense voucher number.
+         */
+
+            if ($billReference === '') {
+
+                $billReference =
+                    trim(
+                        (string) (
+                            $paymentExpense['reference_number']
+                            ??
+                            ''
+                        )
+                    );
+            }
+        } elseif (
+            count(
+                $cleanPaymentAllocations
+            ) > 1
+        ) {
+
+            /*
+         * A multi-bill Payment cannot have one
+         * meaningful bill_reference.
+         */
+
+            $billReference = null;
+        } else {
+
+            /*
+         * Legacy Payment without payment_allocations.
+         *
+         * Do not wipe an existing historical reference
+         * just because the frontend did not send it.
+         */
+
+            $billReference =
+                trim(
+                    (string) (
+                        $existingVoucher['bill_reference']
+                        ??
+                        ''
+                    )
+                );
+        }
+    }
     /*
     |--------------------------------------------------------------------------
     | CAPITAL VALIDATION
@@ -1941,7 +2042,6 @@ try {
 
     if (
         $type === 'sale' ||
-        $type === 'payment' ||
         $type === 'capital'
     ) {
 
