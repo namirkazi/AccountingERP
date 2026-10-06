@@ -468,7 +468,7 @@ export default function Ledger() {
       default:
         voucherAmount = Number(voucher.amount || voucher.totalAmount || 0);
     }
-
+    setEditAmount(String(voucherAmount));
     const subtotal = items.reduce(
       (sum, item) => sum + Number(item.quantity || 0) * Number(item.rate || 0),
       0,
@@ -831,15 +831,11 @@ export default function Ledger() {
      * RECEIPT / PAYMENT AMOUNT
      */
 
-    if (
-      (editType === "receipt" || editType === "payment") &&
-      Number(editAmount) <= 0
-    ) {
+    if (editType === "receipt" && Number(editAmount) <= 0) {
       setEditError("Amount must be greater than zero.");
 
       return;
     }
-
     /*
      * PAYMENT / RECEIPT ACCOUNT
      */
@@ -848,30 +844,6 @@ export default function Ledger() {
       setEditError("Please select Cash or Bank account.");
 
       return;
-    }
-
-    /*
-     * PAYMENT ALLOCATIONS
-     */
-
-    if (editType === "payment") {
-      const allocationTotal = editPaymentAllocations.reduce(
-        (sum, allocation) => sum + Number(allocation.amount || 0),
-        0,
-      );
-
-      if (
-        editPaymentAllocations.length > 0 &&
-        Math.abs(allocationTotal - Number(editAmount || 0)) > 0.01
-      ) {
-        setEditError(
-          `Payment allocations total AED ${formatMoney(
-            allocationTotal,
-          )}, but payment amount is AED ${formatMoney(editAmount)}.`,
-        );
-
-        return;
-      }
     }
 
     /*
