@@ -39,3 +39,20 @@ export function getPendingExpenses() {
         }
     );
 }
+export function updateExpense(data) {
+
+    const isFormData =
+        data instanceof FormData;
+
+
+    return apiRequest(
+        "accounting/update_expense.php",
+        {
+            method: "POST",
+
+            body: isFormData
+                ? data
+                : JSON.stringify(data)
+        }
+    );
+}
