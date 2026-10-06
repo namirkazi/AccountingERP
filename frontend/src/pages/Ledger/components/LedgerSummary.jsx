@@ -16,6 +16,8 @@ export default function LedgerSummary({
   payable = 0,
   receipts = 0,
   receivable = 0,
+  onPayableClick,
+  onReceivableClick,
 }) {
   return (
     <div className={styles.summaryGrid}>
@@ -45,7 +47,11 @@ export default function LedgerSummary({
         </div>
       </div>
       {/* RECEIVABLE */}
-      <div className={styles.summaryCard}>
+      <button
+        type="button"
+        className={`${styles.summaryCard} ${styles.summaryCardClickable}`}
+        onClick={onReceivableClick}
+      >
         <div className={styles.summaryIcon}>
           <FileText size={19} />
         </div>
@@ -55,7 +61,7 @@ export default function LedgerSummary({
 
           <strong>AED {formatAmount(receivable)}</strong>
         </div>
-      </div>
+      </button>
       {/* EXPENSES */}
       <div className={styles.summaryCard}>
         <div className={styles.summaryIcon}>
@@ -83,7 +89,11 @@ export default function LedgerSummary({
       </div>
 
       {/* PAYABLE */}
-      <div className={styles.summaryCard}>
+      <button
+        type="button"
+        className={`${styles.summaryCard} ${styles.summaryCardClickable}`}
+        onClick={onPayableClick}
+      >
         <div className={styles.summaryIcon}>
           <FileText size={19} />
         </div>
@@ -93,7 +103,7 @@ export default function LedgerSummary({
 
           <strong>AED {formatAmount(payable)}</strong>
         </div>
-      </div>
+      </button>
     </div>
   );
 }

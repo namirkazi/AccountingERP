@@ -1,8 +1,8 @@
 import { BookOpen, Plus, RefreshCw, Trash2, X } from "lucide-react";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-
 import { useSearchParams } from "react-router-dom";
+import { getDashboardBalances } from "../../services/dashboardService";
 
 import PartySelector from "../../components/accounting/PartySelector";
 import PrintableCapitalVoucher from "../../components/accounting/PrintableCapitalVoucher";
@@ -141,7 +141,13 @@ export default function Ledger() {
   const [receipts, setReceipts] = useState(0);
 
   const [receivable, setReceivable] = useState(0);
+  const [balanceModalType, setBalanceModalType] = useState(null);
 
+  const [balanceModalItems, setBalanceModalItems] = useState([]);
+
+  const [balanceModalTotal, setBalanceModalTotal] = useState(0);
+
+  const [balanceModalLoading, setBalanceModalLoading] = useState(false);
   /*
    * =====================================================
    * VIEW VOUCHER
@@ -251,7 +257,35 @@ export default function Ledger() {
 
     setDateTo("");
   }
+  async function handleOpenBalanceModal(type) {
+    try {
+      setBalanceModalType(type);
+      setBalanceModalLoading(true);
 
+      const response = await getDashboardBalances();
+
+      const data = response?.data || {};
+
+      if (type === "payable") {
+        setBalanceModalItems(Array.isArray(data.payables) ? data.payables : []);
+
+        setBalanceModalTotal(Number(data.summary?.payable || 0));
+      } else {
+        setBalanceModalItems(
+          Array.isArray(data.receivables) ? data.receivables : [],
+        );
+
+        setBalanceModalTotal(Number(data.summary?.receivable || 0));
+      }
+    } catch (error) {
+      console.error("Unable to load balance details:", error);
+
+      setBalanceModalItems([]);
+      setBalanceModalTotal(0);
+    } finally {
+      setBalanceModalLoading(false);
+    }
+  }
   /*
    * =====================================================
    * LOAD LEDGER
@@ -1100,6 +1134,8 @@ export default function Ledger() {
           payable={payable}
           receipts={receipts}
           receivable={receivable}
+          onPayableClick={() => handleOpenBalanceModal("payable")}
+          onReceivableClick={() => handleOpenBalanceModal("receivable")}
         />
 
         {/* TABLE */}
@@ -2641,6 +2677,74 @@ export default function Ledger() {
               </div>
             </div>
           </form>
+        </div>
+      )}
+      {balanceModalType && (
+        <div
+          className={styles.payableModalOverlay}
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) {
+              setBalanceModalType(null);
+            }
+          }}
+        >
+          <div className={styles.payableModal}>
+            <div className={styles.payableModalHeader}>
+              <div>
+                <h2>
+                  {balanceModalType === "payable"
+                    ? "Accounts Payable"
+                    : "Accounts Receivable"}
+                </h2>
+
+                <p>
+                  {balanceModalType === "payable"
+                    ? "Outstanding amounts owed to suppliers"
+                    : "Outstanding amounts owed by customers"}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setBalanceModalType(null)}
+                className={styles.payableModalClose}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className={styles.payableModalTotal}>
+              <span>Total Outstanding</span>
+
+              <strong>AED {formatMoney(balanceModalTotal)}</strong>
+            </div>
+
+            <div className={styles.payableModalList}>
+              {balanceModalLoading ? (
+                <div className={styles.payableModalEmpty}>Loading...</div>
+              ) : balanceModalItems.length === 0 ? (
+                <div className={styles.payableModalEmpty}>
+                  No outstanding balances found.
+                </div>
+              ) : (
+                balanceModalItems.map((item) => (
+                  <div key={item.party_id} className={styles.payableModalRow}>
+                    <div>
+                      <strong>{item.party_name}</strong>
+
+                      <span>
+                        {balanceModalType === "payable"
+                          ? "Supplier"
+                          : "Customer"}
+                      </span>
+                    </div>
+
+                    <strong>AED {formatMoney(item.balance)}</strong>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </div>
       )}
     </AppLayout>
