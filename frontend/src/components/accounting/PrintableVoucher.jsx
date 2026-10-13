@@ -402,6 +402,8 @@ export default function PrintableVoucher({
 
   const isPayment = type === "payment";
 
+  const isAdvancePayment = isPayment && paymentType === "advance";
+
   const isReceipt = type === "receipt";
 
   const isSale = type === "sale";
@@ -419,7 +421,9 @@ export default function PrintableVoucher({
   }
 
   if (isPayment) {
-    documentTitle = "PAYMENT VOUCHER";
+    documentTitle = isAdvancePayment
+      ? "SUPPLIER ADVANCE VOUCHER"
+      : "PAYMENT VOUCHER";
   }
 
   if (isReceipt) {
@@ -688,7 +692,9 @@ export default function PrintableVoucher({
     supplierAdvanceAfter != null
       ? Number(supplierAdvanceAfter)
       : advanceBefore != null
-        ? Math.max(0, advanceBefore - paymentAdvanceUsed)
+        ? isAdvancePayment
+          ? advanceBefore + paymentTotal
+          : Math.max(0, advanceBefore - paymentAdvanceUsed)
         : null;
   const accountMethod = paymentAccount?.displayName || "—";
 
@@ -816,7 +822,7 @@ export default function PrintableVoucher({
 
       <section
         className={`${styles.documentDetails} ${
-          isPayment ? styles.paymentDocumentDetails : ""
+          isPayment && !isAdvancePayment ? styles.paymentDocumentDetails : ""
         }`}
       >
         <div>
@@ -826,12 +832,12 @@ export default function PrintableVoucher({
         </div>
 
         <div>
-          <span>BILL NO.</span>
+          <span>{isAdvancePayment ? "VOUCHER NO." : "BILL NO."}</span>
 
           <strong>{ourBillNumber}</strong>
         </div>
 
-        {!isSale && !isReceipt && (
+        {!isSale && !isReceipt && !isAdvancePayment && (
           <div>
             <span>
               {isPayment || isReceipt ? "AGAINST BILL" : "REFERENCE NO."}
@@ -847,7 +853,13 @@ export default function PrintableVoucher({
 
         {(isPayment || isReceipt) && (
           <div>
-            <span>{isReceipt ? "RECEIVED THROUGH" : "PAYMENT METHOD"}</span>
+            <span>
+              {isReceipt
+                ? "RECEIVED THROUGH"
+                : isAdvancePayment
+                  ? "PAID THROUGH"
+                  : "PAYMENT METHOD"}
+            </span>
 
             <strong>{accountMethod}</strong>
           </div>
@@ -857,257 +869,273 @@ export default function PrintableVoucher({
       {/* =====================================================
                 ITEMS / PARTICULARS
             ===================================================== */}
-      <section className={styles.itemsSection}>
-        {isPayment ? (
-          /*
-           * =====================================================
-           * PAYMENT - MULTIPLE BILL TABLE
-           * =====================================================
-           */
-          <table className={`${styles.itemsTable} ${styles.paymentItemsTable}`}>
-            <thead>
-              <tr>
-                <th className={styles.serialColumn}>#</th>
 
-                <th>BILL / REFERENCE</th>
+      {isAdvancePayment && (
+        <section className={styles.advanceVoucherParticulars}>
+          <div>
+            <strong>Advance Payment to Supplier</strong>
 
-                <th className={styles.paymentMoneyColumn}>BILL AMOUNT</th>
+            <p>{partyName}</p>
+          </div>
+        </section>
+      )}
 
-                <th className={styles.paymentMoneyColumn}>PREVIOUSLY PAID</th>
-
-                <th className={styles.paymentMoneyColumn}>THIS PAYMENT</th>
-
-                <th className={styles.paymentMoneyColumn}>BALANCE</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {normalizedPaymentAllocations.length > 0 ? (
-                normalizedPaymentAllocations.map((allocation, index) => (
-                  <tr key={allocation.expense_id ?? allocation.id ?? index}>
-                    {/* NUMBER */}
-
-                    <td className={styles.serialCell}>{index + 1}</td>
-
-                    {/* BILL / REFERENCE */}
-
-                    <td>
-                      {/* Accounting Expense Voucher Number */}
-                      <div className={styles.itemDescription}>
-                        <strong>
-                          {clean(allocation.reference_number) ||
-                            `Voucher #${allocation.expense_id}`}
-                        </strong>
-                      </div>
-
-                      {/* Supplier's Original Bill Reference */}
-                      {clean(allocation.bill_reference) && (
-                        <div className={styles.itemSubtext}>
-                          Supplier Ref: {allocation.bill_reference}
-                        </div>
-                      )}
-
-                      {/* Original Expense Items */}
-                      {getPaymentAllocationItems(allocation).map(
-                        (itemDescription, itemIndex) => (
-                          <div key={itemIndex} className={styles.itemSubtext}>
-                            {itemDescription}
-                          </div>
-                        ),
-                      )}
-                    </td>
-
-                    {/* ORIGINAL BILL AMOUNT */}
-
-                    <td className={styles.paymentMoneyCell}>
-                      AED {formatAmount(allocation.billAmount)}
-                    </td>
-
-                    {/* PREVIOUSLY PAID */}
-
-                    <td className={styles.paymentMoneyCell}>
-                      AED {formatAmount(allocation.previouslyPaid)}
-                    </td>
-
-                    {/* PAYMENT BEING MADE NOW */}
-
-                    <td className={styles.paymentMoneyCell}>
-                      AED {formatAmount(allocation.thisPayment)}
-                    </td>
-
-                    {/* BALANCE AFTER THIS PAYMENT */}
-
-                    <td className={styles.paymentMoneyCell}>
-                      AED {formatAmount(allocation.outstandingAfter)}
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                /*
-                 * No bills selected yet.
-                 * This can appear in the live preview.
-                 */
+      {!isAdvancePayment && (
+        <section className={styles.itemsSection}>
+          {isPayment ? (
+            /*
+             * =====================================================
+             * PAYMENT - MULTIPLE BILL TABLE
+             * =====================================================
+             */
+            <table
+              className={`${styles.itemsTable} ${styles.paymentItemsTable}`}
+            >
+              <thead>
                 <tr>
-                  <td className={styles.serialCell}>—</td>
+                  <th className={styles.serialColumn}>#</th>
 
-                  <td>
-                    <div className={styles.itemDescription}>
-                      No bills selected
-                    </div>
-                  </td>
+                  <th>BILL / REFERENCE</th>
 
-                  <td className={styles.paymentMoneyCell}>—</td>
+                  <th className={styles.paymentMoneyColumn}>BILL AMOUNT</th>
 
-                  <td className={styles.paymentMoneyCell}>—</td>
+                  <th className={styles.paymentMoneyColumn}>PREVIOUSLY PAID</th>
 
-                  <td className={styles.paymentMoneyCell}>—</td>
+                  <th className={styles.paymentMoneyColumn}>THIS PAYMENT</th>
 
-                  <td className={styles.paymentMoneyCell}>—</td>
+                  <th className={styles.paymentMoneyColumn}>BALANCE</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        ) : (
-          /*
-           * =====================================================
-           * SALE / EXPENSE / RECEIPT TABLE
-           * =====================================================
-           *
-           * This is basically your existing table.
-           */
-          <table
-            className={
-              isSale
-                ? `${styles.itemsTable} ${styles.salesItemsTable}`
-                : styles.itemsTable
-            }
-          >
-            <thead>
-              <tr>
-                <th className={styles.serialColumn}>#</th>
+              </thead>
 
-                <th>{isSale ? "SERVICE" : "PARTICULARS"}</th>
+              <tbody>
+                {normalizedPaymentAllocations.length > 0 ? (
+                  normalizedPaymentAllocations.map((allocation, index) => (
+                    <tr key={allocation.expense_id ?? allocation.id ?? index}>
+                      {/* NUMBER */}
 
-                {!isSale && (
-                  <>
-                    <th className={styles.quantityColumn}>QTY</th>
-
-                    <th className={styles.rateColumn}>RATE</th>
-                  </>
-                )}
-
-                <th className={styles.amountColumn}>AMOUNT</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {isReceipt ? (
-                /*
-                 * =================================================
-                 * RECEIPT
-                 * =================================================
-                 */
-                <tr>
-                  <td className={styles.serialCell}>1</td>
-
-                  <td>
-                    <div className={styles.itemDescription}>{partyName}</div>
-
-                    {selectedReceiptBill?.invoice_number && (
-                      <div className={styles.itemSubtext}>
-                        Bill No: {selectedReceiptBill.invoice_number}
-                      </div>
-                    )}
-                  </td>
-
-                  <td className={styles.numberCell}>—</td>
-
-                  <td className={styles.numberCell}>—</td>
-
-                  <td className={styles.numberCell}>
-                    AED {formatAmount(finalAmount)}
-                  </td>
-                </tr>
-              ) : expenseItems.length > 0 ? (
-                /*
-                 * =================================================
-                 * SALE / EXPENSE ITEMS
-                 * =================================================
-                 */
-                expenseItems.map((item, index) => {
-                  const quantity = getItemQuantity(item);
-
-                  const rate = getItemRate(item);
-
-                  const lineAmount =
-                    getItemAmount(item) ||
-                    (isSale && expenseItems.length === 1 ? finalAmount : 0);
-
-                  return (
-                    <tr key={item.id ?? item.customerServiceId ?? index}>
                       <td className={styles.serialCell}>{index + 1}</td>
 
+                      {/* BILL / REFERENCE */}
+
                       <td>
+                        {/* Accounting Expense Voucher Number */}
                         <div className={styles.itemDescription}>
-                          {getItemDescription(item)}
+                          <strong>
+                            {clean(allocation.reference_number) ||
+                              `Voucher #${allocation.expense_id}`}
+                          </strong>
                         </div>
+
+                        {/* Supplier's Original Bill Reference */}
+                        {clean(allocation.bill_reference) && (
+                          <div className={styles.itemSubtext}>
+                            Supplier Ref: {allocation.bill_reference}
+                          </div>
+                        )}
+
+                        {/* Original Expense Items */}
+                        {getPaymentAllocationItems(allocation).map(
+                          (itemDescription, itemIndex) => (
+                            <div key={itemIndex} className={styles.itemSubtext}>
+                              {itemDescription}
+                            </div>
+                          ),
+                        )}
                       </td>
 
-                      {isSale ? (
-                        <td className={styles.numberCell}>
-                          AED {formatAmount(lineAmount)}
-                        </td>
-                      ) : (
-                        <>
-                          <td className={styles.numberCell}>{quantity}</td>
+                      {/* ORIGINAL BILL AMOUNT */}
 
-                          <td className={styles.numberCell}>
-                            AED {formatAmount(rate)}
-                          </td>
+                      <td className={styles.paymentMoneyCell}>
+                        AED {formatAmount(allocation.billAmount)}
+                      </td>
 
-                          <td className={styles.numberCell}>
-                            AED {formatAmount(lineAmount)}
-                          </td>
-                        </>
-                      )}
+                      {/* PREVIOUSLY PAID */}
+
+                      <td className={styles.paymentMoneyCell}>
+                        AED {formatAmount(allocation.previouslyPaid)}
+                      </td>
+
+                      {/* PAYMENT BEING MADE NOW */}
+
+                      <td className={styles.paymentMoneyCell}>
+                        AED {formatAmount(allocation.thisPayment)}
+                      </td>
+
+                      {/* BALANCE AFTER THIS PAYMENT */}
+
+                      <td className={styles.paymentMoneyCell}>
+                        AED {formatAmount(allocation.outstandingAfter)}
+                      </td>
                     </tr>
-                  );
-                })
-              ) : (
-                /*
-                 * =================================================
-                 * GENERIC FALLBACK
-                 * =================================================
-                 */
+                  ))
+                ) : (
+                  /*
+                   * No bills selected yet.
+                   * This can appear in the live preview.
+                   */
+                  <tr>
+                    <td className={styles.serialCell}>—</td>
+
+                    <td>
+                      <div className={styles.itemDescription}>
+                        No bills selected
+                      </div>
+                    </td>
+
+                    <td className={styles.paymentMoneyCell}>—</td>
+
+                    <td className={styles.paymentMoneyCell}>—</td>
+
+                    <td className={styles.paymentMoneyCell}>—</td>
+
+                    <td className={styles.paymentMoneyCell}>—</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          ) : (
+            /*
+             * =====================================================
+             * SALE / EXPENSE / RECEIPT TABLE
+             * =====================================================
+             *
+             * This is basically your existing table.
+             */
+            <table
+              className={
+                isSale
+                  ? `${styles.itemsTable} ${styles.salesItemsTable}`
+                  : styles.itemsTable
+              }
+            >
+              <thead>
                 <tr>
-                  <td className={styles.serialCell}>1</td>
+                  <th className={styles.serialColumn}>#</th>
 
-                  <td>
-                    <div className={styles.itemDescription}>{description}</div>
-                  </td>
+                  <th>{isSale ? "SERVICE" : "PARTICULARS"}</th>
 
-                  {isSale ? (
+                  {!isSale && (
+                    <>
+                      <th className={styles.quantityColumn}>QTY</th>
+
+                      <th className={styles.rateColumn}>RATE</th>
+                    </>
+                  )}
+
+                  <th className={styles.amountColumn}>AMOUNT</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {isReceipt ? (
+                  /*
+                   * =================================================
+                   * RECEIPT
+                   * =================================================
+                   */
+                  <tr>
+                    <td className={styles.serialCell}>1</td>
+
+                    <td>
+                      <div className={styles.itemDescription}>{partyName}</div>
+
+                      {selectedReceiptBill?.invoice_number && (
+                        <div className={styles.itemSubtext}>
+                          Bill No: {selectedReceiptBill.invoice_number}
+                        </div>
+                      )}
+                    </td>
+
+                    <td className={styles.numberCell}>—</td>
+
+                    <td className={styles.numberCell}>—</td>
+
                     <td className={styles.numberCell}>
                       AED {formatAmount(finalAmount)}
                     </td>
-                  ) : (
-                    <>
-                      <td className={styles.numberCell}>—</td>
+                  </tr>
+                ) : expenseItems.length > 0 ? (
+                  /*
+                   * =================================================
+                   * SALE / EXPENSE ITEMS
+                   * =================================================
+                   */
+                  expenseItems.map((item, index) => {
+                    const quantity = getItemQuantity(item);
 
-                      <td className={styles.numberCell}>—</td>
+                    const rate = getItemRate(item);
 
+                    const lineAmount =
+                      getItemAmount(item) ||
+                      (isSale && expenseItems.length === 1 ? finalAmount : 0);
+
+                    return (
+                      <tr key={item.id ?? item.customerServiceId ?? index}>
+                        <td className={styles.serialCell}>{index + 1}</td>
+
+                        <td>
+                          <div className={styles.itemDescription}>
+                            {getItemDescription(item)}
+                          </div>
+                        </td>
+
+                        {isSale ? (
+                          <td className={styles.numberCell}>
+                            AED {formatAmount(lineAmount)}
+                          </td>
+                        ) : (
+                          <>
+                            <td className={styles.numberCell}>{quantity}</td>
+
+                            <td className={styles.numberCell}>
+                              AED {formatAmount(rate)}
+                            </td>
+
+                            <td className={styles.numberCell}>
+                              AED {formatAmount(lineAmount)}
+                            </td>
+                          </>
+                        )}
+                      </tr>
+                    );
+                  })
+                ) : (
+                  /*
+                   * =================================================
+                   * GENERIC FALLBACK
+                   * =================================================
+                   */
+                  <tr>
+                    <td className={styles.serialCell}>1</td>
+
+                    <td>
+                      <div className={styles.itemDescription}>
+                        {description}
+                      </div>
+                    </td>
+
+                    {isSale ? (
                       <td className={styles.numberCell}>
                         AED {formatAmount(finalAmount)}
                       </td>
-                    </>
-                  )}
-                </tr>
-              )}
-            </tbody>
-          </table>
-        )}
-      </section>
+                    ) : (
+                      <>
+                        <td className={styles.numberCell}>—</td>
 
+                        <td className={styles.numberCell}>—</td>
+
+                        <td className={styles.numberCell}>
+                          AED {formatAmount(finalAmount)}
+                        </td>
+                      </>
+                    )}
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          )}
+        </section>
+      )}
       {/* =====================================================
                 EXPENSE TOTALS
             ===================================================== */}
@@ -1253,22 +1281,26 @@ export default function PrintableVoucher({
         (paymentType === "advance" ? (
           <div className={styles.simplePaymentSummary}>
             <div className={styles.simplePaymentCard}>
-              <h4>Supplier Advance Payment</h4>
+              <h4>Supplier Advance Summary</h4>
 
-              <div className={styles.simplePaymentLine}>
-                <span>Previous Advance</span>
-                <strong>AED {formatAmount(advanceBefore ?? 0)}</strong>
-              </div>
+              {advanceBefore != null && (
+                <div className={styles.simplePaymentLine}>
+                  <span>Previous Advance Balance</span>
+                  <strong>AED {formatAmount(advanceBefore)}</strong>
+                </div>
+              )}
 
               <div className={styles.simplePaymentLine}>
                 <span>Advance Paid Now</span>
                 <strong>AED {formatAmount(paymentTotal)}</strong>
               </div>
 
-              <div className={styles.simplePaymentFinal}>
-                <span>Advance Available</span>
-                <strong>AED {formatAmount(advanceAfter ?? 0)}</strong>
-              </div>
+              {advanceAfter != null && (
+                <div className={styles.simplePaymentFinal}>
+                  <span>Total Advance Available</span>
+                  <strong>AED {formatAmount(advanceAfter)}</strong>
+                </div>
+              )}
             </div>
           </div>
         ) : normalizedPaymentAllocations.length > 0 ? (

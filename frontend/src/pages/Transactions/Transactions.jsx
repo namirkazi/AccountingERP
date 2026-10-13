@@ -363,7 +363,7 @@ export default function Transactions() {
   }, []);
 
   useEffect(() => {
-    if (type !== "payment" || paymentType !== "bill" || !party?.id) {
+    if (type !== "payment" || !party?.id) {
       setPaymentBills([]);
       setPaymentAllocations([]);
       setAvailableSupplierAdvance(0);
@@ -385,11 +385,19 @@ export default function Transactions() {
           return;
         }
 
-        setPaymentBills(response?.data?.expenses || []);
-
+        // Load available supplier advance for both payment types
         setAvailableSupplierAdvance(
           Math.max(0, Number(response?.data?.available_advance) || 0),
         );
+
+        // Only load outstanding bills for bill payments
+        if (paymentType === "bill") {
+          setPaymentBills(response?.data?.expenses || []);
+        } else {
+          // Advance payments don't have linked bills
+          setPaymentBills([]);
+          setPaymentAllocations([]);
+        }
       } catch (error) {
         if (cancelled) {
           return;
@@ -1327,7 +1335,7 @@ export default function Transactions() {
                       paymentAllocations={paymentAllocations}
                       paymentType={paymentType}
                       supplierAdvanceBefore={
-                        paymentType === "bill" ? availableSupplierAdvance : null
+                        type === "payment" ? availableSupplierAdvance : null
                       }
                       selectedReceiptBill={selectedReceiptBill}
                       receiptAmount={receiptAmount}
@@ -1393,7 +1401,7 @@ export default function Transactions() {
             paymentType={paymentType}
             supplierAdvanceBefore={
               savedAdvanceBalances?.before ??
-              (paymentType === "bill" ? availableSupplierAdvance : null)
+              (type === "payment" ? availableSupplierAdvance : null)
             }
             supplierAdvanceAfter={savedAdvanceBalances?.after ?? null}
             selectedReceiptBill={selectedReceiptBill}

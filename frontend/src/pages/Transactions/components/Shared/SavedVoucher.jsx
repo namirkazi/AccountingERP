@@ -46,7 +46,9 @@ export default function SavedVoucher({
 
   const title =
     type === "payment"
-      ? "Payment Voucher"
+      ? paymentType === "advance"
+        ? "Supplier Advance Voucher"
+        : "Payment Voucher"
       : type === "expense"
         ? "Expense Voucher"
         : type === "sale"

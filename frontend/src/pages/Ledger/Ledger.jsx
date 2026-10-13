@@ -1357,6 +1357,17 @@ export default function Ledger() {
                   paymentAccount={viewingVoucher.paymentAccount}
                   selectedPaymentBill={viewingVoucher.selectedPaymentBill}
                   paymentAllocations={viewingVoucher.paymentAllocations || []}
+                  paymentType={
+                    viewingVoucher.paymentType ||
+                    viewingVoucher.payment_type ||
+                    "bill"
+                  }
+                  supplierAdvanceBefore={
+                    viewingVoucher.supplierAdvanceBefore ?? null
+                  }
+                  supplierAdvanceAfter={
+                    viewingVoucher.supplierAdvanceAfter ?? null
+                  }
                   selectedReceiptBill={viewingVoucher.selectedReceiptBill}
                   narration={viewingVoucher.narration}
                 />

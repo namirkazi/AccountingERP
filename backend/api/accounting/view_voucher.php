@@ -187,7 +187,14 @@ try {
             )
         );
 
-
+    $paymentType =
+        $voucherType === 'PAYMENT'
+        ? strtolower(
+            trim(
+                (string) ($voucher['payment_type'] ?? 'bill')
+            )
+        )
+        : null;
     /*
     |--------------------------------------------------------------------------
     | PARTY
@@ -312,6 +319,88 @@ try {
     }
 
     unset($line);
+
+    /*
+|--------------------------------------------------------------------------
+| SUPPLIER ADVANCE BALANCE FOR VIEW VOUCHER
+|--------------------------------------------------------------------------
+|
+| Reconstruct balances as of this voucher,
+| not using the supplier's current balance.
+|
+*/
+
+    $supplierAdvanceBefore = null;
+    $supplierAdvanceAfter = null;
+
+    if (
+        $voucherType === 'PAYMENT' &&
+        (int) ($voucher['party_id'] ?? 0) > 0
+    ) {
+        $advanceBeforeStmt = $pdo->prepare("
+        SELECT
+            COALESCE(SUM(le.debit - le.credit), 0)
+
+        FROM ledger_entries le
+
+        INNER JOIN accounts a
+            ON a.id = le.account_id
+            AND a.company_id = le.company_id
+
+        INNER JOIN vouchers v
+            ON v.id = le.voucher_id
+            AND v.company_id = le.company_id
+
+        WHERE le.company_id = :company_id
+          AND le.party_id = :party_id
+          AND a.account_subtype = 'supplier_advance'
+
+          AND (
+              v.voucher_date < :before_date
+
+              OR (
+                  v.voucher_date = :same_date
+                  AND v.id < :payment_id
+              )
+          )
+    ");
+
+        $advanceBeforeStmt->execute([
+            ':company_id' => $companyId,
+            ':party_id' => (int) $voucher['party_id'],
+            ':before_date' => $voucher['voucher_date'],
+            ':same_date' => $voucher['voucher_date'],
+            ':payment_id' => $voucherId,
+        ]);
+
+        $supplierAdvanceBefore = round(
+            (float) $advanceBeforeStmt->fetchColumn(),
+            2
+        );
+
+        // Advance created or consumed by this voucher.
+        $advanceMovement = 0;
+
+        foreach ($ledgerEntries as $line) {
+            if (
+                strtolower(
+                    (string) ($line['account_subtype'] ?? '')
+                ) === 'supplier_advance'
+                &&
+                (int) ($line['party_id'] ?? 0) ===
+                (int) $voucher['party_id']
+            ) {
+                $advanceMovement +=
+                    (float) $line['debit'] -
+                    (float) $line['credit'];
+            }
+        }
+
+        $supplierAdvanceAfter = round(
+            $supplierAdvanceBefore + $advanceMovement,
+            2
+        );
+    }
 
     /*
 |--------------------------------------------------------------------------
@@ -788,6 +877,8 @@ try {
                 pa.id,
                 pa.expense_voucher_id,
                 pa.amount AS allocation_amount,
+                pa.advance_amount,
+                pa.cash_amount,
 
                 e.reference_number,
                 e.bill_reference,
@@ -1143,7 +1234,21 @@ try {
              */
                 'amount' =>
                 $thisPayment,
+                'advance_amount' =>
+                round(
+                    (float) ($allocationRow['advance_amount'] ?? 0),
+                    2
+                ),
 
+                'cash_amount' => (
+                    (float) ($allocationRow['advance_amount'] ?? 0) == 0
+                    && (float) ($allocationRow['cash_amount'] ?? 0) == 0
+                )
+                    ? $thisPayment
+                    : round(
+                        (float) $allocationRow['cash_amount'],
+                        2
+                    ),
                 /*
              * Balance after this Payment.
              */
@@ -1579,7 +1684,13 @@ try {
 
             'voucher_type' =>
             $voucherType,
+            'paymentType' => $paymentType,
 
+            'payment_type' => $paymentType,
+
+            'supplierAdvanceBefore' => $supplierAdvanceBefore,
+
+            'supplierAdvanceAfter' => $supplierAdvanceAfter,
             'date' =>
             $voucher['voucher_date'],
 
