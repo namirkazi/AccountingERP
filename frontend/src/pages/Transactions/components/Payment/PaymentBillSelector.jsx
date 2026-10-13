@@ -12,7 +12,12 @@ export default function PaymentBillSelector({
   paymentBills,
   paymentAllocations,
   setPaymentAllocations,
+  availableSupplierAdvance = 0,
 }) {
+  // =====================================================
+  // HELPERS
+  // =====================================================
+
   function getAllocation(billId) {
     return paymentAllocations.find(
       (allocation) => String(allocation.expense_id) === String(billId),
@@ -22,6 +27,24 @@ export default function PaymentBillSelector({
   function isSelected(billId) {
     return Boolean(getAllocation(billId));
   }
+
+  /*
+   * =====================================================
+   * SELECT BILL
+   * =====================================================
+   *
+   * By default:
+   *
+   * Total settlement = full outstanding
+   * Advance used     = 0
+   * Cash / Bank      = full outstanding
+   *
+   * Example:
+   *
+   * Outstanding      2,000
+   * Advance          0
+   * Cash / Bank      2,000
+   */
 
   function selectBill(bill) {
     const outstanding = Number(bill.outstanding_amount) || 0;
@@ -41,9 +64,29 @@ export default function PaymentBillSelector({
 
       return [
         ...current,
+
         {
           expense_id: Number(bill.id),
+
+          /*
+           * Total amount being settled
+           * against this Expense.
+           */
+
           amount: outstanding.toFixed(2),
+
+          /*
+           * Existing supplier advance
+           * being consumed.
+           */
+
+          advance_amount: "0.00",
+
+          /*
+           * Actual new Cash/Bank payment.
+           */
+
+          cash_amount: outstanding.toFixed(2),
 
           reference_number: bill.reference_number || "",
 
@@ -65,6 +108,10 @@ export default function PaymentBillSelector({
     });
   }
 
+  // =====================================================
+  // REMOVE BILL
+  // =====================================================
+
   function removeBill(billId) {
     setPaymentAllocations((current) =>
       current.filter(
@@ -72,6 +119,10 @@ export default function PaymentBillSelector({
       ),
     );
   }
+
+  // =====================================================
+  // TOGGLE BILL
+  // =====================================================
 
   function toggleBill(bill) {
     if (isSelected(bill.id)) {
@@ -82,63 +133,239 @@ export default function PaymentBillSelector({
     selectBill(bill);
   }
 
+  // =====================================================
+  // UPDATE TOTAL SETTLEMENT
+  // =====================================================
+
   function updateAmount(bill, value) {
     const outstanding = Number(bill.outstanding_amount) || 0;
 
-    let nextValue = value;
-
-    if (value !== "" && Number(value) > outstanding) {
-      nextValue = outstanding.toFixed(2);
-    }
-
     setPaymentAllocations((current) =>
-      current.map((allocation) =>
-        String(allocation.expense_id) === String(bill.id)
-          ? {
-              ...allocation,
-              amount: nextValue,
-            }
-          : allocation,
-      ),
+      current.map((allocation) => {
+        if (String(allocation.expense_id) !== String(bill.id)) {
+          return allocation;
+        }
+
+        // Allow clearing the field while typing.
+        if (value === "") {
+          return {
+            ...allocation,
+            amount: "",
+            advance_amount: "0.00",
+            cash_amount: "",
+          };
+        }
+
+        let settlement = Number(value);
+
+        if (!Number.isFinite(settlement)) {
+          return allocation;
+        }
+
+        settlement = Math.max(0, Math.min(settlement, outstanding));
+
+        const advance = Math.min(
+          Number(allocation.advance_amount) || 0,
+          settlement,
+        );
+
+        const cash = Math.max(0, Number((settlement - advance).toFixed(2)));
+
+        return {
+          ...allocation,
+          amount: Number(value) === settlement ? value : settlement.toFixed(2),
+          advance_amount: advance.toFixed(2),
+          cash_amount: cash.toFixed(2),
+        };
+      }),
     );
   }
+
+  // =====================================================
+  // UPDATE ADVANCE PORTION
+  // =====================================================
+
+  function updateAdvanceAmount(bill, value) {
+    setPaymentAllocations((current) =>
+      current.map((allocation) => {
+        if (String(allocation.expense_id) !== String(bill.id)) {
+          return allocation;
+        }
+
+        const settlement = Number(allocation.amount) || 0;
+
+        const usedByOtherBills = current.reduce((sum, item) => {
+          if (String(item.expense_id) === String(bill.id)) {
+            return sum;
+          }
+
+          return sum + (Number(item.advance_amount) || 0);
+        }, 0);
+
+        const remainingAdvance = Math.max(
+          0,
+          Number(availableSupplierAdvance || 0) - usedByOtherBills,
+        );
+
+        /*
+         * IMPORTANT:
+         * Preserve what the user is typing.
+         *
+         * This allows:
+         * ""
+         * "5"
+         * "50"
+         * "500"
+         *
+         * without React constantly turning it
+         * into 5.00 / 50.00 while typing.
+         */
+
+        if (value === "") {
+          return {
+            ...allocation,
+            advance_amount: "",
+            cash_amount: settlement.toFixed(2),
+          };
+        }
+
+        let advance = Number(value);
+
+        if (!Number.isFinite(advance)) {
+          advance = 0;
+        }
+
+        advance = Math.max(0, advance);
+
+        advance = Math.min(advance, settlement, remainingAdvance);
+
+        const cash = Math.max(0, settlement - advance);
+
+        return {
+          ...allocation,
+
+          /*
+           * Keep raw typed value unless
+           * we had to cap it.
+           */
+          advance_amount: Number(value) === advance ? value : String(advance),
+
+          cash_amount: cash.toFixed(2),
+        };
+      }),
+    );
+  }
+
+  // =====================================================
+  // UPDATE CASH/BANK PORTION
+  // =====================================================
+
+  function updateCashAmount(bill, value) {
+    setPaymentAllocations((current) =>
+      current.map((allocation) => {
+        if (String(allocation.expense_id) !== String(bill.id)) {
+          return allocation;
+        }
+
+        const settlement = Number(allocation.amount) || 0;
+
+        let cash = value === "" ? 0 : Math.max(0, Number(value) || 0);
+
+        if (cash > settlement) {
+          cash = settlement;
+        }
+
+        /*
+         * Cash + Advance must always equal
+         * the settlement amount.
+         */
+
+        const advance = Math.max(0, settlement - cash);
+
+        return {
+          ...allocation,
+
+          cash_amount: value === "" ? "" : cash.toFixed(2),
+
+          advance_amount: advance.toFixed(2),
+        };
+      }),
+    );
+  }
+
+  // =====================================================
+  // SELECT ALL
+  // =====================================================
 
   function selectAll() {
     const nextAllocations = paymentBills
       .filter((bill) => Number(bill.outstanding_amount) > 0)
-      .map((bill) => ({
-        expense_id: Number(bill.id),
+      .map((bill) => {
+        const outstanding = Number(bill.outstanding_amount) || 0;
 
-        amount: Number(bill.outstanding_amount || 0).toFixed(2),
+        return {
+          expense_id: Number(bill.id),
 
-        reference_number: bill.reference_number || "",
+          amount: outstanding.toFixed(2),
 
-        bill_reference: bill.bill_reference || "",
+          advance_amount: "0.00",
 
-        bill_amount: Number(bill.amount) || 0,
+          cash_amount: outstanding.toFixed(2),
 
-        paid_amount: Number(bill.paid_amount) || 0,
+          reference_number: bill.reference_number || "",
 
-        outstanding_amount: Number(bill.outstanding_amount) || 0,
+          bill_reference: bill.bill_reference || "",
 
-        party_name: bill.party_name || party?.party_name || "",
+          bill_amount: Number(bill.amount) || 0,
 
-        items: Array.isArray(bill.items) ? bill.items : [],
+          paid_amount: Number(bill.paid_amount) || 0,
 
-        items_summary: bill.items_summary || "",
-      }));
+          outstanding_amount: outstanding,
+
+          party_name: bill.party_name || party?.party_name || "",
+
+          items: Array.isArray(bill.items) ? bill.items : [],
+
+          items_summary: bill.items_summary || "",
+        };
+      });
 
     setPaymentAllocations(nextAllocations);
   }
+
+  // =====================================================
+  // CLEAR ALL
+  // =====================================================
 
   function clearAll() {
     setPaymentAllocations([]);
   }
 
-  const totalPayment = paymentAllocations.reduce(
+  // =====================================================
+  // TOTALS
+  // =====================================================
+
+  const totalSettlement = paymentAllocations.reduce(
     (sum, allocation) => sum + (Number(allocation.amount) || 0),
     0,
   );
+  const totalAdvance = paymentAllocations.reduce(
+    (sum, allocation) => sum + (Number(allocation.advance_amount) || 0),
+    0,
+  );
+  const remainingSupplierAdvance = Math.max(
+    0,
+    Number(availableSupplierAdvance || 0) - totalAdvance,
+  );
+
+  const totalCash = paymentAllocations.reduce(
+    (sum, allocation) => sum + (Number(allocation.cash_amount) || 0),
+    0,
+  );
+
+  // =====================================================
+  // NO SUPPLIER
+  // =====================================================
 
   if (!party) {
     return (
@@ -154,6 +381,10 @@ export default function PaymentBillSelector({
     );
   }
 
+  // =====================================================
+  // NO BILLS
+  // =====================================================
+
   if (paymentBills.length === 0) {
     return (
       <div className={styles.paymentSelection}>
@@ -168,10 +399,40 @@ export default function PaymentBillSelector({
     );
   }
 
+  // =====================================================
+  // UI
+  // =====================================================
+
   return (
     <div className={styles.paymentSelection}>
       <div className={styles.field}>
         <label>Outstanding Bills</label>
+        <div
+          style={{
+            marginTop: "8px",
+            marginBottom: "12px",
+            padding: "12px 14px",
+            border: "1px solid #e5e7eb",
+            borderRadius: "8px",
+            background: "#f9fafb",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: "12px",
+          }}
+        >
+          <span
+            style={{
+              fontSize: "13px",
+              color: "#6b7280",
+            }}
+          >
+            Available Supplier Advance
+          </span>
+
+          <strong>AED {formatMoney(availableSupplierAdvance)}</strong>
+        </div>
+        {/* SELECT / CLEAR */}
 
         <div
           style={{
@@ -194,6 +455,8 @@ export default function PaymentBillSelector({
           </button>
         </div>
 
+        {/* BILLS */}
+
         <div
           style={{
             display: "flex",
@@ -208,8 +471,16 @@ export default function PaymentBillSelector({
 
             const outstanding = Number(bill.outstanding_amount) || 0;
 
+            const settlement = Number(allocation?.amount) || 0;
+
+            const advanceUsed = Number(allocation?.advance_amount) || 0;
+
+            const cashUsed = Number(allocation?.cash_amount) || 0;
+
             return (
               <div key={bill.id} className={styles.selectedPaymentBill}>
+                {/* HEADER */}
+
                 <div className={styles.selectedPaymentBillHeader}>
                   <div
                     style={{
@@ -288,6 +559,8 @@ export default function PaymentBillSelector({
                   </div>
                 </div>
 
+                {/* BILL INFORMATION */}
+
                 <div className={styles.selectedPaymentBillAmounts}>
                   <div>
                     <span>Bill Total</span>
@@ -296,7 +569,7 @@ export default function PaymentBillSelector({
                   </div>
 
                   <div>
-                    <span>Already Paid</span>
+                    <span>Already Settled</span>
 
                     <strong>AED {formatMoney(bill.paid_amount)}</strong>
                   </div>
@@ -306,36 +579,172 @@ export default function PaymentBillSelector({
 
                     <strong>AED {formatMoney(outstanding)}</strong>
                   </div>
+                </div>
 
-                  <div>
-                    <span>Pay Now</span>
+                {/* SETTLEMENT SPLIT */}
 
-                    <div className={styles.amountField}>
-                      <span>AED</span>
+                {selected && (
+                  <div
+                    style={{
+                      marginTop: "14px",
+                      paddingTop: "14px",
+                      borderTop: "1px solid #e5e7eb",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                        gap: "12px",
+                      }}
+                    >
+                      {/* TOTAL SETTLEMENT */}
 
-                      <input
-                        type="number"
-                        min="0.01"
-                        max={outstanding}
-                        step="0.01"
-                        disabled={!selected}
-                        value={selected ? (allocation?.amount ?? "") : ""}
-                        placeholder="0.00"
-                        onChange={(event) =>
-                          updateAmount(bill, event.target.value)
-                        }
-                      />
+                      <div className={styles.field}>
+                        <label>Settlement</label>
+
+                        <div className={styles.amountField}>
+                          <span>AED</span>
+
+                          <input
+                            type="number"
+                            min="0.01"
+                            max={outstanding}
+                            step="0.01"
+                            value={allocation?.amount ?? ""}
+                            placeholder="Enter settlement amount"
+                            onChange={(event) =>
+                              updateAmount(bill, event.target.value)
+                            }
+                          />
+                        </div>
+                      </div>
+
+                      {/* ADVANCE */}
+
+                      <div className={styles.field}>
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            gap: "8px",
+                          }}
+                        >
+                          <label>Use Advance</label>
+
+                          {availableSupplierAdvance > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const usedByOtherBills =
+                                  paymentAllocations.reduce((sum, item) => {
+                                    if (
+                                      String(item.expense_id) ===
+                                      String(bill.id)
+                                    ) {
+                                      return sum;
+                                    }
+
+                                    return (
+                                      sum + (Number(item.advance_amount) || 0)
+                                    );
+                                  }, 0);
+
+                                const remainingAdvance = Math.max(
+                                  0,
+                                  Number(availableSupplierAdvance) -
+                                    usedByOtherBills,
+                                );
+
+                                const maxAdvance = Math.min(
+                                  settlement,
+                                  remainingAdvance,
+                                );
+
+                                updateAdvanceAmount(bill, String(maxAdvance));
+                              }}
+                              style={{
+                                border: "none",
+                                background: "transparent",
+                                padding: 0,
+                                fontSize: "11px",
+                                fontWeight: 600,
+                                cursor: "pointer",
+                                textDecoration: "underline",
+                              }}
+                            >
+                              Use Max
+                            </button>
+                          )}
+                        </div>
+
+                        <div className={styles.amountField}>
+                          <span>AED</span>
+
+                          <input
+                            type="number"
+                            min="0"
+                            max={settlement}
+                            step="0.01"
+                            value={allocation?.advance_amount ?? ""}
+                            placeholder="0.00"
+                            onChange={(event) =>
+                              updateAdvanceAmount(bill, event.target.value)
+                            }
+                          />
+                        </div>
+                      </div>
+
+                      {/* CASH / BANK */}
+
+                      <div className={styles.field}>
+                        <label>Cash / Bank</label>
+
+                        <div className={styles.amountField}>
+                          <span>AED</span>
+
+                          <input
+                            type="text"
+                            readOnly
+                            value={formatMoney(cashUsed)}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* SPLIT CHECK */}
+
+                    <div
+                      style={{
+                        marginTop: "10px",
+                        fontSize: "12px",
+                        color:
+                          Math.abs(advanceUsed + cashUsed - settlement) <= 0.001
+                            ? "#6b7280"
+                            : "#dc2626",
+                      }}
+                    >
+                      AED {formatMoney(advanceUsed)} advance + AED{" "}
+                      {formatMoney(cashUsed)} Cash/Bank = AED{" "}
+                      {formatMoney(settlement)} settlement
                     </div>
                   </div>
-                </div>
+                )}
               </div>
             );
           })}
         </div>
 
+        {/* =================================
+            TOTAL SUMMARY
+        ================================= */}
+
         <div
           className={styles.selectedPaymentBill}
-          style={{ marginTop: "14px" }}
+          style={{
+            marginTop: "14px",
+          }}
         >
           <div className={styles.selectedPaymentBillHeader}>
             <span>
@@ -343,8 +752,64 @@ export default function PaymentBillSelector({
               {paymentAllocations.length === 1 ? "" : "s"} selected
             </span>
 
-            <strong>TOTAL PAYMENT: AED {formatMoney(totalPayment)}</strong>
+            <strong>
+              TOTAL SETTLEMENT: AED {formatMoney(totalSettlement)}
+            </strong>
           </div>
+
+          {paymentAllocations.length > 0 && (
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                gap: "12px",
+                marginTop: "12px",
+              }}
+            >
+              <div>
+                <span
+                  style={{
+                    display: "block",
+                    fontSize: "12px",
+                    color: "#6b7280",
+                    marginBottom: "4px",
+                  }}
+                >
+                  From Supplier Advance
+                </span>
+
+                <strong>AED {formatMoney(totalAdvance)}</strong>
+              </div>
+              <div>
+                <span
+                  style={{
+                    display: "block",
+                    fontSize: "12px",
+                    color: "#6b7280",
+                    marginBottom: "4px",
+                  }}
+                >
+                  Advance Remaining
+                </span>
+
+                <strong>AED {formatMoney(remainingSupplierAdvance)}</strong>
+              </div>
+              <div>
+                <span
+                  style={{
+                    display: "block",
+                    fontSize: "12px",
+                    color: "#6b7280",
+                    marginBottom: "4px",
+                  }}
+                >
+                  From Cash / Bank
+                </span>
+
+                <strong>AED {formatMoney(totalCash)}</strong>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -29,20 +29,26 @@ try {
     $search = trim(
         $_GET['search'] ?? ''
     );
+    $partyId =
+        (int) (
+            $_GET['party_id']
+            ?? 0
+        );
 
-
-    if ($search === '') {
+    if ($search === '' && $partyId <= 0) {
 
         echo json_encode([
             'success' => true,
+
             'data' => [
+                'supplier' => null,
+                'available_advance' => 0,
                 'expenses' => []
             ]
         ]);
 
         exit;
     }
-
 
     /*
     |--------------------------------------------------------------------------
@@ -283,7 +289,162 @@ try {
 
     $expenses =
         $stmt->fetchAll();
+    /*
+|--------------------------------------------------------------------------
+| SUPPLIER ADVANCE BALANCE
+|--------------------------------------------------------------------------
+*/
 
+    $supplier = null;
+
+    $availableAdvance = 0;
+
+
+    /*
+ * Get the exact selected supplier.
+ */
+
+    if ($partyId > 0) {
+
+        $supplierStmt =
+            $pdo->prepare("
+            SELECT
+                id,
+                party_name
+
+            FROM parties
+
+            WHERE company_id =
+                :company_id
+
+            AND id =
+                :party_id
+
+            LIMIT 1
+        ");
+
+
+        $supplierStmt->execute([
+            ':company_id' =>
+            $companyId,
+
+            ':party_id' =>
+            $partyId
+        ]);
+
+
+        $supplierRow =
+            $supplierStmt->fetch(
+                PDO::FETCH_ASSOC
+            );
+
+
+        if ($supplierRow) {
+
+            $supplier = [
+                'id' =>
+                (int) $supplierRow['id'],
+
+                'party_name' =>
+                $supplierRow['party_name']
+            ];
+
+
+            /*
+         * Find Supplier Advances account.
+         */
+
+            $advanceAccountStmt =
+                $pdo->prepare("
+                SELECT id
+
+                FROM accounts
+
+                WHERE company_id =
+                    :company_id
+
+                AND account_subtype =
+                    'supplier_advance'
+
+                LIMIT 1
+            ");
+
+
+            $advanceAccountStmt->execute([
+                ':company_id' =>
+                $companyId
+            ]);
+
+
+            $advanceAccountId =
+                (int) (
+                    $advanceAccountStmt
+                    ->fetchColumn()
+                    ?: 0
+                );
+
+
+            /*
+         * Calculate remaining supplier advance.
+         *
+         * Asset account:
+         *
+         * Debit  = advance created
+         * Credit = advance consumed
+         */
+
+            if ($advanceAccountId > 0) {
+
+                $advanceBalanceStmt =
+                    $pdo->prepare("
+                    SELECT
+                        COALESCE(
+                            SUM(
+                                debit - credit
+                            ),
+                            0
+                        )
+
+                    FROM ledger_entries
+
+                    WHERE company_id =
+                        :company_id
+
+                    AND account_id =
+                        :account_id
+
+                    AND party_id =
+                        :party_id
+                ");
+
+
+                $advanceBalanceStmt->execute([
+                    ':company_id' =>
+                    $companyId,
+
+                    ':account_id' =>
+                    $advanceAccountId,
+
+                    ':party_id' =>
+                    $partyId
+                ]);
+
+
+                $availableAdvance =
+                    round(
+                        (float)
+                        $advanceBalanceStmt
+                            ->fetchColumn(),
+                        2
+                    );
+
+
+                if ($availableAdvance < 0) {
+                    $availableAdvance = 0;
+                }
+            }
+        }
+    }
     /*
 |--------------------------------------------------------------------------
 | SOURCE EXPENSE ITEMS
@@ -595,6 +756,12 @@ try {
         true,
 
         'data' => [
+
+            'supplier' =>
+            $supplier,
+
+            'available_advance' =>
+            $availableAdvance,
 
             'expenses' =>
             $expenses

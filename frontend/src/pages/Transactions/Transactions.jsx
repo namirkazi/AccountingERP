@@ -97,7 +97,11 @@ export default function Transactions() {
   const [paymentBills, setPaymentBills] = useState([]);
 
   const [paymentAllocations, setPaymentAllocations] = useState([]);
+  const [paymentType, setPaymentType] = useState("bill");
 
+  const [advanceAmount, setAdvanceAmount] = useState("");
+  const [availableSupplierAdvance, setAvailableSupplierAdvance] = useState(0);
+  const [savedAdvanceBalances, setSavedAdvanceBalances] = useState(null);
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
 
   const [party, setParty] = useState(null);
@@ -130,11 +134,13 @@ export default function Transactions() {
   const [company, setCompany] = useState(null);
   const [expenseAttachment, setExpenseAttachment] = useState(null);
 
-  const paymentAmount = paymentAllocations.reduce(
+  const billPaymentAmount = paymentAllocations.reduce(
     (sum, allocation) => sum + (Number(allocation.amount) || 0),
     0,
   );
 
+  const paymentAmount =
+    paymentType === "advance" ? Number(advanceAmount) || 0 : billPaymentAmount;
   const selectedPaymentBill =
     paymentAllocations.length === 1 ? paymentAllocations[0] : null;
   /* Receipt Number */
@@ -357,9 +363,10 @@ export default function Transactions() {
   }, []);
 
   useEffect(() => {
-    if (type !== "payment" || !party?.party_name) {
+    if (type !== "payment" || paymentType !== "bill" || !party?.id) {
       setPaymentBills([]);
       setPaymentAllocations([]);
+      setAvailableSupplierAdvance(0);
       return;
     }
 
@@ -369,13 +376,20 @@ export default function Transactions() {
       try {
         setError("");
 
-        const response = await searchPaymentExpenses(party.party_name);
+        const response = await searchPaymentExpenses(
+          party.id,
+          party.party_name || "",
+        );
 
         if (cancelled) {
           return;
         }
 
         setPaymentBills(response?.data?.expenses || []);
+
+        setAvailableSupplierAdvance(
+          Math.max(0, Number(response?.data?.available_advance) || 0),
+        );
       } catch (error) {
         if (cancelled) {
           return;
@@ -384,6 +398,9 @@ export default function Transactions() {
         console.error("Unable to load payment expenses:", error);
 
         setPaymentBills([]);
+        setPaymentAllocations([]);
+        setAvailableSupplierAdvance(0);
+
         setError(error.message || "Unable to load outstanding bills.");
       }
     }
@@ -393,7 +410,7 @@ export default function Transactions() {
     return () => {
       cancelled = true;
     };
-  }, [type, party?.id, party?.party_name]);
+  }, [type, paymentType, party?.id, party?.party_name]);
   useEffect(() => {
     if (type !== "receipt" || !party?.party_name) {
       setReceiptBills([]);
@@ -453,6 +470,10 @@ export default function Transactions() {
     setPaymentAccount(null);
     setPaymentBills([]);
     setPaymentAllocations([]);
+    setPaymentType("bill");
+    setAdvanceAmount("");
+    setAvailableSupplierAdvance(0);
+    setSavedAdvanceBalances(null);
     setReceiptBills([]);
     setSelectedReceiptBill(null);
     setReceiptAmount("");
@@ -478,6 +499,10 @@ export default function Transactions() {
     setSelectedReceiptBill(null);
     setReceiptAmount("");
     setPaymentAllocations([]);
+    setPaymentType("bill");
+    setAdvanceAmount("");
+    setAvailableSupplierAdvance(0);
+    setSavedAdvanceBalances(null);
     setMessage("");
     setError("");
 
@@ -610,7 +635,9 @@ export default function Transactions() {
     }
     const currentAmount =
       type === "payment"
-        ? Number(paymentAmount)
+        ? paymentType === "advance"
+          ? Number(advanceAmount)
+          : Number(billPaymentAmount)
         : type === "expense"
           ? Number(totalAmount)
           : type === "sale"
@@ -681,42 +708,102 @@ export default function Transactions() {
       }
     }
     if (type === "payment") {
-      if (
-        !Array.isArray(paymentAllocations) ||
-        paymentAllocations.length === 0
-      ) {
-        setError("Please select at least one bill to pay.");
-        return;
-      }
+      /*
+       * =========================================
+       * ADVANCE PAYMENT
+       * =========================================
+       */
 
-      if (!accountId) {
-        setError("Please select Cash or Bank.");
-        return;
-      }
-
-      for (const allocation of paymentAllocations) {
-        const allocationAmount = Number(allocation.amount) || 0;
-
-        const outstanding = Number(allocation.outstanding_amount) || 0;
-
-        if (allocationAmount <= 0) {
-          setError(
-            "Every selected bill must have a payment amount greater than zero.",
-          );
+      if (paymentType === "advance") {
+        if (!party) {
+          setError("Please select a supplier.");
           return;
         }
 
-        if (allocationAmount > outstanding + 0.001) {
-          setError(
-            `Payment for ${
-              allocation.reference_number ||
-              allocation.bill_reference ||
-              `bill #${allocation.expense_id}`
-            } cannot exceed its outstanding amount of AED ${outstanding.toFixed(
-              2,
-            )}.`,
-          );
+        if (
+          !Number.isFinite(Number(advanceAmount)) ||
+          Number(advanceAmount) <= 0
+        ) {
+          setError("Please enter a valid advance amount.");
+          return;
+        }
 
+        if (!accountId) {
+          setError("Please select Cash or Bank.");
+          return;
+        }
+      }
+
+      /*
+       * =========================================
+       * BILL PAYMENT
+       * =========================================
+       */
+
+      if (paymentType === "bill") {
+        if (
+          !Array.isArray(paymentAllocations) ||
+          paymentAllocations.length === 0
+        ) {
+          setError("Please select at least one bill to pay.");
+          return;
+        }
+
+        let totalCashAmount = 0;
+
+        for (const allocation of paymentAllocations) {
+          const allocationAmount = Number(allocation.amount) || 0;
+
+          const advanceAmount = Number(allocation.advance_amount) || 0;
+
+          const cashAmount =
+            Number(allocation.cash_amount ?? allocationAmount) || 0;
+
+          const outstanding = Number(allocation.outstanding_amount) || 0;
+
+          if (allocationAmount <= 0) {
+            setError(
+              "Every selected bill must have a settlement amount greater than zero.",
+            );
+            return;
+          }
+
+          if (advanceAmount < 0 || cashAmount < 0) {
+            setError("Advance and Cash/Bank amounts cannot be negative.");
+            return;
+          }
+
+          if (Math.abs(advanceAmount + cashAmount - allocationAmount) > 0.001) {
+            setError(
+              "Advance amount plus Cash/Bank amount must equal the bill settlement amount.",
+            );
+            return;
+          }
+
+          if (allocationAmount > outstanding + 0.001) {
+            setError(
+              `Payment for ${
+                allocation.reference_number ||
+                allocation.bill_reference ||
+                `bill #${allocation.expense_id}`
+              } cannot exceed its outstanding amount of AED ${outstanding.toFixed(
+                2,
+              )}.`,
+            );
+
+            return;
+          }
+
+          totalCashAmount += cashAmount;
+        }
+
+        /*
+         * Only require a Cash/Bank account if
+         * this settlement actually uses Cash/Bank.
+         */
+
+        if (totalCashAmount > 0 && !accountId) {
+          setError("Please select Cash or Bank.");
           return;
         }
       }
@@ -772,17 +859,45 @@ export default function Transactions() {
 
       if (type === "payment") {
         response = await createPayment({
-          payment_account_id: Number(accountId),
+          payment_type: paymentType,
+
+          party_id:
+            paymentType === "advance"
+              ? Number(party?.id) || 0
+              : Number(party?.id) || 0,
+
+          payment_account_id: Number(accountId) || 0,
+
+          amount:
+            paymentType === "advance"
+              ? Number(advanceAmount) || 0
+              : Number(billPaymentAmount) || 0,
 
           date,
 
           narration: narration.trim(),
 
-          allocations: paymentAllocations.map((allocation) => ({
-            expense_id: Number(allocation.expense_id),
+          allocations:
+            paymentType === "bill"
+              ? paymentAllocations.map((allocation) => {
+                  const allocationAmount = Number(allocation.amount) || 0;
 
-            amount: Number(allocation.amount) || 0,
-          })),
+                  const advancePart = Number(allocation.advance_amount) || 0;
+
+                  const cashPart =
+                    Number(allocation.cash_amount ?? allocationAmount) || 0;
+
+                  return {
+                    expense_id: Number(allocation.expense_id),
+
+                    amount: allocationAmount,
+
+                    advance_amount: advancePart,
+
+                    cash_amount: cashPart,
+                  };
+                })
+              : [],
         });
       } else if (type === "capital") {
         // Capital API will be wired here next.
@@ -911,6 +1026,17 @@ export default function Transactions() {
       }
 
       if (type === "payment") {
+        const advanceBefore = response?.data?.advance_balance_before;
+        const advanceAfter = response?.data?.advance_balance_after;
+
+        setSavedAdvanceBalances(
+          advanceBefore != null && advanceAfter != null
+            ? {
+                before: Number(advanceBefore),
+                after: Number(advanceAfter),
+              }
+            : null,
+        );
         const savedPaymentNumber =
           response?.data?.reference_number || response?.reference_number || "";
 
@@ -1040,6 +1166,11 @@ export default function Transactions() {
               setDate={setDate}
               party={party}
               setParty={setParty}
+              paymentType={paymentType}
+              setPaymentType={setPaymentType}
+              advanceAmount={advanceAmount}
+              setAdvanceAmount={setAdvanceAmount}
+              availableSupplierAdvance={availableSupplierAdvance}
               paymentBills={paymentBills}
               paymentAllocations={paymentAllocations}
               setPaymentAllocations={setPaymentAllocations}
@@ -1159,7 +1290,7 @@ export default function Transactions() {
                       billReference={
                         type === "expense"
                           ? referenceNumber
-                          : type === "payment"
+                          : type === "payment" && paymentType === "bill"
                             ? selectedPaymentBill?.bill_reference || ""
                             : ""
                       }
@@ -1194,6 +1325,10 @@ export default function Transactions() {
                       paymentAccount={paymentAccount}
                       selectedPaymentBill={selectedPaymentBill}
                       paymentAllocations={paymentAllocations}
+                      paymentType={paymentType}
+                      supplierAdvanceBefore={
+                        paymentType === "bill" ? availableSupplierAdvance : null
+                      }
                       selectedReceiptBill={selectedReceiptBill}
                       receiptAmount={receiptAmount}
                       narration={narration}
@@ -1236,7 +1371,9 @@ export default function Transactions() {
             billReference={
               type === "expense"
                 ? referenceNumber
-                : type === "payment" && paymentAllocations.length === 1
+                : type === "payment" &&
+                    paymentType === "bill" &&
+                    paymentAllocations.length === 1
                   ? paymentAllocations[0]?.bill_reference || ""
                   : ""
             }
@@ -1253,6 +1390,12 @@ export default function Transactions() {
             paymentAccount={paymentAccount}
             selectedPaymentBill={selectedPaymentBill}
             paymentAllocations={paymentAllocations}
+            paymentType={paymentType}
+            supplierAdvanceBefore={
+              savedAdvanceBalances?.before ??
+              (paymentType === "bill" ? availableSupplierAdvance : null)
+            }
+            supplierAdvanceAfter={savedAdvanceBalances?.after ?? null}
             selectedReceiptBill={selectedReceiptBill}
             receiptAmount={receiptAmount}
             narration={narration}

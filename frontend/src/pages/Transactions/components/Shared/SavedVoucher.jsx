@@ -35,7 +35,9 @@ export default function SavedVoucher({
   receiptAmount,
 
   narration,
-
+  paymentType = "bill",
+  supplierAdvanceBefore = null,
+  supplierAdvanceAfter = null,
   closeSavedVoucher,
 }) {
   const voucherRef = useRef(null);
@@ -128,6 +130,9 @@ export default function SavedVoucher({
           paymentAccount={paymentAccount}
           selectedPaymentBill={selectedPaymentBill}
           paymentAllocations={paymentAllocations}
+          paymentType={paymentType}
+          supplierAdvanceBefore={supplierAdvanceBefore}
+          supplierAdvanceAfter={supplierAdvanceAfter}
           selectedReceiptBill={selectedReceiptBill}
           receiptAmount={receiptAmount}
           narration={narration}

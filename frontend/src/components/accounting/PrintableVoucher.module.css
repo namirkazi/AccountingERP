@@ -677,7 +677,28 @@
 /* =========================================================
    PAYMENT SUMMARY
    ========================================================= */
+.paymentSummaryStack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 16px;
+}
 
+.paymentSummaryBox {
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+}
+
+.paymentSummaryTitle {
+  padding: 10px 14px;
+  border-bottom: 1px solid #d1d5db;
+  background: #f9fafb;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #374151;
+}
 .paymentSummary {
   width: 100%;
   max-width: 430px;
@@ -1123,5 +1144,186 @@
 
   .documentFooter span:last-child {
     text-align: left;
+  }
+}
+
+/* ================================================
+   PAYMENT VOUCHER - TWO COLUMN SUMMARY
+   ================================================ */
+
+.paymentSummaryGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.3fr);
+  gap: 12px;
+  width: 100%;
+  margin-top: 18px;
+  align-items: start;
+}
+
+.paymentSummaryGridSingle {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.paymentSummaryPanel {
+  min-width: 0;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.paymentSummaryHeading {
+  padding: 10px 12px;
+  background: #f3f4f6;
+  border-bottom: 1px solid #d1d5db;
+  color: #374151;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.paymentSummaryRows {
+  display: flex;
+  flex-direction: column;
+}
+
+.paymentSummaryRow,
+.paymentSummaryHighlight,
+.paymentSummaryTotal {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 10px;
+}
+
+.paymentSummaryRows > div:last-child {
+  border-bottom: none;
+}
+
+.paymentSummaryRow span,
+.paymentSummaryHighlight span,
+.paymentSummaryTotal span {
+  color: #4b5563;
+  min-width: 0;
+  line-height: 1.4;
+}
+
+.paymentSummaryRow strong,
+.paymentSummaryHighlight strong,
+.paymentSummaryTotal strong {
+  color: #111827;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.paymentSummaryHighlight {
+  background: #f9fafb;
+  font-weight: 700;
+}
+
+.paymentSummaryHighlight span,
+.paymentSummaryHighlight strong {
+  color: #111827;
+  font-weight: 700;
+}
+
+.paymentSummaryTotal {
+  background: #e5e7eb;
+  font-weight: 800;
+}
+
+.paymentSummaryTotal span,
+.paymentSummaryTotal strong {
+  color: #111827;
+  font-weight: 800;
+}
+
+/* Mobile screen only.
+   Printed/PDF voucher keeps the two-column layout. */
+@media screen and (max-width: 600px) {
+  .paymentSummaryGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Compact Payment Voucher Summary */
+
+.simplePaymentSummary {
+  display: flex;
+  gap: 16px;
+  margin-top: 22px;
+  width: 100%;
+  align-items: flex-start;
+}
+
+.simplePaymentCard {
+  flex: 1;
+  min-width: 0;
+  padding: 14px 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #fff;
+  break-inside: avoid;
+}
+
+.simplePaymentCard h4 {
+  margin: 0 0 14px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.simplePaymentLine,
+.simplePaymentFinal {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 10px;
+  font-size: 11px;
+}
+
+.simplePaymentLine span {
+  color: #6b7280;
+}
+
+.simplePaymentLine strong {
+  font-weight: 600;
+  color: #374151;
+  white-space: nowrap;
+}
+
+.simplePaymentFinal {
+  margin-top: 12px;
+  padding-top: 12px;
+  margin-bottom: 0;
+  border-top: 1px solid #e5e7eb;
+}
+
+.simplePaymentFinal span,
+.simplePaymentFinal strong {
+  color: #111827;
+  font-weight: 700;
+}
+
+.simplePaymentFinal strong {
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+@media screen and (max-width: 600px) {
+  .simplePaymentSummary {
+    flex-direction: column;
+  }
+
+  .simplePaymentCard {
+    width: 100%;
+    box-sizing: border-box;
   }
 }

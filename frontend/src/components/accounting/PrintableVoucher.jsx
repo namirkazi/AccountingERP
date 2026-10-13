@@ -382,7 +382,9 @@ export default function PrintableVoucher({
   selectedReceiptBill,
 
   receiptAmount,
-
+  paymentType = "bill",
+  supplierAdvanceBefore = null,
+  supplierAdvanceAfter = null,
   narration,
 
   /*
@@ -656,7 +658,38 @@ export default function PrintableVoucher({
     (sum, allocation) => sum + allocation.outstandingAfter,
     0,
   );
+  // Amount of existing supplier advances applied to these bills.
+  const paymentAdvanceUsed = normalizedPaymentAllocations.reduce(
+    (sum, allocation) => sum + (Number(allocation.advance_amount) || 0),
+    0,
+  );
 
+  // Actual new Cash/Bank payment.
+  const paymentCashUsed = normalizedPaymentAllocations.reduce(
+    (sum, allocation) =>
+      sum +
+      Number(
+        allocation.cash_amount ??
+          Math.max(
+            0,
+            allocation.thisPayment - (Number(allocation.advance_amount) || 0),
+          ),
+      ),
+    0,
+  );
+
+  // Supplier advance balance immediately before settlement.
+  const advanceBefore =
+    supplierAdvanceBefore == null ? null : Number(supplierAdvanceBefore);
+
+  // Prefer the backend's saved balance.
+  // Otherwise calculate the live-preview estimate.
+  const advanceAfter =
+    supplierAdvanceAfter != null
+      ? Number(supplierAdvanceAfter)
+      : advanceBefore != null
+        ? Math.max(0, advanceBefore - paymentAdvanceUsed)
+        : null;
   const accountMethod = paymentAccount?.displayName || "—";
 
   if (isPayment) {
@@ -804,7 +837,11 @@ export default function PrintableVoucher({
               {isPayment || isReceipt ? "AGAINST BILL" : "REFERENCE NO."}
             </span>
 
-            <strong>{externalReference}</strong>
+            <strong>
+              {isPayment && normalizedPaymentAllocations.length > 1
+                ? `${normalizedPaymentAllocations.length} Bills`
+                : externalReference}
+            </strong>
           </div>
         )}
 
@@ -855,10 +892,22 @@ export default function PrintableVoucher({
                     {/* BILL / REFERENCE */}
 
                     <td>
+                      {/* Accounting Expense Voucher Number */}
                       <div className={styles.itemDescription}>
-                        {clean(allocation.party_name) || partyName}
+                        <strong>
+                          {clean(allocation.reference_number) ||
+                            `Voucher #${allocation.expense_id}`}
+                        </strong>
                       </div>
 
+                      {/* Supplier's Original Bill Reference */}
+                      {clean(allocation.bill_reference) && (
+                        <div className={styles.itemSubtext}>
+                          Supplier Ref: {allocation.bill_reference}
+                        </div>
+                      )}
+
+                      {/* Original Expense Items */}
                       {getPaymentAllocationItems(allocation).map(
                         (itemDescription, itemIndex) => (
                           <div key={itemIndex} className={styles.itemSubtext}>
@@ -1200,45 +1249,91 @@ export default function PrintableVoucher({
                 PAYMENT SUMMARY
             ===================================================== */}
 
-      {isPayment && (
-        <section className={styles.paymentSummary}>
-          <div>
-            <span>Bills Included</span>
+      {isPayment &&
+        (paymentType === "advance" ? (
+          <div className={styles.simplePaymentSummary}>
+            <div className={styles.simplePaymentCard}>
+              <h4>Supplier Advance Payment</h4>
 
-            <strong>{normalizedPaymentAllocations.length}</strong>
+              <div className={styles.simplePaymentLine}>
+                <span>Previous Advance</span>
+                <strong>AED {formatAmount(advanceBefore ?? 0)}</strong>
+              </div>
+
+              <div className={styles.simplePaymentLine}>
+                <span>Advance Paid Now</span>
+                <strong>AED {formatAmount(paymentTotal)}</strong>
+              </div>
+
+              <div className={styles.simplePaymentFinal}>
+                <span>Advance Available</span>
+                <strong>AED {formatAmount(advanceAfter ?? 0)}</strong>
+              </div>
+            </div>
           </div>
+        ) : normalizedPaymentAllocations.length > 0 ? (
+          <div className={styles.simplePaymentSummary}>
+            {/* LEFT — SHOW ONLY WHEN ADVANCE EXISTS */}
+            {(paymentAdvanceUsed > 0 ||
+              (advanceBefore != null && advanceBefore > 0) ||
+              (advanceAfter != null && advanceAfter > 0)) && (
+              <div className={styles.simplePaymentCard}>
+                <h4>Supplier Advance</h4>
 
-          <div>
-            <span>Total Bill Value</span>
+                {advanceBefore != null && (
+                  <div className={styles.simplePaymentLine}>
+                    <span>Advance Before</span>
+                    <strong>AED {formatAmount(advanceBefore)}</strong>
+                  </div>
+                )}
 
-            <strong>AED {formatAmount(paymentBillTotal)}</strong>
+                <div className={styles.simplePaymentLine}>
+                  <span>Advance Used</span>
+                  <strong>AED {formatAmount(paymentAdvanceUsed)}</strong>
+                </div>
+
+                {advanceAfter != null && (
+                  <div className={styles.simplePaymentFinal}>
+                    <span>Advance Remaining</span>
+                    <strong>AED {formatAmount(advanceAfter)}</strong>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* RIGHT — BILL SUMMARY */}
+            <div className={styles.simplePaymentCard}>
+              <h4>Bill Summary</h4>
+
+              <div className={styles.simplePaymentLine}>
+                <span>Total Bills</span>
+                <strong>AED {formatAmount(paymentBillTotal)}</strong>
+              </div>
+
+              <div className={styles.simplePaymentLine}>
+                <span>Previously Settled</span>
+                <strong>AED {formatAmount(paymentPreviouslyPaid)}</strong>
+              </div>
+
+              <div className={styles.simplePaymentLine}>
+                <span>Settled Now</span>
+                <strong>AED {formatAmount(effectivePaymentTotal)}</strong>
+              </div>
+
+              {paymentAdvanceUsed > 0 && (
+                <div className={styles.simplePaymentLine}>
+                  <span>Cash / Bank Paid Now</span>
+                  <strong>AED {formatAmount(paymentCashUsed)}</strong>
+                </div>
+              )}
+
+              <div className={styles.simplePaymentFinal}>
+                <span>Outstanding Balance</span>
+                <strong>AED {formatAmount(paymentBalanceAfter)}</strong>
+              </div>
+            </div>
           </div>
-
-          <div>
-            <span>Previously Paid</span>
-
-            <strong>AED {formatAmount(paymentPreviouslyPaid)}</strong>
-          </div>
-
-          <div>
-            <span>This Payment</span>
-
-            <strong>AED {formatAmount(effectivePaymentTotal)}</strong>
-          </div>
-
-          <div className={styles.paymentBalance}>
-            <span>Remaining Balance</span>
-
-            <strong>AED {formatAmount(paymentBalanceAfter)}</strong>
-          </div>
-
-          <div className={styles.paymentTotal}>
-            <span>TOTAL PAID NOW</span>
-
-            <strong>AED {formatAmount(effectivePaymentTotal)}</strong>
-          </div>
-        </section>
-      )}
+        ) : null)}
 
       {/* =====================================================
                 AMOUNT IN WORDS
